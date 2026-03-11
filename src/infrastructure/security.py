@@ -4,7 +4,7 @@ from passlib.context import CryptContext
 
 SECRET_KEY = "your-very-secret-key-to-securely-encrypt" # In a real app, this should be an environment variable
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 24 * 60  # 24 horas
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

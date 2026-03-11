@@ -172,5 +172,5 @@ def test_get_weather_with_token(client):
     response = client.get("/weather", headers=headers)
     
     assert response.status_code == 200
-    assert isinstance(response.json(), list)
-    assert len(response.json()) > 0
+    assert isinstance(response.json(), dict)
+    assert response.json()["nombre"] == "TURÍS"
