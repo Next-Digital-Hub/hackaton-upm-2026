@@ -145,35 +145,103 @@
         .user-list li b {
             color: #007bff;
         }
+
+        .toggle-link {
+            display: block;
+            text-align: center;
+            margin-top: 1rem;
+            color: #007bff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .toggle-link:hover {
+            text-decoration: underline;
+        }
+
+        .token-card {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        #login-card {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="card">
+    <div class="card" id="register-card">
         <h1>{{ message }}</h1>
         
         <h2>Registro</h2>
-        {% if error %}
+        {% if error and not token %}
             <div class="error-message">{{ error }}</div>
         {% endif %}
         
+        {% if token %}
+            <div class="token-card">
+                <p><strong>Copia este token para usarlo en tus peticiones a la API:</strong></p>
+                {{ token }}
+            </div>
+        {% else %}
         <form action="/register" method="post">
             <div class="form-group">
-                <label for="nickName">Nick Name</label>
-                <input id="nickName" name="nickName" pattern="^[a-zA-Z0-9_]+$" placeholder="Tu alias" required title="El nickname no puede contener espacios ni caracteres extraños" type="text">
+                <label for="reg-nickName">Nick Name</label>
+                <input id="reg-nickName" name="nickName" pattern="^[a-zA-Z0-9_]+$" placeholder="Tu alias" required title="El nickname no puede contener espacios ni caracteres extraños" type="text">
             </div>
             
             <div class="form-group">
-                <label for="teamName">Nombre del Equipo</label>
-                <input id="teamName" name="teamName" placeholder="Nombre de tu equipo" required type="text">
+                <label for="reg-teamName">Nombre del Equipo</label>
+                <input id="reg-teamName" name="teamName" placeholder="Nombre de tu equipo" required type="text">
             </div>
             
             <div class="form-group">
-                <label for="password">Contraseña</label>
-                <input id="password" name="password" placeholder="********" required type="password">
+                <label for="reg-password">Contraseña</label>
+                <input id="reg-password" name="password" placeholder="********" required type="password">
             </div>
             
             <button type="submit">Registrar</button>
         </form>
+        <a class="toggle-link" onclick="showLogin()">¿Ya tienes cuenta? Haz login</a>
+        {% endif %}
+    </div>
+
+    <div class="card" id="login-card">
+        <h1>{{ message }}</h1>
+        
+        <h2>Login</h2>
+        {% if error and not token %}
+            <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        {% if token %}
+            <div class="token-card">
+                <p><strong>Copia este token para usarlo en tus peticiones a la API:</strong></p>
+                {{ token }}
+            </div>
+        {% else %}
+        <form action="/login" method="post">
+            <div class="form-group">
+                <label for="login-nickName">Nick Name</label>
+                <input id="login-nickName" name="nickName" placeholder="Tu alias" required type="text">
+            </div>
+            
+            <div class="form-group">
+                <label for="login-password">Contraseña</label>
+                <input id="login-password" name="password" placeholder="********" required type="password">
+            </div>
+            
+            <button type="submit">Entrar</button>
+        </form>
+        <a class="toggle-link" onclick="showRegister()">¿No tienes cuenta? Regístrate</a>
+        {% endif %}
     </div>
 
     <div class="collapsible-container">
@@ -186,5 +254,25 @@
             </ul>
         </details>
     </div>
+
+    <script>
+        function showLogin() {
+            document.getElementById('register-card').style.display = 'none';
+            document.getElementById('login-card').style.display = 'block';
+        }
+
+        function showRegister() {
+            document.getElementById('register-card').style.display = 'block';
+            document.getElementById('login-card').style.display = 'none';
+        }
+
+        // Si hay un token o un error que vino de login, mostrar el card de login
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('registered')) {
+            showRegister();
+        } else if (urlParams.has('token') || (urlParams.has('error') && !urlParams.get('error').includes('nickname'))) {
+            showLogin();
+        }
+    </script>
 </body>
 </html>

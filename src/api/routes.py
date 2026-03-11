@@ -8,13 +8,26 @@ router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 @router.get("/", response_class=HTMLResponse)
-async def read_item(request: Request, error: str = None, user_use_cases: UserUseCases = Depends(get_user_use_cases)):
+async def read_item(request: Request, error: str = None, token: str = None, user_use_cases: UserUseCases = Depends(get_user_use_cases)):
     users = user_use_cases.list_users()
     return templates.TemplateResponse(request, "index.html", {
         "message": "Registro de Usuarios del Hackaton",
         "users": users,
-        "error": error
+        "error": error,
+        "token": token
     })
+
+@router.post("/login")
+async def login_user(
+    nickName: str = Form(...),
+    password: str = Form(...),
+    user_use_cases: UserUseCases = Depends(get_user_use_cases)
+):
+    try:
+        token = user_use_cases.login_user(nickName, password)
+    except ValueError as e:
+        return RedirectResponse(url=f"/?error={str(e)}", status_code=303)
+    return RedirectResponse(url=f"/?token={token}", status_code=303)
 
 @router.post("/register")
 async def register_user(
@@ -25,6 +38,7 @@ async def register_user(
 ):
     try:
         user_use_cases.create_user(nickName, teamName, password)
+        token = user_use_cases.login_user(nickName, password)
     except ValueError as e:
         return RedirectResponse(url=f"/?error={str(e)}", status_code=303)
-    return RedirectResponse(url="/", status_code=303)
+    return RedirectResponse(url=f"/?token={token}&registered=true", status_code=303)

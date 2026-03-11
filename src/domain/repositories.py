@@ -8,6 +8,14 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
+    def get_by_nick_name(self, nick_name: str) -> Optional[User]:
+        pass
+
+    @abstractmethod
+    def get_by_team_name(self, team_name: str) -> Optional[User]:
+        pass
+
+    @abstractmethod
     def get_all(self) -> List[User]:
         pass
 

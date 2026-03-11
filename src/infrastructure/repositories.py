@@ -19,6 +19,28 @@ class SQLAlchemyUserRepository(UserRepository):
             )
         return None
 
+    def get_by_nick_name(self, nick_name: str) -> Optional[User]:
+        db_user = self.db.query(DBUser).filter(DBUser.nick_name == nick_name).first()
+        if db_user:
+            return User(
+                id=db_user.id,
+                nick_name=db_user.nick_name,
+                team_name=db_user.team_name,
+                hashed_password=db_user.hashed_password
+            )
+        return None
+
+    def get_by_team_name(self, team_name: str) -> Optional[User]:
+        db_user = self.db.query(DBUser).filter(DBUser.team_name == team_name).first()
+        if db_user:
+            return User(
+                id=db_user.id,
+                nick_name=db_user.nick_name,
+                team_name=db_user.team_name,
+                hashed_password=db_user.hashed_password
+            )
+        return None
+
     def get_all(self) -> List[User]:
         db_users = self.db.query(DBUser).all()
         return [

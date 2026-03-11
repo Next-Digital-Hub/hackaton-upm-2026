@@ -49,6 +49,10 @@ def test_register_user(client):
     # Verificar que el usuario aparece en la lista tras la redirección
     assert "itest" in response.text
     assert "ITeam" in response.text
+    # Verificar que el token aparece tras el registro
+    assert "Copia este token para usarlo en tus peticiones a la API:" in response.text
+    assert "token=" in str(response.url)
+    assert "registered=true" in str(response.url)
 
 def test_register_duplicate_nick(client):
     data = {
@@ -65,10 +69,28 @@ def test_register_duplicate_nick(client):
         "password": "pw2"
     }
     
-    # Actualmente no hay manejo de excepciones en el repo/api, 
-    # por lo que SQLAlchemy lanza IntegrityError que FastAPI traduce a 500
-    with pytest.raises(Exception):
-         client.post("/register", data=data2)
+    response = client.post("/register", data=data2, follow_redirects=True)
+    assert response.status_code == 200
+    assert "El nickname ya existe" in response.text
+
+def test_register_duplicate_team(client):
+    data = {
+        "nickName": "nick1",
+        "teamName": "DuplicateTeam",
+        "password": "pw1"
+    }
+    client.post("/register", data=data)
+    
+    # Intentar registrar el mismo equipo con distinto nick
+    data2 = {
+        "nickName": "nick2",
+        "teamName": "DuplicateTeam",
+        "password": "pw2"
+    }
+    
+    response = client.post("/register", data=data2, follow_redirects=True)
+    assert response.status_code == 200
+    assert "El nombre del equipo ya existe" in response.text
 
 def test_register_invalid_nickname(client):
     data = {
@@ -81,3 +103,41 @@ def test_register_invalid_nickname(client):
     
     assert response.status_code == 200
     assert "El nickname no puede contener espacios ni caracteres extraños" in response.text
+
+def test_login_user(client):
+    # Registrar primero
+    reg_data = {
+        "nickName": "logintest",
+        "teamName": "LoginTeam",
+        "password": "loginpass"
+    }
+    client.post("/register", data=reg_data)
+
+    # Login exitoso
+    login_data = {
+        "nickName": "logintest",
+        "password": "loginpass"
+    }
+    response = client.post("/login", data=login_data, follow_redirects=True)
+    assert response.status_code == 200
+    assert "Copia este token para usarlo en tus peticiones a la API:" in response.text
+    # El token se pasa por query param y se muestra en el card
+    assert "token=" in str(response.url)
+
+def test_login_invalid_credentials(client):
+    # Registrar primero
+    reg_data = {
+        "nickName": "badlogin",
+        "teamName": "BadTeam",
+        "password": "goodpass"
+    }
+    client.post("/register", data=reg_data)
+
+    # Login con pass incorrecta
+    login_data = {
+        "nickName": "badlogin",
+        "password": "wrongpass"
+    }
+    response = client.post("/login", data=login_data, follow_redirects=True)
+    assert response.status_code == 200
+    assert "Nombre de usuario o contraseña incorrectos" in response.text

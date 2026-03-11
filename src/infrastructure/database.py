@@ -10,7 +10,7 @@ class DBUser(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     nick_name = Column(String, unique=True, index=True)
-    team_name = Column(String)
+    team_name = Column(String, unique=True, index=True)
     hashed_password = Column(String)
 
 def get_db():
