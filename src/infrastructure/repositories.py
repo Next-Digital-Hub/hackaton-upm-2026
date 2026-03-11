@@ -1,6 +1,6 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from src.domain.models import User
+from src.domain.user import User
 from src.domain.repositories import UserRepository
 from src.infrastructure.database import DBUser
 

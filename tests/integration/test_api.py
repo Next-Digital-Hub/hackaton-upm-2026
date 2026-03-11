@@ -141,3 +141,36 @@ def test_login_invalid_credentials(client):
     response = client.post("/login", data=login_data, follow_redirects=True)
     assert response.status_code == 200
     assert "Nombre de usuario o contraseña incorrectos" in response.text
+
+def test_get_weather_no_token(client):
+    response = client.get("/weather")
+    assert response.status_code == 401
+
+def test_get_weather_with_token(client):
+    # Registrar y login para obtener token
+    reg_data = {
+        "nickName": "weathertest",
+        "teamName": "WeatherTeam",
+        "password": "weatherpass"
+    }
+    client.post("/register", data=reg_data)
+    
+    login_data = {
+        "nickName": "weathertest",
+        "password": "weatherpass"
+    }
+    # Por defecto follow_redirects es False en TestClient si no se especifica?
+    # En FastAPI TestClient, el comportamiento depende de la versión, pero
+    # normalmente post() no sigue redirecciones a menos que se indique.
+    # Si response.status_code es 200, es que ha renderizado el template (ha seguido redirect o algo).
+    response = client.post("/login", data=login_data, follow_redirects=False)
+    assert response.status_code == 303
+    token = response.headers["location"].split("token=")[1].split("&")[0]
+    
+    # Hacer peticion a /weather con el token
+    headers = {"Authorization": f"Bearer {token}"}
+    response = client.get("/weather", headers=headers)
+    
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+    assert len(response.json()) > 0

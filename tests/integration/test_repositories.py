@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.infrastructure.database import Base
 from src.infrastructure.repositories import SQLAlchemyUserRepository
-from src.domain.models import User
+from src.domain.user import User
 
 # Usar base de datos en memoria para los tests
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"

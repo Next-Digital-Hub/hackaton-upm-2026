@@ -2,7 +2,7 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from passlib.context import CryptContext
 
-SECRET_KEY = "your-secret-key" # In a real app, this should be an environment variable
+SECRET_KEY = "your-very-secret-key-to-securely-encrypt" # In a real app, this should be an environment variable
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -20,3 +20,10 @@ def create_access_token(data: dict):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+def decode_access_token(token: str):
+    try:
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return decoded_token if decoded_token["exp"] >= datetime.now(timezone.utc).timestamp() else None
+    except jwt.PyJWTError:
+        return None

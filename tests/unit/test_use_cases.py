@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
-from src.application.use_cases import UserUseCases
-from src.domain.models import User
+from src.application.user_use_cases import UserUseCases
+from src.domain.user import User
 from src.domain.repositories import UserRepository
 
 @pytest.fixture
@@ -31,6 +31,10 @@ def test_create_user(user_use_cases, mock_repo):
     team = "test_team"
     password = "test_password"
     
+    # Configuramos el mock para que devuelva None al buscar por nick o equipo
+    mock_repo.get_by_nick_name.return_value = None
+    mock_repo.get_by_team_name.return_value = None
+    
     # Preparamos el mock para devolver un usuario con ID cuando se llame a save
     mock_repo.save.side_effect = lambda u: User(
         id=1,
@@ -48,6 +52,10 @@ def test_create_user(user_use_cases, mock_repo):
     assert user.hashed_password != password
     
 def test_create_user_with_invalid_nickname(user_use_cases, mock_repo):
+    # Configuramos el mock para que devuelva None al buscar por nick o equipo
+    mock_repo.get_by_nick_name.return_value = None
+    mock_repo.get_by_team_name.return_value = None
+    
     invalid_nicks = ["nick with space", "nick!", "nick@test", "nick#", "   ", ""]
     for nick in invalid_nicks:
         with pytest.raises(ValueError) as excinfo:
