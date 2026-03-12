@@ -16,7 +16,7 @@ Dependencies:
 import os
 from langchain_aws import ChatBedrock
 from langchain_community.retrievers import AmazonKnowledgeBasesRetriever
-from langchain.agents import create_agents
+from langchain.agents import create_agent
 from langchain.tools import tool
 import json
 import pandas as pd
@@ -176,7 +176,7 @@ def query_knowledge_base(query: str) -> str:
 
     Returns:
         str: JSON string containing:
-            - On success: List of up to 5 results with content and metadata
+            - On success: List of up to results with content and metadata
             - On no results: Message indicating no information was found
             - On error: Error message with details
 
@@ -279,7 +279,7 @@ def invoke_agent_simple(system_prompt: str, user_prompt: str):
         - Purpose: Search information in the knowledge base about weather catastrophes
         - Parameters:
             * query (str): Information to search in the database
-        - Returns: JSON with search results (up to 6 chunks)
+        - Returns: JSON with search results
 
         2. search_similar_conditions
         - Purpose: Search for similar weather conditions in historical data
@@ -304,7 +304,7 @@ def invoke_agent_simple(system_prompt: str, user_prompt: str):
     """
 
     # Create the agent with LLM, tools, and system prompt
-    agent = create_agents(
+    agent = create_agent(
         llm,
         tools=tools,
         system_prompt=prompt,
