@@ -1,0 +1,7 @@
+AWS credentials:
+ada credentials update --account=537090272297 --provider=conduit --role=IibsAdminAccess-DO-NOT-DELETE --once
+
+Buildear:
+finch vm init
+finch vm start
+./deploy.sh
