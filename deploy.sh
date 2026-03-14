@@ -13,6 +13,6 @@ cd frontend
 npm run build
 cd ..
 
-echo "=== Desplegando con CDK (usando finch) ==="
+echo "=== Desplegando ambos stacks con CDK ==="
 cd infra
-cdk deploy --require-approval never
+cdk deploy --all --require-approval never
