@@ -5,3 +5,18 @@ Buildear:
 finch vm init
 finch vm start
 ./deploy.sh
+
+Desarrollo local:
+1. Arrancar DynamoDB Local:
+   finch run -d --name dynamodb-local -p 8000:8000 amazon/dynamodb-local
+
+2. Arrancar backend (perfil local, crea tablas automáticamente):
+   cd backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+
+3. Arrancar frontend:
+   cd frontend && npm run dev
+
+Deploy parcial:
+./deploy-backend.sh    # Solo backend
+./deploy-frontend.sh   # Solo frontend
+./deploy.sh            # Todo
