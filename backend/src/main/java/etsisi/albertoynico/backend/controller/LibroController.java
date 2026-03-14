@@ -22,7 +22,7 @@ public class LibroController {
     }
 
     @GetMapping("/{id}")
-    public Libro getLibro(@PathVariable String id) {
+    public Libro getLibro(@PathVariable("id") String id) {
         return libroManager.findById(id)
                 .orElseThrow(() -> new RuntimeException("Libro no encontrado: " + id));
     }
@@ -35,14 +35,14 @@ public class LibroController {
     }
 
     @PutMapping("/{id}")
-    public Libro updateLibro(@PathVariable String id, @RequestBody Libro libro) {
+    public Libro updateLibro(@PathVariable("id") String id, @RequestBody Libro libro) {
         libro.setId(id);
         libroManager.update(libro);
         return libro;
     }
 
     @DeleteMapping("/{id}")
-    public void deleteLibro(@PathVariable String id) {
+    public void deleteLibro(@PathVariable("id") String id) {
         libroManager.deleteById(id);
     }
 }
