@@ -20,7 +20,7 @@ def invoke_llm(system_prompt: str, user_prompt: str):
     )
     bedrock_runtime = session.client('bedrock-agent-runtime', region_name=REGION)
 
-    combined_prompt = f"$search_results$ {system_prompt} {user_prompt}"
+    combined_prompt = f"$search_results$ {system_prompt}"
 
     # Params
     request_params = {
