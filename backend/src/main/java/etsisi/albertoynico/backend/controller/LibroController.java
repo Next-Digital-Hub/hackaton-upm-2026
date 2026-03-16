@@ -1,7 +1,9 @@
 package etsisi.albertoynico.backend.controller;
 
+import etsisi.albertoynico.backend.exception.ApiException;
 import etsisi.albertoynico.backend.manager.LibroManager;
 import etsisi.albertoynico.backend.model.Libro;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,7 +26,7 @@ public class LibroController {
     @GetMapping("/{id}")
     public Libro getLibro(@PathVariable("id") String id) {
         return libroManager.findById(id)
-                .orElseThrow(() -> new RuntimeException("Libro no encontrado: " + id));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Libro no encontrado: " + id));
     }
 
     @PostMapping
