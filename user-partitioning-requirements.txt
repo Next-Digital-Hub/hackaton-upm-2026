@@ -1,0 +1,136 @@
+================================================================================
+  USER DATA PARTITIONING — REQUIREMENTS & IMPLEMENTATION GUIDE
+================================================================================
+
+PROBLEM
+-------
+Currently all users share the same data. Every table (e.g. hackathon-libros)
+uses a simple partition key (id) and findAll() does a full scan returning
+everything to everyone.
+
+SOLUTION — COMPOSITE KEY PER TABLE
+-----------------------------------
+Use userId as the PARTITION KEY and the existing id as the SORT KEY on every
+DynamoDB table. This gives each user their own isolated partition with zero
+filtering logic needed.
+
+  Partition Key: userId  (String)
+  Sort Key:      id      (String, UUID)
+
+No auth system required. A random UUID is generated per browser and persisted
+in localStorage. It's sent on every request as a header.
+
+
+================================================================================
+  BACKEND CHANGES
+================================================================================
+
+1. MODEL — Add userId to every @DynamoDbBean entity
+   ─────────────────────────────────────────────────
+   - Add a "userId" field (String) to Libro (and any future entity).
+   - Annotate its getter with @DynamoDbPartitionKey.
+   - Move @DynamoDbPartitionKey from getId() and annotate getId() with
+     @DynamoDbSortKey instead.
+
+   Example (Libro.java):
+
+     @DynamoDbPartitionKey
+     public String getUserId() { return userId; }
+
+     @DynamoDbSortKey
+     public String getId() { return id; }
+
+
+2. ABSTRACT MANAGER — Update key operations
+   ─────────────────────────────────────────
+   - findById(String id)    → findById(String userId, String id)
+     Build key with both partitionValue(userId) and sortValue(id).
+
+   - deleteById(String id)  → deleteById(String userId, String id)
+     Same composite key.
+
+   - findAll()              → findAllByUser(String userId)
+     Replace scan() with query() using QueryConditional.keyEqualTo()
+     on the userId partition key. This returns only that user's items.
+
+   - save(T item) and update(T item) stay the same — the userId is
+     already part of the item.
+
+
+3. CONTROLLER — Read userId from request header
+   ─────────────────────────────────────────────
+   - Read the header "X-User-Id" from every request.
+     Example: @RequestHeader("X-User-Id") String userId
+   - Pass userId down to the manager methods.
+   - Return 400 if the header is missing.
+
+
+4. DYNAMODB TABLE — Recreate with composite key
+   ──────────────────────────────────────────────
+   - The DynamoDB table definition must change:
+       Partition key: userId (S)
+       Sort key:      id (S)
+   - If using LocalTableInitializer, update the table creation there.
+   - If using CDK/infra, update the table definition in the infra stack.
+   - IMPORTANT: Existing data is NOT migrated automatically. For a hackathon
+     this is fine — just recreate the table. For production you'd need a
+     migration script.
+
+
+================================================================================
+  FRONTEND CHANGES
+================================================================================
+
+1. GENERATE USER ID ON FIRST VISIT
+   ────────────────────────────────
+   In main.tsx or App.tsx, on app init:
+
+     let userId = localStorage.getItem("userId");
+     if (!userId) {
+       userId = crypto.randomUUID();
+       localStorage.setItem("userId", userId);
+     }
+
+
+2. SEND HEADER ON EVERY API CALL
+   ──────────────────────────────
+   In the API config (src/config/api.ts), add a default header:
+
+     headers: {
+       "X-User-Id": localStorage.getItem("userId")
+     }
+
+   If using fetch directly, include it in every request.
+   If using axios, set it as a default header or interceptor.
+
+
+================================================================================
+  SUMMARY OF FILES TO MODIFY
+================================================================================
+
+  Backend:
+    - model/Libro.java                  → add userId field + annotations
+    - manager/AbstractManager.java      → update findById, deleteById, findAll
+    - manager/LibroManager.java         → adjust constructor if needed
+    - controller/LibroController.java   → read X-User-Id header, pass to manager
+    - config/LocalTableInitializer.java → update table creation (composite key)
+
+  Frontend:
+    - src/main.tsx or src/App.tsx       → generate + persist userId
+    - src/config/api.ts                 → add X-User-Id header to all requests
+
+  Infra (if applicable):
+    - infra/lib/backend-stack.ts        → update DynamoDB table key schema
+
+
+================================================================================
+  NOTES
+================================================================================
+
+  - This is NOT real authentication. Any user can forge the header. For a
+    hackathon demo this is perfectly fine.
+  - If you later add Cognito or any auth, replace the random UUID with the
+    actual authenticated user ID (e.g. Cognito sub) and remove the
+    localStorage logic.
+  - Every new table/entity you add should follow the same pattern:
+    userId (PK) + id (SK).
