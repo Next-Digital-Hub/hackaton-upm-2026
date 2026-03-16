@@ -1,6 +1,7 @@
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from src.application.user_use_cases import UserUseCases
+from src.application.prompt_use_cases import PromptUseCases
 from src.domain.user import User
 from src.domain.repositories import UserRepository
 
@@ -61,3 +62,12 @@ def test_create_user_with_invalid_nickname(user_use_cases, mock_repo):
         with pytest.raises(ValueError) as excinfo:
             user_use_cases.create_user(nick, "team", "password")
         assert "El nickname no puede contener espacios ni caracteres extraños" in str(excinfo.value)
+
+def test_prompt_use_cases_invoke():
+    use_case = PromptUseCases()
+    with patch("src.application.prompt_use_cases.invoke_llm") as mock_invoke:
+        mock_invoke.return_value = "LLM Response"
+        result = use_case.invoke("system", "user")
+        
+        assert result == "LLM Response"
+        mock_invoke.assert_called_once_with("system", "user")

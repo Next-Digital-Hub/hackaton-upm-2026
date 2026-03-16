@@ -1,3 +1,4 @@
+from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -61,10 +62,16 @@ def test_prompt_endpoint_with_token(client, caplog):
         "system_prompt": "System instructions",
         "user_prompt": "User message"
     }
-    response = client.post("/prompt", json=prompt_payload, headers=headers)
+    
+    with patch("src.application.prompt_use_cases.invoke_llm") as mock_invoke:
+        mock_invoke.return_value = "Mocked LLM response"
+        response = client.post("/prompt", json=prompt_payload, headers=headers)
     
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json() == {"status": "ok", "response": "Mocked LLM response"}
+    
+    # Verificar que se llamó al mock
+    mock_invoke.assert_called_once_with("System instructions", "User message")
     
     # Verificar logs
     assert "User: prompttest" in caplog.text
