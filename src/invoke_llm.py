@@ -10,6 +10,8 @@ def invoke_llm(system_prompt: str, user_prompt: str):
     REGION = os.getenv('AWS_REGION')
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    if not KB_ID or not MODEL_ID or not MODEL_ARN or not REGION or not AWS_ACCESS_KEY_ID or not AWS_SECRET_ACCESS_KEY:
+        raise ValueError("Missing environment variables. Please set them in your .env file.")
 
     session = boto3.Session(
         region_name=REGION,
