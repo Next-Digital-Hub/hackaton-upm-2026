@@ -11,7 +11,8 @@ app.include_router(weather_router)
 app.include_router(prompt_router)
 
 # Crear tablas en la base de datos
+Base.metadata.create_all(bind=engine)
+
 if __name__ == "__main__":
-    Base.metadata.create_all(bind=engine)
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
