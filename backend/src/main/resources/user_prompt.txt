@@ -1,0 +1,11 @@
+A continuación se proporcionan los datos para generar la alerta.
+
+## Alertas activas
+
+{{ALERTAS_JSON}}
+
+## Condiciones del usuario
+
+{{CONDICIONES_USUARIO_JSON}}
+
+Genera la respuesta en el formato JSON especificado.
