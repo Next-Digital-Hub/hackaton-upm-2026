@@ -1,7 +1,8 @@
 
-import { IAData } from '@/lib/services/ServicioIA';
+import { AICardProps } from "@/lib/services/ServicioIA";
 
-export default async function WeatherCard( data : IAData) {
+export default async function WeatherCard(dataProps : AICardProps) {
+  const data = dataProps.data
   if (!data) return <div className="p-6 text-slate-500">Datos no disponibles</div>;
 
   // Mapeo de los campos importantes del JSON de Turís
