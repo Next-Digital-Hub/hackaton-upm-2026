@@ -171,6 +171,11 @@ export default function LoginPage() {
                         Iniciar con Google
                     </button>
 
+                    <p className="auth-footer-link">
+                        ¿Primera vez?{' '}
+                        <Link to="/register">Registrate</Link>
+                    </p>
+
                 </form>
             </div>
         </div>
