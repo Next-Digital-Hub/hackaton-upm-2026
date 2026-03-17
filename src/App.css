@@ -386,7 +386,7 @@
 }
 
 .role-tab.active {
-  background: var(--surface);
+  background: var(--primary-dark);
   color: var(--text-primary);
   font-weight: 600;
   box-shadow: var(--shadow-sm);
