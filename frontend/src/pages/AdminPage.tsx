@@ -153,15 +153,6 @@ export function AdminPage() {
     }
   };
 
-  const handleRefrescarClima = async () => {
-    setError(null);
-    try {
-      const cond = await getCondiciones();
-      setCondicion(cond);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Error al refrescar clima");
-    }
-  };
 
   if (loading) {
     return (
@@ -205,11 +196,6 @@ export function AdminPage() {
       )}
 
       <Box mb={4} position="relative">
-        <Box position="absolute" right={0} top={-40}>
-          <Button size="small" variant="outlined" onClick={handleRefrescarClima}>
-            Refrescar clima
-          </Button>
-        </Box>
         <CondicionesRow condicion={condicion} />
       </Box>
 

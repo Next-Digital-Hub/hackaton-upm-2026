@@ -93,17 +93,15 @@ function App() {
     <>
       <AppBar position="static" color="default" elevation={1}>
         <Toolbar>
-          {user?.rol === "ADMINISTRADOR" && (
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<CalendarTodayIcon />}
-              onClick={handleSimularNuevoDia}
-              sx={{ mr: 2, borderRadius: 2, textTransform: "none" }}
-            >
-              Simular nuevo día
-            </Button>
-          )}
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<CalendarTodayIcon />}
+            onClick={handleSimularNuevoDia}
+            sx={{ mr: 2, borderRadius: 2, textTransform: "none" }}
+          >
+            Simular nuevo día
+          </Button>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             {user?.rol === "ADMINISTRADOR" ? "Panel Admin" : "ClimAlert"}
           </Typography>

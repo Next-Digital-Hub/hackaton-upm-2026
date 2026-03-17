@@ -9,7 +9,6 @@ import type { Alerta } from "../types/Alerta";
 import { getCondiciones, getMisAlertasCiudadano } from "../config/api";
 import { CondicionesRow } from "../components/CondicionesRow";
 import { AlertasContainer } from "../components/AlertasContainer";
-import Button from "@mui/material/Button";
 
 export function CiudadanoPage() {
   const [condicion, setCondicion] = useState<CondicionClimatica | null>(null);
@@ -31,15 +30,6 @@ export function CiudadanoPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleRefrescarClima = async () => {
-    setError(null);
-    try {
-      const cond = await getCondiciones();
-      setCondicion(cond);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Error al refrescar clima");
-    }
-  };
 
   if (loading) {
     return (
@@ -62,11 +52,6 @@ export function CiudadanoPage() {
       )}
 
       <Box mb={4} position="relative">
-        <Box position="absolute" right={0} top={-40}>
-          <Button size="small" variant="outlined" onClick={handleRefrescarClima}>
-            Ver clima actual
-          </Button>
-        </Box>
         <CondicionesRow condicion={condicion} />
       </Box>
 
