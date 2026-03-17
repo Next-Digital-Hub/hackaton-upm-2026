@@ -24,8 +24,9 @@ namespace Hackathon1.Services
                 isActive = alert.IsActive
             };
 
-            await _hub.Clients.Group(NotificationsHub.CiudadanoGroup).SendAsync("ReceiveAlert", payload);
-            await _hub.Clients.Group(NotificationsHub.BackofficeGroup).SendAsync("ReceiveAlert", payload);
+            await _hub.Clients.Group(NotificationsHub.DefaultGroup).SendAsync("AlertEmitted", payload);
+            await _hub.Clients.Group(NotificationsHub.CiudadanoGroup).SendAsync("AlertEmitted", payload);
+            await _hub.Clients.Group(NotificationsHub.BackofficeGroup).SendAsync("AlertEmitted", payload);
         }
     }
 }

@@ -119,6 +119,41 @@
         </div>
     </div>
 
+    <!-- Alertas activas -->
+    <div class="row mt-4">
+        <div class="col">
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Alertas activas</h5>
+                </div>
+                <ul id="citizen-alerts-list" class="list-group list-group-flush">
+                @if (Model.Alerts.Any())
+                {
+                    @foreach (var alert in Model.Alerts)
+                    {
+                        <li class="list-group-item" data-alert-id="@alert.Id">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>@alert.Title</strong>
+                                    @if (!string.IsNullOrEmpty(alert.Message))
+                                    {
+                                        <p class="mb-0 text-muted small mt-1">@alert.Message</p>
+                                    }
+                                </div>
+                                <span class="text-muted small text-nowrap ms-3">@alert.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                        </li>
+                    }
+                }
+                else
+                {
+                    <li class="list-group-item text-muted" id="no-citizen-alerts-placeholder">No hay alertas activas en este momento.</li>
+                }
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <!-- Recomendaciones -->
     @if (Model.Recommendations.Any())
     {

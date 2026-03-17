@@ -42,6 +42,7 @@
 
     // Handle incoming alert notifications (Backoffice panel and Ciudadano)
     function handleAlert(alert) {
+        // Update Backoffice alerts list
         var list = document.getElementById('alerts-list');
         if (list) {
             // Remove placeholder if present
@@ -70,6 +71,46 @@
             list.insertBefore(li, list.firstChild);
         }
 
+        // Update Citizen alerts list
+        var citizenList = document.getElementById('citizen-alerts-list');
+        if (citizenList) {
+            if (alert.isActive) {
+                var citizenPlaceholder = document.getElementById('no-citizen-alerts-placeholder');
+                if (citizenPlaceholder) citizenPlaceholder.remove();
+
+                var alertDate = new Date(alert.createdAt || new Date());
+                var alertDateStr = alertDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    + ' ' + alertDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+                var existingItem = citizenList.querySelector('[data-alert-id="' + alert.id + '"]');
+                if (!existingItem) {
+                    var citizenListItem = document.createElement('li');
+                    citizenListItem.className = 'list-group-item';
+                    citizenListItem.setAttribute('data-alert-id', alert.id);
+                    citizenListItem.innerHTML =
+                        '<div class="d-flex justify-content-between align-items-start">' +
+                            '<div>' +
+                                '<strong>' + escapeHtml(alert.title) + '</strong>' +
+                                (alert.message ? '<p class="mb-0 text-muted small mt-1">' + escapeHtml(alert.message) + '</p>' : '') +
+                            '</div>' +
+                            '<span class="text-muted small text-nowrap ms-3">' + alertDateStr + '</span>' +
+                        '</div>';
+                    citizenList.insertBefore(citizenListItem, citizenList.firstChild);
+                }
+            } else {
+                // Remove deactivated alert from Citizen list
+                var deactivated = citizenList.querySelector('[data-alert-id="' + alert.id + '"]');
+                if (deactivated) deactivated.remove();
+                if (citizenList.children.length === 0) {
+                    var ph = document.createElement('li');
+                    ph.className = 'list-group-item text-muted';
+                    ph.id = 'no-citizen-alerts-placeholder';
+                    ph.textContent = 'No hay alertas activas en este momento.';
+                    citizenList.appendChild(ph);
+                }
+            }
+        }
+
         // Show a toast notification
         showToast(alert.title, alert.message);
 
@@ -79,10 +120,11 @@
         }
     }
 
+    connection.on('AlertEmitted', handleAlert);
     connection.on('ReceiveAlert', handleAlert);
 
     // Legacy handler kept for backward compatibility with hub's SendAlert server-side method.
-    // New emissions use ReceiveAlert (handled by handleAlert above).
+    // New emissions use AlertEmitted (handled by handleAlert above).
     connection.on('SendAlert', function (alert) {
         var list = document.getElementById('alerts-list');
         if (!list) return;

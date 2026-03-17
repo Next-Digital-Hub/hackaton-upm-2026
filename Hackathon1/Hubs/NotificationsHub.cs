@@ -47,6 +47,24 @@ namespace Hackathon1.Hubs
             await Clients.Group(BackofficeGroup).SendAsync("SendAlert", alert);
         }
 
+        public async Task AlertEmitted(Alert alert)
+        {
+            if (Context.User?.IsInRole("Backoffice") != true)
+                throw new HubException("No autorizado.");
+
+            var payload = new
+            {
+                id = alert.Id,
+                title = alert.Title,
+                message = alert.Message,
+                createdAt = alert.CreatedAt,
+                isActive = alert.IsActive
+            };
+
+            await Clients.Group(DefaultGroup).SendAsync("AlertEmitted", payload);
+            await Clients.Group(CiudadanoGroup).SendAsync("AlertEmitted", payload);
+        }
+
         public async Task SendWeather(WeatherDto weather)
         {
             if (Context.User?.IsInRole("Backoffice") != true)

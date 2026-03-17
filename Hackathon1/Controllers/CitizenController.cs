@@ -5,6 +5,7 @@ using Hackathon1.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Hackathon1.Controllers
 {
@@ -39,11 +40,17 @@ namespace Hackathon1.Controllers
 
             var recommendations = await _recommendationService.GetRecommendationsAsync(forecast, user.Id);
 
+            var alerts = await _context.Alerts
+                .Where(a => a.IsActive)
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
+
             var vm = new CitizenDashboardViewModel
             {
                 User = user,
                 Forecast = forecast,
-                Recommendations = recommendations
+                Recommendations = recommendations,
+                Alerts = alerts
             };
 
             return View(vm);
