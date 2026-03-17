@@ -39,7 +39,7 @@ public class AuthController {
         if (userOpt.isPresent()){
             User user = userOpt.get();
             if (passwordEncoder.matches(dto.password(), user.getPassword())){
-                return "redirect:/index.html?success=true";
+                return "redirect:/dashboard.html?success=true";
             }
         }
         return "redirect:/index.html?error=invalid_credentials";

@@ -19,17 +19,21 @@ public class UserService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-    public User registrarCiudadano(UserRegitrationDto dto){
+    public void registrarCiudadano(UserRegitrationDto dto){
+        if (userRepository.exitsByUsername(dto.nombre())){
+            throw new RuntimeException("Error: El nombre de usuario "+dto.nombre().trim()+" ya existe.");
+        }
+
         User ciudadano= new User();
 
-        ciudadano.setUsername(dto.nombre());
+        ciudadano.setUsername(dto.nombre().trim());
         ciudadano.setProvincia(dto.provincia());
         ciudadano.setTipoVivienda(dto.tipoVivienda());
         ciudadano.setTipoNecesidades(dto.tipoNecesidades());
         ciudadano.setPassword(passwordEncoder.encode(dto.password()));
         ciudadano.setRol(Rol.CIUDADANO);
 
-        return userRepository.save(ciudadano);
+        userRepository.save(ciudadano);
     }
 
     public Optional<User> buscarPorNombre(String username) {
