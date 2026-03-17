@@ -57,3 +57,15 @@ export const profileSchema = z.object({
 });
 
 export type ProfileInput = z.infer<typeof profileSchema>;
+
+// ─── Alert Creation (Admin) ─────────────────────────────────
+
+export const createAlertSchema = z.object({
+  title: z.string().min(3, "El título debe tener al menos 3 caracteres").max(200, "El título es demasiado largo"),
+  description: z.string().min(10, "La descripción debe tener al menos 10 caracteres").max(2000, "La descripción es demasiado larga"),
+  severity: z.enum(["LOW", "MODERATE", "SEVERE", "EXTREME"], {
+    error: "Selecciona un nivel de severidad",
+  }),
+});
+
+export type CreateAlertInput = z.infer<typeof createAlertSchema>;

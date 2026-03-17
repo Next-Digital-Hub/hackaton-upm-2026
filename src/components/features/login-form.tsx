@@ -1,8 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import Link from "next/link";
 import { loginAction } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
@@ -21,14 +19,6 @@ import { AlertCircle, CloudLightning } from "lucide-react";
 
 export function LoginForm() {
   const [state, formAction, isPending] = useActionState(loginAction, null);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (state?.success) {
-      router.push("/dashboard");
-      router.refresh();
-    }
-  }, [state?.success, router]);
 
   return (
     <Card className="w-full">

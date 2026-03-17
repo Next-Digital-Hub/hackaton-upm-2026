@@ -6,10 +6,18 @@ let cachedToken: string | null = null;
 let tokenExpiresAt = 0;
 
 /**
- * Authenticate with the hackathon API and get a bearer token.
- * Token is cached in memory and reused until expiry.
+ * Get a bearer token for the hackathon API.
+ * Prefers HACKATHON_API_TOKEN env var (static token).
+ * Falls back to login flow with HACKATHON_NICKNAME/PASSWORD.
  */
 async function getHackathonToken(): Promise<string> {
+  // Static token from env (preferred)
+  const staticToken = process.env.HACKATHON_API_TOKEN;
+  if (staticToken) {
+    return staticToken;
+  }
+
+  // Cached login token
   if (cachedToken && Date.now() < tokenExpiresAt) {
     return cachedToken;
   }
@@ -19,7 +27,7 @@ async function getHackathonToken(): Promise<string> {
 
   if (!nickname || !password) {
     throw new Error(
-      "HACKATHON_NICKNAME and HACKATHON_PASSWORD must be set in .env"
+      "HACKATHON_API_TOKEN or HACKATHON_NICKNAME+HACKATHON_PASSWORD must be set in .env"
     );
   }
 
@@ -39,7 +47,6 @@ async function getHackathonToken(): Promise<string> {
 
   if (tokenMatch?.[1]) {
     cachedToken = tokenMatch[1];
-    // Cache for 50 minutes (assuming 1h expiry)
     tokenExpiresAt = Date.now() + 50 * 60 * 1000;
     return cachedToken;
   }
@@ -53,7 +60,9 @@ async function getHackathonToken(): Promise<string> {
     return cachedToken;
   }
 
-  throw new Error(`Failed to obtain hackathon API token. Status: ${response.status}`);
+  throw new Error(
+    `Failed to obtain hackathon API token. Status: ${response.status}`
+  );
 }
 
 /**
@@ -87,8 +96,33 @@ export async function registerHackathonTeam(): Promise<void> {
 
 // ─── Weather API ──────────────────────────────────────────
 
-export interface WeatherData {
-  [key: string]: unknown;
+/** Raw AEMET-format response from the hackathon weather endpoint */
+export interface AemetWeatherRaw {
+  altitud: string | null;
+  dir: string | null;
+  fecha: string;
+  horaHrMax: string | null;
+  horaHrMin: string | null;
+  horaPresMax: string | null;
+  horaPresMin: string | null;
+  horaracha: string | null;
+  horatmax: string | null;
+  horatmin: string | null;
+  hrMax: string | null;
+  hrMedia: string | null;
+  hrMin: string | null;
+  indicativo: string;
+  nombre: string;
+  prec: string | null;
+  presMax: string | null;
+  presMin: string | null;
+  provincia: string;
+  racha: string | null;
+  sol: string | null;
+  tmax: string | null;
+  tmed: string | null;
+  tmin: string | null;
+  velmedia: string | null;
 }
 
 /**
@@ -97,7 +131,7 @@ export interface WeatherData {
  */
 export async function fetchWeather(
   disaster: boolean = false
-): Promise<WeatherData> {
+): Promise<AemetWeatherRaw> {
   const token = await getHackathonToken();
 
   const response = await fetch(
@@ -119,7 +153,7 @@ export async function fetchWeather(
 
 // ─── LLM API ──────────────────────────────────────────────
 
-export interface LlmResponse {
+export interface LlmApiResponse {
   [key: string]: unknown;
 }
 
@@ -131,7 +165,7 @@ export interface LlmResponse {
 export async function queryLlm(
   systemPrompt: string,
   userPrompt: string
-): Promise<LlmResponse> {
+): Promise<LlmApiResponse> {
   const token = await getHackathonToken();
 
   const response = await fetch(`${API_BASE_URL}/prompt`, {
