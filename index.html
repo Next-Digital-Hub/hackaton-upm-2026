@@ -109,7 +109,7 @@
             </div>
 
             <div id="adminControls" class="hidden mb-6">
-                <button class="w-full bg-red-500 p-4 rounded-2xl text-white font-bold shadow-lg shadow-red-200 flex items-center justify-center gap-3">
+                <button onclick="enviarAlertaGlobal()" class="w-full bg-red-500 hover:bg-red-600 p-4 rounded-2xl text-white font-bold shadow-lg shadow-red-200 flex items-center justify-center gap-3 transition-all">
                     <span class="animate-pulse">●</span> LANZAR ALERTA GENERAL
                 </button>
             </div>
@@ -153,7 +153,8 @@
 
     <script>
         const provincias = ["Álava", "Albacete", "Alicante", "Almería", "Asturias", "Ávila", "Badajoz", "Barcelona", "Burgos", "Cáceres", "Cádiz", "Cantabria", "Castellón", "Ciudad Real", "Córdoba", "Cuenca", "Gerona", "Granada", "Guadalajara", "Guipúzcoa", "Huelva", "Huesca", "Islas Baleares", "Jaén", "La Coruña", "La Rioja", "Las Palmas", "León", "Lérida", "Lugo", "Madrid", "Málaga", "Murcia", "Navarra", "Orense", "Palencia", "Pontevedra", "Salamanca", "Santa Cruz de Tenerife", "Segovia", "Sevilla", "Soria", "Tarragona", "Teruel", "Toledo", "Valencia", "Valladolid", "Vizcaya", "Zamora", "Zaragoza"];
-        const ADMIN_SECRET = "UPM2026"; 
+        const ADMIN_SECRET = "UPM2026";
+        let usuarioActual = null;
 
         // Inicializar provincias
         const selectProv = document.getElementById('provincia');
@@ -182,6 +183,7 @@
                 if (data.registrado) {
                     // LOGIN DIRECTO
                     const user = data.usuario;
+                    usuarioActual = user;
                     cargarDatosDashboard(user.perfil, user.nombre, user.provincia);
                 } else {
                     // IR A REGISTRO
@@ -220,6 +222,7 @@
                 });
 
                 const resultado = await respuesta.json();
+                usuarioActual = { dni: datos.dni, rol: datos.tipoUsuario };
 
                 if (respuesta.ok) {
                     cargarDatosDashboard(resultado.perfil, resultado.nombre, resultado.provincia);
@@ -246,6 +249,14 @@
 
             if(document.getElementById('tipoUsuario').value === 'administrador') {
                 document.getElementById('adminControls').classList.remove('hidden');
+            }
+
+            const esAdminActual = (document.getElementById('tipoUsuario').value === 'administrador') || (usuarioActual && usuarioActual.rol === 'administrador');
+
+            if (esAdminActual) {
+                document.getElementById('adminControls').classList.remove('hidden');
+            } else {
+                document.getElementById('adminControls').classList.add('hidden');
             }
 
             irA(3);
@@ -335,6 +346,8 @@
         function cerrarModalHistorico() {
             document.getElementById('modalHistorico').classList.add('hidden');
         }
+
+        
     </script>
 </body>
 </html>

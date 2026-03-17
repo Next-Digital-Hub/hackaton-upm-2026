@@ -17,7 +17,7 @@ const CREDENCIALES = {
 };
 
 let db;
-let BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZWRzb24iLCJleHAiOjE3NzM4MjU1ODZ9.3PaFBa2fSRQyPNEvualOwv-C8Q5DoT0mNMrSGjlhPnI"; 
+let BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZWRzb24iLCJleHAiOjE3NzM4MjU1ODZ9.3PaFBa2fSRQyPNEvualOwv-C8Q5DoT0mNMrSGjlhPnI";
 
 // 1. INICIALIZACIÓN DE BASE DE DATOS
 (async () => {
@@ -134,5 +134,22 @@ app.get('/historicos', async (req, res) => {
         res.status(500).json({ error: "Error al recuperar históricos" });
     }
 });
+
+app.post('/lanzar-alerta', async (req, res) => {
+    const { mensaje, rol, dni } = req.body;
+
+    // Validación de seguridad en el backend
+    if (rol !== 'administrador') {
+        return res.status(403).json({ error: "Acceso denegado: No tienes permisos de administrador." });
+    }
+
+    try {
+        console.log(`🚨 ALERTA GLOBAL INICIADA POR ${dni}: ${mensaje}`);
+        // Aquí podrías añadir lógica para enviar a la API de Hackaton si fuera necesario
+        res.json({ mensaje: "¡Alerta enviada con éxito a todos los sistemas!" });
+    } catch (e) {
+        res.status(500).json({ error: "Error al procesar alerta" });
+    }
+})
 
 app.listen(3000, () => console.log("🚀 Servidor en http://localhost:3000"));
