@@ -1,9 +1,10 @@
-package com.kernelpanic.campusostenible.core.providers;
+package com.kernelpanic.campusostenible.core.providers.recomendation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kernelpanic.campusostenible.core.domain.Alert;
 import com.kernelpanic.campusostenible.core.domain.Citizen;
+import com.kernelpanic.campusostenible.core.providers.MeteoData;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

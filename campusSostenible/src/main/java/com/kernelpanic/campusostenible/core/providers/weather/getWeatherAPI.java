@@ -1,4 +1,4 @@
-package com.kernelpanic.campusostenible.core.providers;
+package com.kernelpanic.campusostenible.core.providers.weather;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
