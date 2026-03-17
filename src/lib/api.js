@@ -46,45 +46,60 @@ export async function sendPrompt(systemPrompt, userPrompt) {
  * Build a system prompt for the emergency expert AI.
  */
 export function buildSystemPrompt() {
-    return `Eres un asistente de emergencias climáticas. Responde SIEMPRE en español usando markdown simple, corto y limpio.
+    return `Eres un Sistema Experto de Protección Civil y Asistencia Inclusiva. Tu objetivo es generar alertas meteorológicas altamente personalizadas, breves y directas.
 
-Usa EXACTAMENTE esta estructura:
+REGLAS DE LÓGICA Y RAZONAMIENTO (CRÍTICO):
+1. Analiza primero los datos meteorológicos (Lluvia/prec, Viento/racha, Temperaturas). 
+2. Asigna un nivel de riesgo real:
+   - BAJA: Clima normal, soleado, o lluvia/viento leve.
+   - MEDIA: Lluvia moderada (ej. < 15mm), calor/frío notable pero no extremo.
+   - ALTA / MUY ALTA: Lluvias torrenciales, huracanes, olas de calor/frío extremo.
+3. Regla de Contactos: SI EL RIESGO ES "BAJA" o "MEDIA", ESTÁ ESTRICTAMENTE PROHIBIDO mostrar la sección de "📱 Contactos". Solo muéstrala en "ALTA" o "MUY ALTA".
+4. Personalización obligatoria: Las acciones sugeridas DEBEN estar adaptadas a las "necesidades_especiales" y al "tipo_vivienda" del usuario. No des consejos genéricos si el usuario tiene discapacidad visual, auditiva o movilidad reducida; adapta la instrucción a su realidad física.
+
+FORMATO DE SALIDA ESTRICTO (Máximo 100 palabras en total, sin introducciones ni saludos):
 
 ### 🚨 Prioridad
-**[ALTA/MEDIA/BAJA]**: [una frase breve con el riesgo principal]
+**[BAJA/MEDIA/ALTA/MUY ALTA]**: [Una frase justificando el riesgo basado en los datos, ej: "Lluvia moderada de 9.5mm con temperaturas estables"].
 
 ### ✅ Qué hacer ahora
-1. [acción inmediata]
-2. [segunda acción]
-3. [tercera acción]
+1. [Acción inmediata adaptada a su necesidad especial y vivienda]
+2. [Acción relacionada con el clima actual]
+3. [Acción de prevención práctica]
 
+[OPCIONAL: SOLO MOSTRAR SI PRIORIDAD ES ALTA O MUY ALTA]
 ### 📱 Contactos
 - **112** Emergencias
 - **1006** Protección Civil
 
-> [una frase final corta para mantenerse atento]
-
-Reglas:
-- máximo 90 palabras
-- sin introducciones ni conclusiones extra
-- sin texto fuera de esa estructura
-- cada punto debe ser muy corto y directo`
+> [Frase final de tranquilidad o advertencia según el clima]`
 }
 
 /**
  * Build a personalized user prompt with weather data and profile.
  */
 export function buildUserPrompt(weatherData, profile) {
-    const necesidades = profile?.necesidades_especiales?.length
-        ? profile.necesidades_especiales.join(', ')
-        : null
+    const cleanWeatherData = Object.fromEntries(
+        Object.entries(weatherData).filter(([_, value]) => value !== null)
+    );
 
-    const perfil = [
-        profile?.tipo_vivienda && `Vivienda: ${profile.tipo_vivienda}`,
-        necesidades && `Necesidades: ${necesidades}`,
-    ].filter(Boolean).join(' | ')
+    const userProfile = {
+        ubicacion_usuario: profile?.provincia || "Ubicación no especificada",
+        tipo_vivienda: profile?.tipo_vivienda || "No especificada",
+        necesidades_especiales: profile?.necesidades_especiales?.length
+            ? profile.necesidades_especiales
+            : ["Ninguna"]
+    };
 
-    return `Datos meteorológicos: ${JSON.stringify(weatherData)}
-${perfil ? `Perfil: ${perfil}` : ''}
-Genera el resumen siguiendo el formato indicado.`
+    return `Por favor, genera el reporte meteorológico de seguridad.
+
+<perfil_usuario>
+${JSON.stringify(userProfile, null, 2)}
+</perfil_usuario>
+
+<datos_meteorologicos>
+${JSON.stringify(cleanWeatherData, null, 2)}
+</datos_meteorologicos>
+
+Instrucción: Cruza el perfil del usuario con los datos meteorológicos. Aplica estrictamente las reglas de condicionalidad para los contactos de emergencia según el nivel de riesgo que calcules.`;
 }
