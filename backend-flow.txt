@@ -1,0 +1,5 @@
+crear el modelo
+codigo para crear la tabla (cdk) -> infra/lib/backend-stack.ts
+dentro de config/LocalTableInitializer.java, introducir tabla en la lista. line 23
+crear manager que es lo mismo que el de libroManager
+crear controller que usa las funciones de manager

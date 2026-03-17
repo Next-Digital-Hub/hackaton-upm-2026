@@ -1,0 +1,12 @@
+A continuación se proporcionan los datos para evaluar y generar las alertas.
+
+## Condiciones Climáticas Actuales
+{{CONDICIONES_CLIMATICAS_JSON}}
+
+## Umbrales de Alerta
+{{UMBRALES_JSON}}
+
+## Condiciones del Usuario
+{{CONDICIONES_USUARIO_JSON}}
+
+Genera la lista de alertas en el formato JSON especificado.

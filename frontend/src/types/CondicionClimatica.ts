@@ -1,0 +1,27 @@
+export interface CondicionClimatica {
+  altitud: string | null;
+  dir: string | null;
+  fecha: string | null;
+  horaHrMax: string | null;
+  horaHrMin: string | null;
+  horaPresMax: string | null;
+  horaPresMin: string | null;
+  horaracha: string | null;
+  horatmax: string | null;
+  horatmin: string | null;
+  hrMax: string | null;
+  hrMedia: string | null;
+  hrMin: string | null;
+  indicativo: string | null;
+  nombre: string | null;
+  prec: string | null;
+  presMax: string | null;
+  presMin: string | null;
+  provincia: string | null;
+  racha: string | null;
+  sol: string | null;
+  tmax: string | null;
+  tmed: string | null;
+  tmin: string | null;
+  velmedia: string | null;
+}
