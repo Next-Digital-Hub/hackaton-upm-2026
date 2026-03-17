@@ -63,14 +63,23 @@ export default function UserProfile() {
       >
         {/* Header */}
         <motion.div variants={itemVariants} className="text-center mb-12">
-          <motion.button
-            onClick={() => navigate('/dashboard')}
-            className="mb-6 flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
-            whileHover={{ x: -3 }}
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Volver al Dashboard
-          </motion.button>
+          <div className="mb-6 flex items-center justify-between gap-3">
+            <motion.button
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
+              whileHover={{ x: -3 }}
+            >
+              <ArrowLeft className="w-5 h-5" />
+              Volver al Dashboard
+            </motion.button>
+
+            <button
+              onClick={() => navigate('/perfil')}
+              className="btn-ghost text-xs px-3 py-2"
+            >
+              Editar cuestionario
+            </button>
+          </div>
           <div className="flex justify-center mb-4">
             <motion.div
               animate={{ rotate: [0, 10, -10, 0] }}
@@ -83,7 +92,7 @@ export default function UserProfile() {
           <p className="text-slate-400">Aquí están todos tus detalles</p>
         </motion.div>
 
-        {/* Avatar Section */}
+        {/*Estado de usuario*/}
         {user.avatar_state && (
           <motion.div
             variants={itemVariants}
@@ -97,9 +106,9 @@ export default function UserProfile() {
           </motion.div>
         )}
 
-        {/* User Details Grid */}
+
         <div className="space-y-4">
-          {/* Username */}
+          {/*Username*/}
           <motion.div
             variants={itemVariants}
             className="glass rounded-2xl p-6 flex items-start gap-4"
@@ -113,7 +122,7 @@ export default function UserProfile() {
             </div>
           </motion.div>
 
-          {/* Email */}
+          {/*Email*/}
           <motion.div
             variants={itemVariants}
             className="glass rounded-2xl p-6 flex items-start gap-4"
@@ -127,7 +136,7 @@ export default function UserProfile() {
             </div>
           </motion.div>
 
-          {/* Age Range */}
+          {/*Rango de edad*/}
           {user.age_range && (
             <motion.div
               variants={itemVariants}
@@ -145,7 +154,7 @@ export default function UserProfile() {
             </motion.div>
           )}
 
-          {/* User ID */}
+          {/*User ID*/}
           <motion.div
             variants={itemVariants}
             className="glass rounded-2xl p-6"
@@ -155,7 +164,74 @@ export default function UserProfile() {
           </motion.div>
         </div>
 
-        {/* Additional Info */}
+        {/*Problemas de salud del usuario*/}
+        <motion.div variants={itemVariants} className="mt-8">
+          <h2 className="text-lg font-semibold text-white mb-4">Salud y Accesibilidad</h2>
+          <div className="space-y-4">
+            {/*Problemas de movilidad*/}
+            <motion.div
+              variants={itemVariants}
+              className="glass rounded-2xl p-6 flex items-start gap-4"
+            >
+              <div className="flex-1">
+                <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Problemas de Movilidad</p>
+                <p className="text-lg font-semibold text-white">{user.mobility_issue ? 'Sí' : 'No'}</p>
+              </div>
+            </motion.div>
+
+            {/*Problemas de visión*/}
+            <motion.div
+              variants={itemVariants}
+              className="glass rounded-2xl p-6 flex items-start gap-4"
+            >
+              <div className="flex-1">
+                <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Problemas de Visión</p>
+                <p className="text-lg font-semibold text-white">{user.vision_issue ? 'Sí' : 'No'}</p>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/*Transporte y Vivienda*/}
+        <motion.div variants={itemVariants} className="mt-8">
+          <h2 className="text-lg font-semibold text-white mb-4">Transporte y Vivienda</h2>
+          <div className="space-y-4">
+            {/*Transporte Habitual*/}
+            <motion.div
+              variants={itemVariants}
+              className="glass rounded-2xl p-6 flex items-start gap-4"
+            >
+              <div className="flex-1">
+                <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Transporte Habitual</p>
+                <p className="text-lg font-semibold text-white">{user.preferred_transport || 'No especificado'}</p>
+              </div>
+            </motion.div>
+
+            {/*Tipo de vivienda*/}
+            <motion.div
+              variants={itemVariants}
+              className="glass rounded-2xl p-6 flex items-start gap-4"
+            >
+              <div className="flex-1">
+                <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Tipo de Vivienda</p>
+                <p className="text-lg font-semibold text-white">{user.housing_type || 'No especificado'}</p>
+              </div>
+            </motion.div>
+
+            {/*Nº de piso (en caso de que sea piso, si es chalet no)*/}
+            <motion.div
+              variants={itemVariants}
+              className="glass rounded-2xl p-6 flex items-start gap-4"
+            >
+              <div className="flex-1">
+                <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Piso</p>
+                <p className="text-lg font-semibold text-white">{user.housing_floor || 'No especificado'}</p>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/*Cuadro de información adicional*/}
         <motion.div
           variants={itemVariants}
           className="glass-dark rounded-2xl p-6 mt-8"
@@ -173,7 +249,7 @@ export default function UserProfile() {
           </div>
         </motion.div>
 
-        {/* Delete Account Button */}
+        {/*Botón de Eliminar Cuenta*/}
         <motion.button
           variants={itemVariants}
           onClick={() => setShowDeleteModal(true)}
@@ -188,11 +264,11 @@ export default function UserProfile() {
         </motion.button>
       </motion.div>
 
-      {/* Delete Confirmation Modal */}
+      {/*Pop-up de Confirmación*/}
       <AnimatePresence>
         {showDeleteModal && (
           <>
-            {/* Backdrop */}
+            {/*Backdrop*/}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -201,7 +277,7 @@ export default function UserProfile() {
               className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
             />
 
-            {/* Modal */}
+            {/*Texto del pop-up*/}
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -215,7 +291,7 @@ export default function UserProfile() {
                   Esta acción es irreversible. Se eliminarán todos tus datos, tu perfil y todo el historial asociado a tu cuenta.
                 </p>
 
-                {/* Buttons */}
+                {/*Botón de cancelar + botón de eliminar*/}
                 <div className="flex gap-3">
                   <motion.button
                     onClick={() => setShowDeleteModal(false)}
@@ -226,7 +302,7 @@ export default function UserProfile() {
                   >
                     No, Cancelar
                   </motion.button>
-                  <motion.button
+                  <motion.button 
                     onClick={handleDeleteAccount}
                     disabled={loading}
                     className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50

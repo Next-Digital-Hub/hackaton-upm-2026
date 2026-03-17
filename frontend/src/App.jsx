@@ -15,9 +15,9 @@ function RequireCompletedProfile({ children }) {
 }
 
 function OnlyIfProfilePending({ children }) {
-  const { user, needsProfileSetup } = useAuth()
+  const { user } = useAuth()
   if (!user) return <Navigate to="/" replace />
-  return needsProfileSetup ? children : <Navigate to="/dashboard" replace />
+  return children
 }
 
 function AppRoutes() {

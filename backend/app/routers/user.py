@@ -144,6 +144,18 @@ async def update_profile(
     else:
         current_user.profile.age_range = body.age_range
 
+    # Actualizar nuevos campos si están presentes
+    if body.mobility_issue is not None:
+        current_user.profile.mobility_issue = body.mobility_issue
+    if body.vision_issue is not None:
+        current_user.profile.vision_issue = body.vision_issue
+    if body.preferred_transport is not None:
+        current_user.profile.preferred_transport = body.preferred_transport
+    if body.housing_type is not None:
+        current_user.profile.housing_type = body.housing_type
+    if body.housing_floor is not None:
+        current_user.profile.housing_floor = body.housing_floor
+
     db.add(current_user)
     db.commit()
     db.refresh(current_user)

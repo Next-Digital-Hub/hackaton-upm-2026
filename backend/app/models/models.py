@@ -29,6 +29,36 @@ class User(Base):
             return None
         return self.profile.age_range
 
+    @property
+    def mobility_issue(self):
+        if self.profile is None:
+            return None
+        return self.profile.mobility_issue
+
+    @property
+    def vision_issue(self):
+        if self.profile is None:
+            return None
+        return self.profile.vision_issue
+
+    @property
+    def preferred_transport(self):
+        if self.profile is None:
+            return None
+        return self.profile.preferred_transport
+
+    @property
+    def housing_type(self):
+        if self.profile is None:
+            return None
+        return self.profile.housing_type
+
+    @property
+    def housing_floor(self):
+        if self.profile is None:
+            return None
+        return self.profile.housing_floor
+
 
 class UserProfile(Base):
     __tablename__ = "user_profiles"
@@ -36,6 +66,11 @@ class UserProfile(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), unique=True, index=True, nullable=False)
     age_range = Column(String(20), nullable=False)
+    mobility_issue = Column(Boolean, default=False, nullable=True)
+    vision_issue = Column(Boolean, default=False, nullable=True)
+    preferred_transport = Column(String(50), nullable=True)
+    housing_type = Column(String(20), nullable=True)
+    housing_floor = Column(String(10), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

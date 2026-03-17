@@ -107,10 +107,13 @@ export function AuthProvider({ children }) {
     }
   }, [logout])
 
-  const completeProfile = useCallback(async (ageRange) => {
+  const completeProfile = useCallback(async (profileData) => {
     setLoading(true)
     try {
-      const { data } = await api.put('/api/user/profile', { age_range: ageRange })
+      const payload = typeof profileData === 'string' 
+        ? { age_range: profileData }
+        : profileData
+      const { data } = await api.put('/api/user/profile', payload)
       setUser(data)
       localStorage.setItem('weatherself_user', JSON.stringify(data))
       setSystemPromptProfileContext(persistSystemPromptProfileContext(data.age_range))

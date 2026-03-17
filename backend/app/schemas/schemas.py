@@ -9,6 +9,15 @@ from pydantic import BaseModel, EmailStr, Field, model_validator
 AGE_RANGE_OPTIONS = ("0-16", "17-30", "30-50", "50-65", "65+")
 AgeRange = Literal["0-16", "17-30", "30-50", "50-65", "65+"]
 
+TRANSPORT_OPTIONS = ("Coche", "Moto", "Tren", "Autobús", "Bici", "Andando")
+Transport = Literal["Coche", "Moto", "Tren", "Autobús", "Bici", "Andando"]
+
+HOUSING_OPTIONS = ("Chalet", "Piso")
+Housing = Literal["Chalet", "Piso"]
+
+FLOOR_OPTIONS = ("1º", "2º", "3º", "4º", "5º", "6º+")
+Floor = Literal["1º", "2º", "3º", "4º", "5º", "6º+"]
+
 class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     email: EmailStr
@@ -34,6 +43,11 @@ class UserOut(BaseModel):
     email: Optional[str]
     age_range: Optional[AgeRange] = None
     avatar_state: str
+    mobility_issue: Optional[bool] = None
+    vision_issue: Optional[bool] = None
+    preferred_transport: Optional[str] = None
+    housing_type: Optional[str] = None
+    housing_floor: Optional[str] = None
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -51,6 +65,11 @@ class AvatarUpdate(BaseModel):
 
 class ProfileUpdate(BaseModel):
     age_range: AgeRange
+    mobility_issue: Optional[bool] = None
+    vision_issue: Optional[bool] = None
+    preferred_transport: Optional[Transport] = None
+    housing_type: Optional[Housing] = None
+    housing_floor: Optional[Floor] = None
 
 
 # ─── WEATHER ──────────────────────────────────────────────────────────────────

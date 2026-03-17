@@ -3,10 +3,35 @@ import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import inspect, text
 
 from app.database import Base, engine
 from app.routers import admin, alerts, chat, user, weather, websocket
 from app.services.auth_service import startup_auth
+
+
+def _ensure_user_profile_columns() -> None:
+    """Add missing columns for user_profiles in existing SQLite databases."""
+    required_columns = {
+        "mobility_issue": "BOOLEAN",
+        "vision_issue": "BOOLEAN",
+        "preferred_transport": "VARCHAR(50)",
+        "housing_type": "VARCHAR(20)",
+        "housing_floor": "VARCHAR(10)",
+    }
+
+    inspector = inspect(engine)
+    if "user_profiles" not in inspector.get_table_names():
+        return
+
+    existing = {col["name"] for col in inspector.get_columns("user_profiles")}
+
+    for name, col_type in required_columns.items():
+        if name in existing:
+            continue
+        with engine.begin() as conn:
+            conn.execute(text(f"ALTER TABLE user_profiles ADD COLUMN {name} {col_type}"))
+        logger.info("Added missing column user_profiles.%s", name)
 
 # Create all DB tables
 os.makedirs("data", exist_ok=True)
@@ -17,6 +42,9 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+# Keep local databases compatible when profile fields are added.
+_ensure_user_profile_columns()
 
 app = FastAPI(
     title="WeatherSelf API",
