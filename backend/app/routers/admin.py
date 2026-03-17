@@ -23,10 +23,23 @@ router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin2024!")
 
+EMERGENCY_TO_ALERT_SEVERITY = {
+    "amarillo": "info",
+    "naranja": "warning",
+    "rojo": "critical",
+}
+
 
 def _require_admin(password: str):
     if password != ADMIN_PASSWORD:
         raise HTTPException(status_code=401, detail="Invalid admin password")
+
+
+def _build_emergency_alert_message(title: str, actions: list) -> str:
+    if not actions:
+        return title
+    numbered_actions = "\n".join(f"{idx + 1}. {action}" for idx, action in enumerate(actions))
+    return f"{title}\n\nAcciones recomendadas:\n{numbered_actions}"
 
 
 # ─── AUTH ─────────────────────────────────────────────────────────────────────
@@ -165,17 +178,19 @@ async def emergency_broadcast(body: dict, db: Session = Depends(get_db)):
     4. Persists to EmergencyBroadcast table.
     """
     _require_admin(body.get("password", ""))
-
-    cause    = body.get("cause", "")
+    cause = body.get("cause", "")
     severity = body.get("severity", "")
-    actions  = body.get("actions", [])
-    title    = body.get("title", "🚨 Alerta de Emergencia")
-    color    = body.get("color", "#ef4444")
+    raw_actions = body.get("actions", [])
+    actions = raw_actions if isinstance(raw_actions, list) else []
+    title = body.get("title", "🚨 Alerta de Emergencia")
+    color = body.get("color", "#ef4444")
+    timestamp = datetime.utcnow().isoformat()
 
     logger.warning(f"🚨🚨🚨 EMERGENCY BROADCAST: {title} ({cause}/{severity}) 🚨🚨🚨")
 
-    # Broadcast via WebSocket
+    # Real-time push for currently connected sessions.
     connected = manager.connection_count
+    total_users = db.query(func.count(User.id)).scalar() or 0
     print(f"[WS] Broadcasting emergency to {connected} clients")
     await manager.broadcast({
         "type": "EMERGENCY_BROADCAST",
@@ -184,10 +199,10 @@ async def emergency_broadcast(body: dict, db: Session = Depends(get_db)):
         "actions": actions,
         "title": title,
         "color": color,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": timestamp,
     })
 
-    # Persist
+    # Persist history and create a global alert visible for all users.
     record = EmergencyBroadcast(
         weather_data={"cause": cause, "severity": severity},
         llm_message=title,
@@ -197,22 +212,44 @@ async def emergency_broadcast(body: dict, db: Session = Depends(get_db)):
         alert_color=color,
         actions=actions,
         triggered_by="admin",
-        recipients_count=connected,
+        recipients_count=total_users,
     )
+
+    alert = Alert(
+        title=title,
+        message=_build_emergency_alert_message(title, actions),
+        severity=EMERGENCY_TO_ALERT_SEVERITY.get(severity, "critical"),
+        created_by="admin-emergency",
+    )
+
     db.add(record)
+    db.add(alert)
     db.commit()
     db.refresh(record)
+    db.refresh(alert)
 
-    logger.warning(f"Emergency broadcast sent to {connected} clients | ID={record.id}")
+    # Standard notification frame for the bell tray in connected clients.
+    await manager.broadcast({
+        "type": "ALERT_NOTIFICATION",
+        "id": alert.id,
+        "title": alert.title,
+        "message": alert.message,
+        "severity": alert.severity,
+        "timestamp": timestamp,
+    })
+
+    logger.warning(
+        f"Emergency broadcast sent to all users ({total_users}) with {connected} connected in real time | ID={record.id}"
+    )
 
     return {
         "status": "broadcast_sent",
         "message": title,
-        "recipients": connected,
+        "recipients": total_users,
+        "connected_recipients": connected,
         "broadcast_id": record.id,
+        "alert_id": alert.id,
     }
-
-
 # ─── BROADCAST HISTORY ────────────────────────────────────────────────────────
 
 @router.get("/broadcasts", response_model=List[EmergencyBroadcastOut])

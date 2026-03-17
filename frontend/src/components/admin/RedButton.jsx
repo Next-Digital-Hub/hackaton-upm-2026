@@ -214,6 +214,9 @@ function AlertModal({ onConfirm, onCancel, isLoading }) {
 
 // ─── Result Modal ─────────────────────────────────────────────────────────────
 function ResultModal({ result, onClose }) {
+  const totalRecipients = result.recipients ?? 0
+  const connectedRecipients = result.connected_recipients ?? totalRecipients
+
   return (
     <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -235,7 +238,7 @@ function ResultModal({ result, onClose }) {
           <div>
             <h3 className="text-green-300 font-bold">Alerta Emitida</h3>
             <p className="text-slate-400 text-xs">
-              Entregada a {result.recipients} usuario{result.recipients !== 1 ? 's' : ''} conectado{result.recipients !== 1 ? 's' : ''}
+              Enviada a {totalRecipients} usuario{totalRecipients !== 1 ? 's' : ''} · {connectedRecipients} conectado{connectedRecipients !== 1 ? 's' : ''} en tiempo real
               {' '}· ID #{result.broadcast_id}
             </p>
           </div>
@@ -299,7 +302,7 @@ export default function RedButton({ adminPassword }) {
             Alerta de Emergencia
           </h2>
           <p className="text-slate-400 text-sm max-w-xs mx-auto">
-            Selecciona causa y severidad · alerta empujada a todos los usuarios via WebSocket
+            Selecciona causa y severidad · alerta global para todos los usuarios
           </p>
         </div>
 

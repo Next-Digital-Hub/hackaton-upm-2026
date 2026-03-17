@@ -27,16 +27,19 @@ export default function ProfileSetup() {
     e.preventDefault()
     setError('')
 
+    //*Error pregunta para edad no rellenada
     if (!formData.ageRange) {
       setError('Selecciona un rango de edad para continuar.')
       return
     }
 
+    //*Error pregunta para transporte habitual no rellenada
     if (!formData.preferredTransport) {
       setError('Selecciona un transporte para continuar.')
       return
     }
 
+    //*Error pregunta para tipo de vivienda no rellenada
     if (!formData.housingType) {
       setError('Selecciona un tipo de vivienda para continuar.')
       return

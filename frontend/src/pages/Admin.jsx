@@ -102,7 +102,7 @@ export default function Admin() {
               {stats?.connected_ws_clients ?? 0} conectados
             </span>
           </motion.div>
-          <Link to="/" className="btn-ghost text-xs">← Volver a la app</Link>
+          <Link to="/dashboard" className="btn-ghost text-xs">← Volver a la app</Link>
         </div>
       </div>
 

@@ -33,6 +33,32 @@ def _ensure_user_profile_columns() -> None:
             conn.execute(text(f"ALTER TABLE user_profiles ADD COLUMN {name} {col_type}"))
         logger.info("Added missing column user_profiles.%s", name)
 
+
+def _ensure_emergency_broadcast_columns() -> None:
+    """Add missing columns for emergency_broadcasts in existing SQLite databases."""
+    required_columns = {
+        "cause": "VARCHAR(50)",
+        "severity": "VARCHAR(20)",
+        "alert_title": "VARCHAR(200)",
+        "alert_color": "VARCHAR(20)",
+        "actions": "TEXT",
+        "triggered_by": "VARCHAR(50)",
+        "recipients_count": "INTEGER",
+    }
+
+    inspector = inspect(engine)
+    if "emergency_broadcasts" not in inspector.get_table_names():
+        return
+
+    existing = {col["name"] for col in inspector.get_columns("emergency_broadcasts")}
+
+    for name, col_type in required_columns.items():
+        if name in existing:
+            continue
+        with engine.begin() as conn:
+            conn.execute(text(f"ALTER TABLE emergency_broadcasts ADD COLUMN {name} {col_type}"))
+        logger.info("Added missing column emergency_broadcasts.%s", name)
+
 # Create all DB tables
 os.makedirs("data", exist_ok=True)
 Base.metadata.create_all(bind=engine)
@@ -45,6 +71,7 @@ logger = logging.getLogger(__name__)
 
 # Keep local databases compatible when profile fields are added.
 _ensure_user_profile_columns()
+_ensure_emergency_broadcast_columns()
 
 app = FastAPI(
     title="WeatherSelf API",
