@@ -1,7 +1,29 @@
 import type { Libro, LibroInput } from "../types/Libro";
+import type { CondicionClimatica } from "../types/CondicionClimatica";
+import type { Alerta } from "../types/Alerta";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 const LIBROS = `${BASE_URL}/api/libros`;
+const CLIMA = `${BASE_URL}/api/clima`;
+const ALERTAS = `${BASE_URL}/api/alertas`;
+
+// --- Clima ---
+
+export async function getCondicionesByProvincia(provincia: string): Promise<CondicionClimatica[]> {
+  const res = await fetch(`${CLIMA}?provincia=${encodeURIComponent(provincia)}`);
+  if (!res.ok) throw new Error("Error al cargar condiciones climáticas");
+  return res.json();
+}
+
+// --- Alertas ---
+
+export async function getAlertasByProvincia(provincia: string): Promise<Alerta[]> {
+  const res = await fetch(`${ALERTAS}?provincia=${encodeURIComponent(provincia)}`);
+  if (!res.ok) throw new Error("Error al cargar alertas");
+  return res.json();
+}
+
+// --- Libros (legacy) ---
 
 export async function getLibros(): Promise<Libro[]> {
   const res = await fetch(LIBROS);
