@@ -46,7 +46,7 @@ public class getRecomendationAPI {
             citizen.getVillageType(),
             citizen.getSpecialNeeds(),
             weatherData.getDate(),
-            weatherData.getWeatherCondition().getDisplayName(), // Asumiendo que el enum tiene este método
+            weatherData.getWeatherCondition().getDisplayName(),
             weatherData.getTemperatureMax(),
             weatherData.getTemperatureMin(),
             weatherData.getHumidity(),
