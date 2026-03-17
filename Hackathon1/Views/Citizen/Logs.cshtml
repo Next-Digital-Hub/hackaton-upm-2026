@@ -22,6 +22,7 @@
                                 <th>Fecha</th>
                                 <th>Prompt</th>
                                 <th>Tokens usados</th>
+                                <th>Resumen de respuesta</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -36,6 +37,14 @@
                                         </span>
                                     </td>
                                     <td>@log.TokensUsed</td>
+                                    <td>
+                                        @{
+                                            var resp = log.Response ?? string.Empty;
+                                        }
+                                        <span title="@resp">
+                                            @(resp.Length > 100 ? resp.Substring(0, 100) + "…" : resp)
+                                        </span>
+                                    </td>
                                 </tr>
                             }
                         </tbody>

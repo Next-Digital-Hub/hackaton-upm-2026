@@ -51,10 +51,94 @@
         </div>
     </div>
 
-    <!-- Registros meteorológicos recientes -->
+    <!-- Previsión meteorológica actual -->
+    @if (Model.CurrentForecast != null)
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-cloud-sun-fill"></i> Previsión Meteorológica Actual — @Model.CurrentForecast.Provincia (@Model.CurrentForecast.Fecha.ToString("dd/MM/yyyy"))</h5>
+            </div>
+            <div class="card-body">
+                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-3">
+                    <div class="col">
+                        <div class="border rounded p-2 text-center">
+                            <div class="text-muted small">Tmax</div>
+                            <div class="fs-6 fw-bold">@Model.CurrentForecast.Tmax °C</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-2 text-center">
+                            <div class="text-muted small">Tmin</div>
+                            <div class="fs-6 fw-bold">@Model.CurrentForecast.Tmin °C</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-2 text-center">
+                            <div class="text-muted small">Tmed</div>
+                            <div class="fs-6 fw-bold">@Model.CurrentForecast.Tmed °C</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-2 text-center">
+                            <div class="text-muted small">Precipitación</div>
+                            <div class="fs-6 fw-bold">@Model.CurrentForecast.Prec mm</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-2 text-center">
+                            <div class="text-muted small">Humedad media</div>
+                            <div class="fs-6 fw-bold">@Model.CurrentForecast.HrMedia %</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-2 text-center">
+                            <div class="text-muted small">Racha máx.</div>
+                            <div class="fs-6 fw-bold">@Model.CurrentForecast.Racha km/h</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-2 text-center">
+                            <div class="text-muted small">Vel. media viento</div>
+                            <div class="fs-6 fw-bold">@Model.CurrentForecast.Velmedia km/h</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-2 text-center">
+                            <div class="text-muted small">Dirección viento</div>
+                            <div class="fs-6 fw-bold">@Model.CurrentForecast.Dir</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-2 text-center">
+                            <div class="text-muted small">Horas de sol</div>
+                            <div class="fs-6 fw-bold">@Model.CurrentForecast.Sol h</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Recomendación de emitir alerta -->
+    @if (Model.AlertRecommendation != null)
+    {
+        <div class="card shadow-sm mb-4 @(Model.AlertRecommendation.ShouldEmit ? "border-danger" : "border-success")">
+            <div class="card-header @(Model.AlertRecommendation.ShouldEmit ? "bg-danger" : "bg-success") text-white">
+                <h5 class="mb-0">
+                    <i class="bi @(Model.AlertRecommendation.ShouldEmit ? "bi-bell-fill" : "bi-check-circle-fill")"></i>
+                    Recomendación de emitir alerta: <strong>@(Model.AlertRecommendation.ShouldEmit ? "Sí" : "No")</strong>
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">@Model.AlertRecommendation.Reason</p>
+            </div>
+        </div>
+    }
+
+    <!-- Historial meteorológico -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-info text-white">
-            <h5 class="mb-0"><i class="bi bi-cloud-sun-fill"></i> Registros Meteorológicos Recientes</h5>
+            <h5 class="mb-0"><i class="bi bi-cloud-sun-fill"></i> Historial Meteorológico</h5>
         </div>
         <div class="card-body p-0">
             @if (Model.WeatherRecords.Any())
@@ -100,12 +184,12 @@
         </div>
     </div>
 
-    <div class="row g-4">
+    <div class="row g-4 mb-4">
         <!-- Listado de alertas -->
         <div class="col-md-7">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Alertas</h5>
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Alertas emitidas/recibidas</h5>
                 </div>
                 <div class="card-body p-0">
                     <ul id="alerts-list" class="list-group list-group-flush">
@@ -191,6 +275,78 @@
                     <ul id="alert-log" class="list-unstyled mb-0 small font-monospace" style="max-height:150px;overflow-y:auto;"></ul>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Logs LLM (todos) -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-terminal-fill"></i> Logs LLM (todos)</h5>
+            <a asp-controller="Backoffice" asp-action="Logs" class="btn btn-sm btn-outline-light">Ver todos</a>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.LlmLogs.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Usuario</th>
+                                <th>Prompt</th>
+                                <th>Tokens usados</th>
+                                <th>Resumen de respuesta</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var log in Model.LlmLogs)
+                            {
+                                <tr>
+                                    <td class="text-nowrap">@log.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@(log.User?.Email ?? log.UserId ?? "—")</td>
+                                    <td>
+                                        @{
+                                            var p = log.Prompt ?? string.Empty;
+                                        }
+                                        <span title="@p">@(p.Length > 80 ? p.Substring(0, 80) + "…" : p)</span>
+                                    </td>
+                                    <td>@log.TokensUsed</td>
+                                    <td>
+                                        @{
+                                            var r = log.Response ?? string.Empty;
+                                        }
+                                        <span title="@r">@(r.Length > 100 ? r.Substring(0, 100) + "…" : r)</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (Model.LlmLogsTotalPages > 1)
+                {
+                    <nav class="d-flex justify-content-center py-3">
+                        <ul class="pagination mb-0">
+                            <li class="page-item @(Model.LlmLogsPage <= 1 ? "disabled" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-logsPage="@(Model.LlmLogsPage - 1)">&#8249; Anterior</a>
+                            </li>
+                            @for (int i = 1; i <= Model.LlmLogsTotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.LlmLogsPage ? "active" : "")">
+                                    <a class="page-link" asp-action="Index" asp-route-logsPage="@i">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(Model.LlmLogsPage >= Model.LlmLogsTotalPages ? "disabled" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-logsPage="@(Model.LlmLogsPage + 1)">Siguiente &#8250;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                <p class="text-muted p-3 mb-0">No hay consultas LLM registradas.</p>
+            }
         </div>
     </div>
 </div>

@@ -16,17 +16,29 @@ namespace Hackathon1.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IHubContext<NotificationsHub> _hub;
         private readonly IAlertEmitter _alertEmitter;
+        private readonly IWeatherService _weatherService;
+        private readonly IAlertRecommendationService _alertRecommendationService;
 
-        public BackofficeController(ApplicationDbContext context, IHubContext<NotificationsHub> hub, IAlertEmitter alertEmitter)
+        public BackofficeController(
+            ApplicationDbContext context,
+            IHubContext<NotificationsHub> hub,
+            IAlertEmitter alertEmitter,
+            IWeatherService weatherService,
+            IAlertRecommendationService alertRecommendationService)
         {
             _context = context;
             _hub = hub;
             _alertEmitter = alertEmitter;
+            _weatherService = weatherService;
+            _alertRecommendationService = alertRecommendationService;
         }
 
         // GET: /Backoffice/Index
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int logsPage = 1)
         {
+            if (logsPage < 1) logsPage = 1;
+            const int logsPageSize = 20;
+
             var records = await _context.WeatherRecords
                 .OrderByDescending(w => w.Fecha)
                 .Take(50)
@@ -38,6 +50,19 @@ namespace Hackathon1.Controllers
 
             var today = DateTime.UtcNow.Date;
 
+            var (forecast, recommendation) = await GetForecastAndRecommendationAsync(records);
+
+            // LLM logs section
+            var logsQuery = _context.LlmQueryLogs
+                .Include(l => l.User)
+                .OrderByDescending(l => l.CreatedAt);
+
+            var logsTotal = await logsQuery.CountAsync();
+            var llmLogs = await logsQuery
+                .Skip((logsPage - 1) * logsPageSize)
+                .Take(logsPageSize)
+                .ToListAsync();
+
             var vm = new BackofficeIndexViewModel
             {
                 WeatherRecords = records,
@@ -45,7 +70,12 @@ namespace Hackathon1.Controllers
                 CanEmit = true,
                 ActiveAlertsCount = alerts.Count(a => a.IsActive),
                 WeatherRecordsTodayCount = records.Count(w => w.Fecha.Date == today),
-                LastWeatherUpdate = records.FirstOrDefault()?.Fecha
+                LastWeatherUpdate = records.FirstOrDefault()?.Fecha,
+                CurrentForecast = forecast,
+                AlertRecommendation = recommendation,
+                LlmLogs = llmLogs,
+                LlmLogsPage = logsPage,
+                LlmLogsTotalPages = (int)Math.Ceiling(logsTotal / (double)logsPageSize)
             };
 
             return View(vm);
@@ -69,6 +99,8 @@ namespace Hackathon1.Controllers
 
                 var today = DateTime.UtcNow.Date;
 
+                var (forecast, recommendation) = await GetForecastAndRecommendationAsync(records);
+
                 var indexVm = new BackofficeIndexViewModel
                 {
                     WeatherRecords = records,
@@ -77,7 +109,9 @@ namespace Hackathon1.Controllers
                     CanEmit = true,
                     ActiveAlertsCount = alerts.Count(a => a.IsActive),
                     WeatherRecordsTodayCount = records.Count(w => w.Fecha.Date == today),
-                    LastWeatherUpdate = records.FirstOrDefault()?.Fecha
+                    LastWeatherUpdate = records.FirstOrDefault()?.Fecha,
+                    CurrentForecast = forecast,
+                    AlertRecommendation = recommendation
                 };
                 return View("Index", indexVm);
             }
@@ -135,6 +169,27 @@ namespace Hackathon1.Controllers
             ViewBag.Page = page;
             ViewBag.TotalPages = (int)Math.Ceiling(total / (double)pageSize);
             return View(logs);
+        }
+
+        // Fetches forecast from the API, or builds a WeatherDto from the most recent stored record.
+        // Returns the forecast and the alert recommendation derived from it.
+        private async Task<(WeatherDto? forecast, AlertRecommendationResult? recommendation)> GetForecastAndRecommendationAsync(
+            List<WeatherRecord> records)
+        {
+            WeatherDto? forecast = null;
+            AlertRecommendationResult? recommendation = null;
+            try
+            {
+                var latestRecord = records.FirstOrDefault();
+                var provincia = latestRecord?.Provincia ?? "Madrid";
+                forecast = await _weatherService.GetForecastAsync(provincia);
+                recommendation = await _alertRecommendationService.GetRecommendationAsync(forecast);
+            }
+            catch
+            {
+                // Non-critical: dashboard still works without forecast/recommendation
+            }
+            return (forecast, recommendation);
         }
     }
 }

@@ -100,6 +100,41 @@ namespace Hackathon1.Controllers
             return RedirectToAction(nameof(Profile));
         }
 
+        // GET: /Citizen/History
+        public async Task<IActionResult> History(int weatherPage = 1, int alertsPage = 1, string tab = "weather")
+        {
+            if (weatherPage < 1) weatherPage = 1;
+            if (alertsPage < 1) alertsPage = 1;
+            const int pageSize = 20;
+
+            var weatherQuery = _context.WeatherRecords.OrderByDescending(w => w.Fecha);
+            var weatherTotal = await weatherQuery.CountAsync();
+            var weatherRecords = await weatherQuery
+                .Skip((weatherPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var alertsQuery = _context.Alerts.OrderByDescending(a => a.CreatedAt);
+            var alertsTotal = await alertsQuery.CountAsync();
+            var alerts = await alertsQuery
+                .Skip((alertsPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var vm = new CitizenHistoryViewModel
+            {
+                WeatherRecords = weatherRecords,
+                WeatherPage = weatherPage,
+                WeatherTotalPages = (int)Math.Ceiling(weatherTotal / (double)pageSize),
+                Alerts = alerts,
+                AlertsPage = alertsPage,
+                AlertsTotalPages = (int)Math.Ceiling(alertsTotal / (double)pageSize),
+                ActiveTab = tab
+            };
+
+            return View(vm);
+        }
+
         // GET: /Citizen/Logs
         public async Task<IActionResult> Logs(int page = 1)
         {
