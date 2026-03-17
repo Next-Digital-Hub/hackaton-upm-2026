@@ -1,0 +1,119 @@
+.header-comun {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  height: 80px;
+  background: white;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+  font-family: 'Inter', sans-serif;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #1b4d3e 0%, #2e7d32 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  cursor: pointer;
+}
+
+.header-nav {
+  display: flex;
+  gap: 30px;
+}
+
+.nav-item {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #4b5e54;
+  cursor: pointer;
+  transition: color 0.2s, transform 0.2s;
+  padding: 8px 0;
+  position: relative;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  color: #2e7d32;
+  transform: translateY(-2px);
+}
+
+.nav-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #2e7d32;
+  transition: width 0.3s;
+}
+
+.nav-item:hover::after,
+.nav-item.active::after {
+  width: 100%;
+}
+
+.header-profile {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-greeting {
+  font-size: 0.95rem;
+  color: #2d3436;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-location-badge {
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  background: rgba(46, 125, 50, 0.05);
+  border: 1px solid rgba(46, 125, 50, 0.1);
+  border-radius: 8px;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.admin-status-badge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  background: #fff3e0;
+  color: #f57c00;
+  border-radius: 4px;
+  border: 1px solid rgba(245, 124, 0, 0.2);
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.logout-button {
+  padding: 8px 20px;
+  background: transparent;
+  border: 1.5px solid #ff7675;
+  color: #ff7675;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logout-button:hover {
+  background: #ff7675;
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 118, 117, 0.2);
+}
+
+@media (max-width: 768px) {
+  .header-nav {
+    display: none; /* Consider implementing a burger menu later */
+  }
+}

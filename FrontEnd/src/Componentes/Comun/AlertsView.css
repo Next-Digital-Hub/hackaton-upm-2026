@@ -1,0 +1,122 @@
+.alerts-container {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease;
+}
+
+.alerts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.alerts-header h2 {
+  color: var(--text);
+  font-weight: 800;
+  margin: 0;
+}
+
+.refresh-btn {
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: 1px solid var(--primary);
+  background: white;
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.alert-card {
+  display: flex;
+  padding: 20px;
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  border-left: 10px solid #ccc;
+  transition: transform 0.3s ease;
+}
+
+.alert-card:hover {
+  transform: translateX(5px);
+}
+
+.severity-high { border-left-color: #ef4444; background-color: #fef2f2; }
+.severity-medium { border-left-color: #f97316; background-color: #fffaf5; }
+.severity-low { border-left-color: #eab308; background-color: #fefce8; }
+
+.alert-badge {
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  height: fit-content;
+  margin-right: 20px;
+  color: white;
+}
+
+.severity-high .alert-badge { background: #ef4444; }
+.severity-medium .alert-badge { background: #f97316; }
+.severity-low .alert-badge { background: #eab308; }
+
+.alert-main {
+  flex: 1;
+}
+
+.alert-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.alert-main h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #1a1a1a;
+}
+
+.alert-location {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
+}
+
+.alert-desc {
+  margin: 0 0 12px 0;
+  color: #444;
+  line-height: 1.5;
+}
+
+.alert-time {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.no-alerts {
+  text-align: center;
+  padding: 50px;
+  background: #f8faf8;
+  border-radius: 20px;
+  border: 2px dashed #dcfce7;
+  color: #166534;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

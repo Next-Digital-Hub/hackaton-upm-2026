@@ -1,0 +1,84 @@
+.landing-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 80px);
+  background: linear-gradient(rgba(247, 252, 248, 0.9), rgba(247, 252, 248, 0.9)), url('../../assets/eco-bg.png');
+  background-size: cover;
+  background-position: center;
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.auth-actions {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.landing-content {
+  max-width: 900px;
+  animation: fadeIn 1s ease-out;
+}
+
+.landing-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  background: var(--secondary-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.025em;
+}
+
+.landing-subtitle {
+  font-size: 1.3rem;
+  color: var(--eco-brown);
+  margin-bottom: 3rem;
+  line-height: 1.6;
+}
+
+.login-button {
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.login-button.primary {
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 15px rgba(46, 125, 50, 0.2);
+}
+
+.login-button.primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(46, 125, 50, 0.3);
+}
+
+.login-button.secondary {
+  background: transparent;
+  border: 2px solid #2e7d32;
+  color: #2e7d32;
+}
+
+.login-button.secondary:hover {
+  background: rgba(46, 125, 50, 0.05);
+  transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
