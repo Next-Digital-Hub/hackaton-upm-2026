@@ -1,8 +1,10 @@
 using Hackathon1.Data;
+using Hackathon1.Hubs;
 using Hackathon1.Models;
 using Hackathon1.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Hackathon1.Controllers
@@ -11,10 +13,12 @@ namespace Hackathon1.Controllers
     public class BackofficeController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IHubContext<NotificationsHub> _hub;
 
-        public BackofficeController(ApplicationDbContext context)
+        public BackofficeController(ApplicationDbContext context, IHubContext<NotificationsHub> hub)
         {
             _context = context;
+            _hub = hub;
         }
 
         // GET: /Backoffice/Index
@@ -66,6 +70,8 @@ namespace Hackathon1.Controllers
 
             _context.Alerts.Add(alert);
             await _context.SaveChangesAsync();
+
+            await _hub.Clients.Group("Backoffice").SendAsync("SendAlert", alert);
 
             TempData["Success"] = "Alerta creada correctamente.";
             return RedirectToAction(nameof(Index));
