@@ -23,6 +23,47 @@ export async function getAlertasByProvincia(provincia: string): Promise<Alerta[]
   return res.json();
 }
 
+// Obtiene todas las alertas creadas por un admin concreto
+// GET /api/alertas/admin/{idAdmin}
+export async function getAlertasByAdmin(idAdmin: string): Promise<Alerta[]> {
+  const res = await fetch(`${ALERTAS}/admin/${encodeURIComponent(idAdmin)}`);
+  if (!res.ok) throw new Error("Error al cargar alertas del admin");
+  return res.json();
+}
+
+// Crea una nueva alerta manual emitida por un admin
+// POST /api/alertas  — body: Partial<Alerta> (campos opcionales) + isActive=true + idAdmin
+export async function crearAlerta(alerta: Partial<Alerta>): Promise<Alerta> {
+  const res = await fetch(ALERTAS, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(alerta),
+  });
+  if (!res.ok) throw new Error("Error al crear alerta");
+  return res.json();
+}
+
+// Desactiva una alerta (isActive=false)
+// POST /api/alertas/{id}/apagar
+export async function apagarAlerta(id: string): Promise<void> {
+  const res = await fetch(`${ALERTAS}/${encodeURIComponent(id)}/apagar`, { method: "POST" });
+  if (!res.ok) throw new Error("Error al apagar alerta");
+}
+
+// Reactiva una alerta (isActive=true)
+// POST /api/alertas/{id}/encender
+export async function encenderAlerta(id: string): Promise<void> {
+  const res = await fetch(`${ALERTAS}/${encodeURIComponent(id)}/encender`, { method: "POST" });
+  if (!res.ok) throw new Error("Error al encender alerta");
+}
+
+// Elimina una alerta permanentemente
+// DELETE /api/alertas/{id}
+export async function eliminarAlerta(id: string): Promise<void> {
+  const res = await fetch(`${ALERTAS}/${encodeURIComponent(id)}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Error al eliminar alerta");
+}
+
 // --- Libros (legacy) ---
 
 export async function getLibros(): Promise<Libro[]> {
