@@ -22,7 +22,7 @@ interface CondicionesRowProps {
 
 export function CondicionesRow({ condicion }: CondicionesRowProps) {
   return (
-    <Box display="flex" gap={2} sx={{ overflowX: "auto", pb: 1, py: 1 }}>
+    <Box display="flex" flexWrap="wrap" gap={2} sx={{ pb: 1, py: 1 }}>
       <CondicionCard
         label="Temperatura"
         valor={condicion?.tmed ?? null}
