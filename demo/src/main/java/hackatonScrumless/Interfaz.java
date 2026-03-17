@@ -5,6 +5,7 @@ import org.springframework.web.client.RestTemplate;
 public abstract class Interfaz {
     private String nik;
     private String contraseña;
+    private final WeatherService weatherServi = new WeatherService(new RestTemplate());
     public Interfaz() {
     }
 
@@ -30,9 +31,9 @@ public abstract class Interfaz {
     }
 
 
-    public void previsionMeteorologiva() {
-        WeatherService w = new WeatherService(new RestTemplate());
-        w.toString();
+    public void previsionMeteorologica() {
+        WeatherResponse w = new WeatherResponse(weatherServi);
+        System.out.println(w.toString());
     }
 
     public void consultaDatos(){

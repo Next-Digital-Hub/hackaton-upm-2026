@@ -8,8 +8,8 @@ public class InterfazCiudadano extends Interfaz{
         super(nik, contraseña);
     }
 
-    public void previsionMeteorologiva() {
-        super.previsionMeteorologiva();
+    public void previsionMeteorologica() {
+        super.previsionMeteorologica();
 
         System.out.println();
     }

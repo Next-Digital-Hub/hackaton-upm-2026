@@ -29,8 +29,9 @@ public class WeatherResponse {
         private String tmin;
         private String velmedia;
 
-    public WeatherResponse(String datos , ApiController a) {
-        String[] campos = a.weather(false).split(",");
+    public WeatherResponse(WeatherService w) {
+
+        String[] campos = w.getWeather(false,"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJJbWFub2wiLCJleHAiOjE3NzM4MjI5MTR9.EjooIYhMX_BGpRTEZb8KSyoLSQoCezrgqobIpJ6pLMw").split(",");
 
         // Verificamos que el array tenga el tamaño esperado para evitar errores
         if (campos.length >= 25) {
@@ -267,6 +268,22 @@ public class WeatherResponse {
 
     @Override
     public String toString() {
-        return super.toString();
+        return String.format(
+                "--- INFORME METEOROLÓGICO (%s) ---\n" +
+                        "📍 Ubicación: %s, %s (Altitud: %s m)\n" +
+                        "📅 Fecha: %s | Indicativo: %s\n" +
+                        "🌡️ Temperaturas: Media: %s°C | Máx: %s°C (a las %s) | Mín: %s°C (a las %s)\n" +
+                        "💧 Humedad Relativa: Media: %s%% | Máx: %s%% | Mín: %s%%\n" +
+                        "🌬️ Viento: Media: %s km/h | Racha Máx: %s km/h (a las %s) | Dirección: %s\n" +
+                        "🌧️ Otros: Precipitación: %s mm | Sol: %s h | Presión Máx: %s hPa\n" +
+                        "-----------------------------------",
+                nombre,
+                nombre, provincia, altitud,
+                fecha, indicativo,
+                tmed, tmax, horatmax, tmin, horatmin,
+                hrMedia, hrMax, hrMin,
+                velmedia, racha, horaracha, dir,
+                prec, sol, presMax
+        );
     }
 }
