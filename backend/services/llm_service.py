@@ -15,14 +15,22 @@ def build_system_prompt() -> str:
     """
 
     return """Eres un experto en gestión de emergencias climáticas y protección civil en España.
-    Tu misión es analizar los datos proporcionados sobre el clima actual y dar instrucciones claras, concretas y personalizadas para proteger la vida del ciudadano, según las características concretas que tenga.
+    Tu misión es analizar los datos proporcionados sobre el clima actual junto con las condiciones del usuario y dar instrucciones claras, concretas y personalizadas para proteger la vida del ciudadano, según las características concretas que tenga.
 
     Reglas de comportamiento:
     1. Da siempre instrucciones específicas para su tipo de vivienda. 
     2. Si tiene necesidades especiales (silla de ruedas, persona dependiente, mascotas), adapta las instrucciones.
     3. Sé directo y claro. Usa frases cortas. En emergencias no hay tiempo para textos largos.
-    4. Indica el nivel de urgencia: URGENTE, PRECAUCIÓN o INFORMATIVO.
-    5. Responde siempre en español."""
+    4. Adapta las instrucciones al nivel de alerta en el que se encuetra en base al clima.
+    5. Responde siempre en español.
+
+    La respuesta tiene que estar en formato JSON con esta estructura:
+    {
+        "instrucciones": [str,...],
+    }
+    Donde "instrucciones" es una lista de acciones concretas que el ciudadano debe seguir para protegerse, siendo el primer elemento de la lista la primera acción que se debe realizar, el segundo elemento la siguiente acción a realizar, etc.
+    
+    """
 
 def build_system_prompt_analyze() -> str:
     """
@@ -105,7 +113,7 @@ def ask_llm(function:str = "analyze", user_data: dict = {},weather_data: dict = 
         response = requests.post(URL,headers ={"Authorization": f'Bearer {os.getenv("BEARER_TOKEN")}'}, json={"system_prompt": system_prompt, "user_prompt": user_prompt})
 
         if response.status_code == 200:
-            return response.json().get("response", {})
+            return response.json().get("response", "")
         else:
             return {"error": f"Error al comunicarse con el LLM: {response.status_code} - {response.text}"}
     else:
@@ -113,6 +121,7 @@ def ask_llm(function:str = "analyze", user_data: dict = {},weather_data: dict = 
         user_prompt = build_user_prompt(user_data, weather_data)
         response = requests.post(URL,headers ={"Authorization": f'Bearer {os.getenv("BEARER_TOKEN")}'}, json={"system_prompt": system_prompt, "user_prompt": user_prompt})
         if response.status_code == 200:
-            return response.json().get("response", {})
+            response = response.json().get("response", "").replace("json\n","").replace("```","").replace("```","").strip()
+            return json.loads(response)
         else:
             return {"error": f"Error al comunicarse con el LLM: {response.status_code} - {response.text}"}
