@@ -81,7 +81,7 @@ export default function CrearAlertaPage() {
               <Textarea 
                 id="descripcion" 
                 placeholder="Detalla los riesgos y recomendaciones..." 
-                className="min-h-[100px] text-color-white"
+                className="min-h-[100px] text-color-w"
                 required 
                 value={form.descripcion}
                 onChange={(e) => setForm({...form, descripcion: e.target.value})}
