@@ -29,6 +29,12 @@ public class AlertaManager extends AbstractManager<Alerta> {
                 .toList();
     }
 
+    public List<Alerta> findByProvincia(Provincia provincia) {
+        return table.scan().items().stream()
+                .filter(a -> provincia.equals(a.getProvincia()))
+                .toList();
+    }
+
     /**
      * Genera alertas a partir de las condiciones climáticas actuales.
      * Evalúa umbrales para temperatura, lluvia, viento, presión y humedad.

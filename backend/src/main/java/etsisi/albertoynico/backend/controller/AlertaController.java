@@ -2,6 +2,7 @@ package etsisi.albertoynico.backend.controller;
 
 import etsisi.albertoynico.backend.manager.AlertaManager;
 import etsisi.albertoynico.backend.model.Alerta;
+import etsisi.albertoynico.backend.model.Provincia;
 import etsisi.albertoynico.backend.manager.UsuarioManager;
 import etsisi.albertoynico.backend.model.Usuario;
 import etsisi.albertoynico.backend.service.JwtService;
@@ -169,5 +170,11 @@ public class AlertaController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
+    }
+
+    @GetMapping("/provincia/{provincia}")
+    public ResponseEntity<List<Alerta>> getAlertasByProvincia(@PathVariable Provincia provincia) {
+        List<Alerta> alertas = alertaManager.findByProvincia(provincia);
+        return ResponseEntity.ok(alertas);
     }
 }
