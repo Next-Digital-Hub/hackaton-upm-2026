@@ -44,6 +44,7 @@ def list_alerts():
 def create_alert():
     """Crea y emite una alerta a todos los ciudadanos (o de una provincia)."""
     identity = get_jwt_identity()
+    identity = json.loads(identity)
     data = request.get_json()
 
     required = ["titulo", "mensaje", "nivel"]
