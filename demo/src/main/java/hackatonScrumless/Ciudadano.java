@@ -1,5 +1,12 @@
 package hackatonScrumless;
-public class Ciudadano extends Usuario{
+
+import jakarta.persistence.*;
+@Entity
+@Table(name = "ciudadano")
+public class Ciudadano extends Usuario {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private TipoDeVivienda vivienda;
 
@@ -7,11 +14,12 @@ public class Ciudadano extends Usuario{
 
     private String provincia;
 
-    public Ciudadano() {}
+    public Ciudadano() {
+    }
 
     // Constructor completo usando super para el nik y pass
     public Ciudadano(String nik, String pass, TipoDeVivienda v, NecesidadesEspeciales n, String p) {
-        super( nik, pass);
+        super(nik, pass);
         this.vivienda = v;
         this.necesidadesEspeciales = n;
         this.provincia = p;
@@ -39,5 +47,17 @@ public class Ciudadano extends Usuario{
 
     public void setProvincia(String provincia) {
         this.provincia = provincia;
+    }
+
+    @Override
+    public String toString() {
+        return "Ciudadano{" +
+                "id=" + id +
+                ", nik='" + super.getNik() + '\'' +
+                ", contrasena='" + super.getContrasena() + '\'' +
+                ", vivienda=" + vivienda +
+                ", necesidadesEspeciales=" + necesidadesEspeciales +
+                ", provincia='" + provincia + '\'' +
+                '}';
     }
 }

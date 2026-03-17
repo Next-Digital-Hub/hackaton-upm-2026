@@ -3,9 +3,12 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -15,12 +18,16 @@ public class MainClass {
 
     private Scanner sc = new Scanner(System.in);
     private final WeatherService weatherService;
+    private final CiudadanoRepository ciudadanoRepository;
 
-    public MainClass(WeatherService weatherService) {
+    public MainClass(WeatherService weatherService, CiudadanoRepository ciudadanoRepository) {
         this.weatherService = weatherService;
+        this.ciudadanoRepository = ciudadanoRepository;
     }
 
     public void ejecutar() {
+        Ciudadano ciudadano = new Ciudadano("17hsjsJoseEsGay", null, null, null, null);
+        ciudadanoRepository.save(ciudadano);
         String weather = weatherService.getWeather(
                 false,
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJJbWFub2wiLCJleHAiOjE3NzM4MjI5MTR9.EjooIYhMX_BGpRTEZb8KSyoLSQoCezrgqobIpJ6pLMw"
@@ -36,22 +43,15 @@ public class MainClass {
         );
         System.out.println(weather);
     }
+    @Autowired
+    CiudadanoRepository repo;
+        @PostConstruct
+        public void mostrarCiudadanos() {
+            System.out.println(">>> Ciudadanos en la BBDD:");
+            repo.findAll().forEach(System.out::println);
+        }
 
     public static void main(String[] args) {
-       /* SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
-        Session session = sessionFactory.openSession();
-
-        session.beginTransaction();
-
-        Usuario u = new Usuario();
-        u.setNik("Sergio");
-
-        session.persist(u);
-
-        session.getTransaction().commit();
-        session.close();
-        sessionFactory.close();*/
-
         // 1. Arrancar Spring Boot
         ConfigurableApplicationContext context =
                 SpringApplication.run(MainClass.class, args);
@@ -60,8 +60,9 @@ public class MainClass {
         MainClass app = context.getBean(MainClass.class);
 
         // 3. Ejecutar tu método
-        //app.ejecutar();
-        //app.ejecutar2();
+        app.ejecutar();
+        app.ejecutar2();
+        app.mostrarCiudadanos();
         Scanner sc = new Scanner(System.in);
         ArrayList<Usuario> baseDatos = new ArrayList<>();
         Usuario sesionActiva = null;

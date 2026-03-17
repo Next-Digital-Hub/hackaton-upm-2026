@@ -1,12 +1,8 @@
 package hackatonScrumless;
 import jakarta.persistence.*;
 
-@Entity
-@Table(name = "usuarios")
+
 public abstract class Usuario {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
     private String nik;
     private String contrasena;
 
@@ -38,5 +34,4 @@ public abstract class Usuario {
     public void setContrasena(String contrasena) {
         this.contrasena = contrasena;
     }
-
 }
