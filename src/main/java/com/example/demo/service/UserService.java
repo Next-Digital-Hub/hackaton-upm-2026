@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.model.Ciudadano;
 import com.example.demo.model.TipoNecesidades;
 import com.example.demo.model.User;
 import com.example.demo.model.Rol;
@@ -25,7 +26,7 @@ public class UserService {
             throw new RuntimeException("Error: El username de usuario "+dto.username().trim()+" ya existe.");
         }
 
-        User ciudadano= new User();
+        Ciudadano ciudadano= new Ciudadano();
 
         ciudadano.setUsername(dto.username().trim());
         ciudadano.setProvincia(dto.provincia());
