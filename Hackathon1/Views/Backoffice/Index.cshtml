@@ -1,0 +1,137 @@
+@model Hackathon1.Models.ViewModels.BackofficeIndexViewModel
+@{
+    ViewData["Title"] = "Backoffice";
+}
+
+<div class="container py-4">
+    <h2 class="mb-4"><i class="bi bi-shield-lock-fill"></i> Panel de Backoffice</h2>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+    }
+
+    <!-- Registros meteorológicos recientes -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="bi bi-cloud-sun-fill"></i> Registros Meteorológicos Recientes</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.WeatherRecords.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Provincia</th>
+                                <th>Nombre</th>
+                                <th>Tmax (°C)</th>
+                                <th>Tmed (°C)</th>
+                                <th>Prec (mm)</th>
+                                <th>HrMax (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var record in Model.WeatherRecords)
+                            {
+                                <tr>
+                                    <td>@record.Fecha.ToString("dd/MM/yyyy")</td>
+                                    <td>@record.Provincia</td>
+                                    <td>@record.Nombre</td>
+                                    <td>@record.Tmax</td>
+                                    <td>@record.Tmed</td>
+                                    <td>@record.Prec</td>
+                                    <td>@(record.HrMax.HasValue ? record.HrMax.ToString() : "—")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted p-3 mb-0">No hay registros meteorológicos disponibles.</p>
+            }
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Listado de alertas -->
+        <div class="col-md-7">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Alertas</h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.Alerts.Any())
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var alert in Model.Alerts)
+                            {
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>@alert.Title</strong>
+                                            @if (alert.IsActive)
+                                            {
+                                                <span class="badge bg-success ms-2">Activa</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary ms-2">Inactiva</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(alert.Message))
+                                            {
+                                                <p class="mb-0 text-muted small mt-1">@alert.Message</p>
+                                            }
+                                        </div>
+                                        <span class="text-muted small text-nowrap ms-3">@alert.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted p-3 mb-0">No hay alertas registradas.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario para crear alerta -->
+        <div class="col-md-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-plus-circle-fill"></i> Crear Nueva Alerta</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-controller="Backoffice" asp-action="CreateAlert" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label asp-for="NewAlert.Title" class="form-label">Título <span class="text-danger">*</span></label>
+                            <input asp-for="NewAlert.Title" class="form-control" placeholder="Título de la alerta" />
+                            <span asp-validation-for="NewAlert.Title" class="text-danger small"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="NewAlert.Message" class="form-label">Mensaje</label>
+                            <textarea asp-for="NewAlert.Message" class="form-control" rows="4" placeholder="Descripción de la alerta (opcional)"></textarea>
+                            <span asp-validation-for="NewAlert.Message" class="text-danger small"></span>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-send-fill"></i> Crear Alerta
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

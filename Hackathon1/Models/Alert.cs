@@ -7,6 +7,7 @@ namespace Hackathon1.Models
         public string? Message { get; set; }
         public DateTime CreatedAt { get; set; }
         public bool IsRead { get; set; }
+        public bool IsActive { get; set; }
         public string? UserId { get; set; }
         public ApplicationUser? User { get; set; }
     }
