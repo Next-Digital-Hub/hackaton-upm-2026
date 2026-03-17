@@ -57,7 +57,7 @@ export async function getNivelesAlerta(): Promise<string[]> {
 // Registra un ciudadano con sus datos personales y formulario de condiciones
 // POST /api/auth/registerCiudadano — body: RegisterDTO (con userForm)
 // Devuelve { token, usuario, condicionUsuario }
-export async function registerCiudadano(dto: RegisterDTO): Promise<{ token: string }> {
+export async function registerCiudadano(dto: RegisterDTO): Promise<{ token: string; usuario: { id: string; nombre: string; rol: string } }> {
   const res = await fetch(`${AUTH}/registerCiudadano`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -70,7 +70,7 @@ export async function registerCiudadano(dto: RegisterDTO): Promise<{ token: stri
 // Registra un administrador (solo nombre y contraseña)
 // POST /api/auth/registerAdmin — body: { nombre, password }
 // Devuelve { token, usuario }
-export async function registerAdmin(dto: RegisterDTO): Promise<{ token: string }> {
+export async function registerAdmin(dto: RegisterDTO): Promise<{ token: string; usuario: { id: string; nombre: string; rol: string } }> {
   const res = await fetch(`${AUTH}/registerAdmin`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -80,10 +80,25 @@ export async function registerAdmin(dto: RegisterDTO): Promise<{ token: string }
   return res.json();
 }
 
+// --- Login ---
+
+// Inicia sesión con nombre y contraseña
+// POST /api/auth/login — body: { nombre, password }
+// Devuelve { token, usuario: { id, nombre, rol } }
+export async function login(nombre: string, password: string): Promise<{ token: string; usuario: { id: string; nombre: string; rol: string } }> {
+  const res = await fetch(`${AUTH}/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nombre, password }),
+  });
+  if (!res.ok) throw new Error("Credenciales inválidas");
+  return res.json();
+}
+
 // --- Clima ---
 
-export async function getCondicionesByProvincia(provincia: string): Promise<CondicionClimatica[]> {
-  const res = await fetch(`${CLIMA}?provincia=${encodeURIComponent(provincia)}`);
+export async function getCondiciones(): Promise<CondicionClimatica | null> {
+  const res = await fetch(CLIMA);
   if (!res.ok) throw new Error("Error al cargar condiciones climáticas");
   return res.json();
 }

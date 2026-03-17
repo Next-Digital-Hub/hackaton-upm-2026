@@ -6,7 +6,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Alert from "@mui/material/Alert";
 import type { CondicionClimatica } from "../types/CondicionClimatica";
 import type { Alerta } from "../types/Alerta";
-import { getCondicionesByProvincia, getAlertasByProvincia } from "../config/api";
+import { getCondiciones, getAlertasByProvincia } from "../config/api";
 import { CondicionesRow } from "../components/CondicionesRow";
 import { AlertasContainer } from "../components/AlertasContainer";
 
@@ -22,11 +22,11 @@ export function CiudadanoPage() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      getCondicionesByProvincia(PROVINCIA).catch(() => []),
+      getCondiciones().catch(() => null),
       getAlertasByProvincia(PROVINCIA).catch(() => []),
     ])
-      .then(([conds, alts]) => {
-        setCondicion(conds[0] ?? null);
+      .then(([cond, alts]) => {
+        setCondicion(cond);
         setAlertas(alts);
       })
       .catch((err) => setError(err.message))

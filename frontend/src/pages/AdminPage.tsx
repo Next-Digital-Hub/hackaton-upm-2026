@@ -18,7 +18,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { Delete as DeleteIcon, PowerSettingsNew as PowerSettingsNewIcon } from "@mui/icons-material";
 import type { CondicionClimatica } from "../types/CondicionClimatica";
 import type { Alerta } from "../types/Alerta";
-import { getCondicionesByProvincia, getAlertasByAdmin, crearAlerta, apagarAlerta, encenderAlerta, eliminarAlerta, getTiposAlerta, getNivelesAlerta } from "../config/api";
+import { getCondiciones, getAlertasByAdmin, crearAlerta, apagarAlerta, encenderAlerta, eliminarAlerta, getTiposAlerta, getNivelesAlerta } from "../config/api";
 import { CondicionesRow } from "../components/CondicionesRow";
 
 // TODO: el admin podrá seleccionar provincia
@@ -54,13 +54,13 @@ export function AdminPage() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      getCondicionesByProvincia(PROVINCIA).catch(() => []),
+      getCondiciones().catch(() => null),
       getAlertasByAdmin().catch(() => []),
       getTiposAlerta().catch(() => []),
       getNivelesAlerta().catch(() => []),
     ])
-      .then(([conds, alts, tipos, niveles]) => {
-        setCondicion(conds[0] ?? null);
+      .then(([cond, alts, tipos, niveles]) => {
+        setCondicion(cond);
         setAlertas(alts);
         setTiposAlerta(tipos.length > 0 ? tipos : ["TEMPERATURA", "LLUVIA", "VIENTO", "PRESION", "HUMEDAD"]);
         setNivelesAlerta(niveles.length > 0 ? niveles : ["VERDE", "AMARILLO", "NARANJA", "ROJO"]);

@@ -21,10 +21,11 @@ import {
 } from "../config/api";
 
 interface RegisterPageProps {
-  onRegistered: () => void;
+  onRegistered: (token: string, nombre: string, rol: string) => void;
+  onGoToLogin: () => void;
 }
 
-export function RegisterPage({ onRegistered }: RegisterPageProps) {
+export function RegisterPage({ onRegistered, onGoToLogin }: RegisterPageProps) {
   // Enums cargados del backend
   const [roles, setRoles] = useState<string[]>([]);
   const [tiposVivienda, setTiposVivienda] = useState<string[]>([]);
@@ -83,13 +84,14 @@ export function RegisterPage({ onRegistered }: RegisterPageProps) {
         };
         const resp = await registerCiudadano(dto);
         localStorage.setItem("token", resp.token);
+        onRegistered(resp.token, resp.usuario.nombre, resp.usuario.rol);
       } else {
         const resp = await registerAdmin(dto);
         localStorage.setItem("token", resp.token);
+        onRegistered(resp.token, resp.usuario.nombre, resp.usuario.rol);
       }
 
       setSuccess(true);
-      setTimeout(onRegistered, 1500);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Error en el registro");
     } finally {
@@ -216,6 +218,9 @@ export function RegisterPage({ onRegistered }: RegisterPageProps) {
           disabled={submitting || success}
         >
           {submitting ? "Registrando…" : "Registrarse"}
+        </Button>
+        <Button size="small" onClick={onGoToLogin}>
+          ¿Ya tienes cuenta? Inicia sesión
         </Button>
       </Box>
     </Container>
