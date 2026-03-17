@@ -123,6 +123,32 @@
 
             <button onclick="location.reload()" class="w-full mt-8 text-gray-400 text-xs hover:text-blue-600 transition-colors">CERRAR SESIÓN</button>
         </div>
+        <div class="mt-4 flex gap-2">
+    <button onclick="abrirModalHistorico()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-xl text-xs font-bold transition-all">
+        📋 Ver Historial Completo
+    </button>
+</div>
+
+        <div id="modalHistorico" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-lg max-h-[80vh] rounded-3xl overflow-hidden flex flex-col shadow-2xl">
+                <div class="p-6 border-b flex justify-between items-center bg-slate-50">
+                    <h3 class="font-bold text-lg text-slate-800">Histórico de la Plataforma</h3>
+                    <button onclick="cerrarModalHistorico()" class="text-slate-400 hover:text-red-500 text-2xl">&times;</button>
+                </div>
+                
+                <div class="p-6 overflow-y-auto space-y-6">
+                    <div>
+                        <h4 class="text-blue-600 font-black text-[10px] uppercase tracking-wider mb-3">Registros Meteorológicos</h4>
+                        <div id="modalListaMeteo" class="space-y-2"></div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-purple-600 font-black text-[10px] uppercase tracking-wider mb-3">Consultas a Bedrock (LLM)</h4>
+                        <div id="modalListaIA" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -136,11 +162,118 @@
             selectProv.add(opt);
         });
 
-        function validarDNI(dni) {
-            const numero = dni.substr(0, dni.length - 1);
-            const letVal = dni.substr(dni.length - 1).toUpperCase();
-            const letras = 'TRWAGMYFPDXBNJZSQVHLCKE';
-            return letras[numero % 23] === letVal;
+        async function validarDNILocal() {
+        const dniInput = document.getElementById('checkDNI').value.trim().toUpperCase();
+        const letras = "TRWAGMYFPDXBNJZSQVHLCKE";
+        const regexDNI = /^[0-9]{8}[TRWAGMYFPDXBNJZSQVHLCKE]$/;
+
+        // 1. Validación matemática del DNI
+        if (!regexDNI.test(dniInput)) {
+            alert("Formato de DNI incorrecto.");
+            return;
+        }
+        const numero = dniInput.substring(0, 8);
+        if (letras[numero % 23] !== dniInput.substring(8, 9)) {
+            alert("La letra del DNI no es correcta.");
+            return;
+        }
+
+        // 2. CONSULTA AL SERVIDOR: ¿Ya existe este usuario?
+        try {
+            const res = await fetch(`http://localhost:3000/verificar-usuario/${dniInput}`);
+            const data = await res.json();
+
+            if (data.registrado) {
+                // USUARIO YA EXISTE: Carga directa al Dashboard
+                const user = data.usuario;
+                document.getElementById('welcomeMsg').innerText = "Hola de nuevo, " + user.nombre;
+                document.getElementById('perfilBadge').innerText = user.perfil;
+                
+                // Cargamos los datos del clima/IA para su provincia guardada
+                cargarDatosDashboard(user.perfil, user.provincia);
+                irA(3);
+            } else {
+                // USUARIO NUEVO: Abrir formulario de registro
+                irA(2);
+            }
+        } catch (error) {
+            alert("Error al conectar con el servidor.");
+        }
+    }
+
+// Función auxiliar para no repetir código al entrar al Dashboard
+async function cargarDatosDashboard(perfil, provincia) {
+    try {
+        const resData = await fetch(`http://localhost:3000/dashboard-data/${perfil}`);
+        const finalData = await resData.json();
+
+        const dashboardHTML = `
+            <div class="bg-blue-600 text-white p-6 rounded-2xl mb-4 shadow-inner">
+                <p class="text-xs uppercase opacity-75 font-bold mb-1">${provincia}</p>
+                <h3 class="text-4xl font-bold">${finalData.clima.main ? Math.round(finalData.clima.main.temp) : '20'}°C</h3>
+                <p class="capitalize">Estado: ${finalData.clima.weather[0].description}</p>
+            </div>
+            <div class="bg-amber-50 border-l-4 border-amber-400 p-4 text-left rounded-r-xl shadow-sm">
+                <p class="text-[10px] font-black text-amber-700 uppercase mb-1">Recomendación IA (Bedrock):</p>
+                <p class="text-sm text-amber-900 leading-relaxed italic">"${finalData.consejoIA}"</p>
+            </div>
+        `;
+        
+        const contenedorDash = document.querySelector('#step3');
+        const infoPrevia = contenedorDash.querySelector('.info-dinamica');
+        if (infoPrevia) infoPrevia.remove();
+        
+        const divDinamico = document.createElement('div');
+        divDinamico.className = "info-dinamica mt-4";
+        divDinamico.innerHTML = dashboardHTML;
+        contenedorDash.appendChild(divDinamico);
+    } catch (e) {
+        console.error("Error cargando dashboard");
+    }
+}
+
+async function abrirModalHistorico() {
+    const modal = document.getElementById('modalHistorico');
+    const listaMeteo = document.getElementById('modalListaMeteo');
+    const listaIA = document.getElementById('modalListaIA');
+
+    // 1. Mostrar estado de carga
+    listaMeteo.innerHTML = "<p class='text-xs text-gray-400 italic'>Cargando registros...</p>";
+    listaIA.innerHTML = "<p class='text-xs text-gray-400 italic'>Cargando consultas...</p>";
+    modal.classList.remove('hidden');
+
+    try {
+        // 2. Pedir datos al servidor
+        const res = await fetch('http://localhost:3000/historicos');
+        const data = await res.json();
+
+        // 3. Renderizar Clima
+        listaMeteo.innerHTML = data.meteo.length ? data.meteo.map(m => `
+            <div class="p-2 bg-blue-50 rounded-lg border border-blue-100">
+                <div class="flex justify-between text-[10px] text-blue-400 mb-1">
+                    <span>${m.provincia}</span>
+                    <span>${new Date(m.fecha).toLocaleString()}</span>
+                </div>
+                <p class="text-xs font-bold text-blue-900">${m.temp} - ${m.descripcion}</p>
+            </div>
+        `).join('') : "<p class='text-xs text-gray-400'>No hay registros aún.</p>";
+
+        // 4. Renderizar IA
+        listaIA.innerHTML = data.ia.length ? data.ia.map(i => `
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <p class="text-[10px] text-slate-400 mb-1">${new Date(i.fecha).toLocaleString()}</p>
+                <p class="text-xs font-semibold text-slate-700 mb-1">Q: ${i.pregunta}</p>
+                <p class="text-xs text-slate-500 bg-white p-2 rounded border border-slate-100 italic">R: ${i.respuesta}</p>
+            </div>
+        `).join('') : "<p class='text-xs text-gray-400'>No hay consultas aún.</p>";
+
+    } catch (e) {
+        listaMeteo.innerHTML = "<p class='text-red-500 text-xs'>Error al cargar los datos.</p>";
+    }
+}
+
+        function cerrarModalHistorico() {
+            document.getElementById('modalHistorico').classList.add('hidden');
         }
 
         function irA(paso) {
@@ -204,6 +337,80 @@
             if(esAdmin) document.getElementById('adminControls').classList.remove('hidden');
             
             irA(3);
+        }
+        async function enviarAlBackend() {
+            // 1. RECOGER DATOS DEL HTML
+            const datos = {
+                nombre: document.getElementById('nombre').value,
+                dni: document.getElementById('checkDNI').value,
+                edad: document.getElementById('edad').value,
+                provincia: document.getElementById('provincia').value,
+                tipoUsuario: document.getElementById('tipoUsuario').value,
+                adminCode: document.getElementById('adminCode').value,
+                necesidades: Array.from(document.querySelectorAll('.med-check:checked')).map(c => c.value)
+            };
+
+            try {
+                // 2. ENVIAR REGISTRO AL SERVIDOR LOCAL
+                const respuesta = await fetch('http://localhost:3000/registro', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(datos)
+                });
+
+                const resultado = await respuesta.json();
+
+                if (respuesta.ok) {
+                    // --- AQUÍ EMPIEZA LA PARTE NUEVA PARA LA HACKATON ---
+                    
+                    // Actualizamos los textos básicos
+                    document.getElementById('welcomeMsg').innerText = "Hola, " + resultado.nombre;
+                    document.getElementById('perfilBadge').innerText = resultado.perfil;
+
+                    // 3. PEDIR CLIMA E IA AL BACKEND (que a su vez consulta la API de AWS)
+                try {
+                    const resData = await fetch('http://localhost:3000/dashboard-data/${resultado.perfil}');
+                    const finalData = await resData.json();
+
+                    // Construimos el HTML dinámico con los datos de la Hackaton
+                    const dashboardHTML = `
+                        <div class="bg-blue-600 text-white p-6 rounded-2xl mb-4 shadow-inner">
+                            <p class="text-xs uppercase opacity-75 font-bold mb-1">${resultado.provincia}</p>
+                            <h3 class="text-4xl font-bold">${finalData.clima.main ? Math.round(finalData.clima.main.temp) : '20'}°C</h3>
+                            <p class="capitalize">Estado: ${finalData.clima.weather[0].description}</p>
+                        </div>
+                        <div class="bg-amber-50 border-l-4 border-amber-400 p-4 text-left rounded-r-xl shadow-sm">
+                            <p class="text-[10px] font-black text-amber-700 uppercase mb-1">Recomendación IA (Bedrock):</p>
+                            <p class="text-sm text-amber-900 leading-relaxed italic">"${finalData.consejoIA}"</p>
+                        </div>
+                    `;
+                    
+                    // Insertamos el bloque en el paso 3 (asegúrate de que el div esté vacío o identificado)
+                    const contenedorDash = document.querySelector('#step3');
+                    // Buscamos si ya hay un bloque de info previa para no duplicar
+                    const infoPrevia = contenedorDash.querySelector('.info-dinamica');
+                    if (infoPrevia) infoPrevia.remove();
+                    
+                    const divDinamico = document.createElement('div');
+                    divDinamico.className = "info-dinamica mt-4";
+                    divDinamico.innerHTML = dashboardHTML;
+                    contenedorDash.appendChild(divDinamico);
+
+                } catch (errIA) {
+                    console.error("Error al obtener datos de la API Hackaton:", errIA);
+                }
+
+                // 4. CAMBIAR A LA PANTALLA DASHBOARD
+                irA(3);
+                
+                // --- AQUÍ TERMINA LA PARTE NUEVA ---
+
+                } else {
+                    alert("Error del servidor: " + resultado.error);
+                }
+            } catch (error) {
+                alert("No se pudo conectar con el servidor. ¿Has ejecutado 'node server.js'?");
+            }
         }
     </script>
 </body>

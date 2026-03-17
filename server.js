@@ -8,6 +8,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const CREDENCIALES = {
+    nickname : "dedson",
+    teamName : "Los Multiplexores Maquiavélicos",
+    password : "hack2026"
+};
+
 let db;
 
 // 1. INICIALIZACIÓN DE BASE DE DATOS (SQLite)
@@ -70,7 +76,7 @@ app.post('/registro', async (req, res) => {
 // 3. RUTA DE CLIMA (Conexión con API externa)
 app.get('/clima/:provincia', async (req, res) => {
     const prov = req.params.provincia;
-    const API_KEY = "TU_API_KEY_AQUI"; // <--- SUSTITUYE POR TU CLAVE DE OPENWEATHER
+    const API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZWRzb24iLCJleHAiOjE3NzM4MjU1ODZ9.3PaFBa2fSRQyPNEvualOwv-C8Q5DoT0mNMrSGjlhPnI"; // <--- SUSTITUYE POR TU CLAVE DE OPENWEATHER
     
     try {
         const url = `https://api.openweathermap.org/data/2.5/weather?q=${prov},es&units=metric&lang=es&appid=${API_KEY}`;
@@ -90,7 +96,28 @@ app.get('/clima/:provincia', async (req, res) => {
         res.status(500).json({ error: "Error conectando con la API de clima" });
     }
 });
-
+app.get('/verificar-usuario/:dni', async (req, res) => {
+    const dni = req.params.dni.toUpperCase();
+    try {
+        const usuario = await db.get(`SELECT * FROM usuarios WHERE dni = ?`, [dni]);
+        if (usuario) {
+            res.json({ registrado: true, usuario: usuario });
+        } else {
+            res.json({ registrado: false });
+        }
+    } catch (e) {
+        res.status(500).json({ error: "Error en la base de datos" });
+    }
+});
+app.get('/historicos', async (req, res) => {
+    try {
+        const meteo = await db.all(`SELECT * FROM historico_meteo ORDER BY fecha DESC LIMIT 20`);
+        const ia = await db.all(`SELECT * FROM historico_ia ORDER BY fecha DESC LIMIT 20`);
+        res.json({ meteo, ia });
+    } catch (e) {
+        res.status(500).json({ error: "No se pudo recuperar el historial" });
+    }
+});
 // Iniciar servidor
 const PORT = 3000;
 app.listen(PORT, () => {
