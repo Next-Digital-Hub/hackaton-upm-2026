@@ -25,8 +25,13 @@ import {
 import authClient from "@/lib/auth-client";
 
 import SignInCard from "./SignInCard";
-
-
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldSet,
+} from "@/components/ui/field"
 type LogDialogProps = {
   onLogIn: (email: string, password: string) => void;
 };
@@ -69,8 +74,9 @@ export default function Chat() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  
   const [open, setOpen] = useState<boolean>(false);
+  const [inputText, setInputText] = useState<string>("");
+  
   const formRef = useRef(null);
   const { data: session, isPending } = authClient.useSession();
   
@@ -90,7 +96,8 @@ export default function Chat() {
       
       const res = await fetch(`${process.env.HOST_URL}/api/weather?${params}`);
       const json = await res.json();
-      setContent(JSON.stringify(json));
+      // TODO(erb): set disaster
+      //setContent(JSON.stringify(json));
     } catch (e) {
       console.log("error", e);
       setError("Error while fetching");
@@ -99,8 +106,11 @@ export default function Chat() {
     }
   }
   
-  async function requestMessage() {
-    const message = text;
+  async function requestMessage(message: string) {
+    setMessages(prev => [...prev, {
+                           role: "user",
+                           content: message,
+                         }]);
     try { 
       setLoading(true);
       const params = new URLSearchParams();
@@ -111,7 +121,10 @@ export default function Chat() {
       
       const textResponse = json.response;
       if (textResponse) {
-        setContent(textResponse);
+        setMessages(prev => [...prev, {
+                               role: "ai",
+                               content: textResponse,
+                             }]);
       } else {
         throw new Error("failed");
       }
@@ -123,14 +136,23 @@ export default function Chat() {
     }
   }
   
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // NOTE(erb): parse info
     
-    if (!loggedIn) {
-      setOpen(true);
-    } else {
-    }
+    const formData = new FormData(e.currentTarget);
+    const message = formData.get("inputText") as string;
+    
+    setInputText("");
+    
+    await requestMessage(message);
+    
+    /*     
+        if (!loggedIn) {
+          setOpen(true);
+        } else {
+          
+        }
+     */
   }
   
   // TODO(erb): 
@@ -141,63 +163,34 @@ export default function Chat() {
           <Dialog open={open} onOpenChange={setOpen}>
           <LogDialog />
           <div className="bg-primary text-secondary w-full h-full grid grid-flow-rows p-3 gap-4">
+          <div className="bg-neutral-900 text-secondary w-full h-full grid grid-flow-rows p-3 gap-4">
+          <div>
+          <Field>
           
-          <div className="grid grid-flow-rows grid-cols-5 gap-2"> 
-          {chatConversation
+          </Field>
+          </div>
+          <div className="flex flex-col gap-4 p-4 "> 
+          {messages
               .map((chatMessage, i) => (
-                                        <div key={`${chatMessage.role}-${chatMessage.content}-${i}`} className={`col-span-4 bg-green-800 p-2 rounded-md ${chatMessage.role === "user" ? "col-start-2" : "col-start-1"}`}>
-                                        <div className="text-green-500">{chatMessage.role}</div>
-                                        <div>{chatMessage.content}</div>
+                                        <div key={`${chatMessage.role}-${chatMessage.content}-${i}`} className={`flex w-full ${chatMessage.role === "user" ? "justify-end" : "justify-start"}`}>
+                                        
+                                        {/* La burbuja: "w-fit" hace que el fondo solo ocupe el texto */}
+                                        <div className={` max-w-[80%] w-fit p-3 rounded-lg ${chatMessage.role === "user" ? "bg-zinc-600 text-right" : "bg-zinc-700 text-left"}`}>
+                                        <div className="text-xs font-bold text-blue-500 uppercase mb-1">
+                                        {chatMessage.role}</div>
+                                        <div className="text-white">{chatMessage.content}</div>
+                                        </div>
                                         </div>
                                         ))}
           </div>
           
-          <form onSubmit={handleSubmit} ref={formRef} className="flex flex-row bg-gray-800 rounded-md p-2">
-          <Input className="border-none text-secondary" onChange={(e) => setText(e.target.value)} value={text} />
+          <form onSubmit={handleSubmit} ref={formRef} className="flex flex-row bg-none rounded-md p-2">
+          <Input className="rounded-lg bg-zinc-700 text-secondary" name="inputText" onChange={(e) => setInputText(e.target.value)} value={inputText}/>
           <Button type="submit" variant="secondary">Send</Button>
           </form>
           </div>
-          </Dialog>
           
+          </div>
+          </Dialog>
           );
 }
-
-const chatConversation = [
-                          {
-                            role: "system",
-                            content: "You are a helpful assistant."
-                          },
-                          {
-                            role: "user",
-                            content: "Hey, can you help me plan a trip?"
-                          },
-                          {
-                            role: "ai",
-                            content: "Of course! Where are you thinking of going?"
-                          },
-                          {
-                            role: "user",
-                            content: "I'm considering Japan, maybe Tokyo and Kyoto."
-                          },
-                          {
-                            role: "ai",
-                            content: "Great choices! Tokyo is vibrant and modern, while Kyoto offers beautiful temples and tradition."
-                          },
-                          {
-                            role: "user",
-                            content: "What’s the best time to visit?"
-                          },
-                          {
-                            role: "ai",
-                            content: "Spring (March to May) for cherry blossoms or autumn (September to November) for colorful foliage are ideal."
-                          },
-                          {
-                            role: "user",
-                            content: "Nice! Any food recommendations?"
-                          },
-                          {
-                            role: "ai",
-                            content: "Definitely try sushi, ramen, tempura, and okonomiyaki. Each region has its own specialties."
-                          },
-                          
-                          ];
