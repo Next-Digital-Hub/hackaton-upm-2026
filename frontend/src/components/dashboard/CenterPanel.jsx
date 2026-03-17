@@ -7,6 +7,7 @@ import {
   COND_EMOJI, COND_LABEL_ES, GLOW_COLOR, HERO_GRADIENT,
   extractSuggestions, extractWeather, getCondition,
 } from '../../utils/weather'
+import WeekTimeline from './WeekTimeline'
 
 // ─── Shared markdown ──────────────────────────────────────────────────────────
 const MD = {
@@ -411,9 +412,11 @@ export default function CenterPanel({
 
       {/* Scrollable content */}
       <div
-        className="flex-1 flex flex-col items-center justify-center px-5 gap-4 overflow-y-auto relative z-[1]"
+        className="flex-1 flex flex-col px-5 gap-4 overflow-y-auto relative z-[1]"
         style={{ scrollbarWidth: 'none' }}
       >
+        {/* Main weather content — centered when alone */}
+        <div className="flex-1 flex flex-col items-center justify-center gap-4">
         <AnimatePresence mode="wait">
           {loading && !hasDisplay ? (
             <motion.div key="skel" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -539,6 +542,12 @@ export default function CenterPanel({
             </motion.div>
           )}
         </AnimatePresence>
+        </div>{/* end flex-1 centered */}
+
+        {/* ── 7-day timeline — always visible ── */}
+        <div className="shrink-0 w-full pb-4">
+          <WeekTimeline />
+        </div>
       </div>
     </div>
   )

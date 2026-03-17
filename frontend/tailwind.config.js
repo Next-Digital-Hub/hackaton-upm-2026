@@ -16,8 +16,13 @@ export default {
         'shake': 'shake 0.4s ease-in-out',
         'float': 'float 3s ease-in-out infinite',
         'slide-up': 'slideUp 0.3s ease-out',
+        'emergency-pulse': 'emergencyPulse 0.5s ease-in-out infinite',
       },
       keyframes: {
+        emergencyPulse: {
+          '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+          '50%': { opacity: '0.3', transform: 'scale(1.002)' },
+        },
         pulseGlow: {
           '0%, 100%': {
             boxShadow: '0 0 8px 2px rgba(239,68,68,0.6), 0 0 20px 4px rgba(239,68,68,0.3)',

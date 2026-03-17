@@ -78,8 +78,14 @@ class EmergencyBroadcast(Base):
     __tablename__ = "emergency_broadcasts"
 
     id = Column(Integer, primary_key=True, index=True)
-    weather_data = Column(JSON, nullable=False)
-    llm_message = Column(Text, nullable=False)
+    weather_data = Column(JSON, nullable=True)
+    llm_message = Column(Text, nullable=True)
+    # Structured alert fields (new)
+    cause = Column(String(50), nullable=True)
+    severity = Column(String(20), nullable=True)
+    alert_title = Column(String(200), nullable=True)
+    alert_color = Column(String(20), nullable=True)
+    actions = Column(JSON, nullable=True)
     triggered_by = Column(String(50), default="admin")
     recipients_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

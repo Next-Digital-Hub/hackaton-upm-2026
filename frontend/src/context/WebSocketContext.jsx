@@ -6,6 +6,23 @@ const WebSocketContext = createContext(null)
 // Message types that should NOT be treated as user notifications
 const SYSTEM_TYPES = new Set(['CONNECTED', 'PONG', 'EMERGENCY_BROADCAST'])
 
+function playAlert() {
+  try {
+    const ctx = new AudioContext()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.frequency.value = 880
+    gain.gain.setValueAtTime(0.3, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8)
+    osc.start(ctx.currentTime)
+    osc.stop(ctx.currentTime + 0.8)
+  } catch {
+    // AudioContext not available
+  }
+}
+
 export function WebSocketProvider({ children }) {
   const { user } = useAuth()
   const [emergency, setEmergency] = useState(null)
@@ -37,6 +54,7 @@ export function WebSocketProvider({ children }) {
 
         if (msg.type === 'EMERGENCY_BROADCAST') {
           setEmergency(msg)
+          playAlert()
           return
         }
 

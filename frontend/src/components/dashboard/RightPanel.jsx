@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import api from '../../services/api'
 import { extractSuggestions } from '../../utils/weather'
+import PinnedMessage from './PinnedMessage'
 
 // ─── Shared markdown ──────────────────────────────────────────────────────────
 const MD = {
@@ -70,9 +71,9 @@ function TypingDots() {
 }
 
 // ─── Chat bubble ──────────────────────────────────────────────────────────────
-function ChatBubble({ msg, isLast, onPin }) {
-  const isUser    = msg.role === 'user'
-  const [hovering, setHovering] = useState(false)
+function ChatBubble({ msg, onPin }) {
+  const isUser   = msg.role === 'user'
+  const [hovered, setHovered] = useState(false)
 
   return (
     <motion.div
@@ -80,8 +81,6 @@ function ChatBubble({ msg, isLast, onPin }) {
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => setHovering(false)}
     >
       <div
         className={`relative max-w-[88%] rounded-xl px-3 py-2 text-xs ${
@@ -89,17 +88,19 @@ function ChatBubble({ msg, isLast, onPin }) {
             ? 'bg-gradient-to-br from-blue-600 to-purple-700 text-white rounded-tr-sm'
             : 'bg-white/8 border border-white/10 text-white/85 rounded-tl-sm'
         }`}
+        onMouseEnter={() => !isUser && setHovered(true)}
+        onMouseLeave={() => !isUser && setHovered(false)}
       >
-        {/* Pin button — only on last AI message on hover */}
-        {!isUser && isLast && hovering && onPin && (
+        {/* Pin button — visible on hover for all AI bubbles */}
+        {!isUser && onPin && (
           <motion.button
-            onClick={onPin}
+            onClick={() => onPin(msg.text)}
             className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-slate-700 border border-white/20
                        flex items-center justify-center text-white/50 hover:text-amber-300 hover:bg-slate-600
                        transition-colors shadow-lg z-10"
-            initial={{ opacity: 0, scale: 0.7 }}
-            animate={{ opacity: 1, scale: 1 }}
-            title="Fijar en sugerencias"
+            animate={{ opacity: hovered ? 1 : 0, scale: hovered ? 1 : 0.7 }}
+            transition={{ duration: 0.15 }}
+            title="Fijar mensaje"
           >
             <Pin className="w-2.5 h-2.5" />
           </motion.button>
@@ -115,41 +116,23 @@ function ChatBubble({ msg, isLast, onPin }) {
   )
 }
 
-// ─── Suggestions section ──────────────────────────────────────────────────────
-function SuggestionsSection({ suggestions, pinnedText, onUnpin }) {
-  const hasPinned = !!pinnedText
-  const hasPills  = !hasPinned && suggestions?.length > 0
-
-  if (!hasPinned && !hasPills) return null
+// ─── Suggestions pills (no pinned logic — handled by PinnedMessage) ───────────
+function SuggestionsSection({ suggestions }) {
+  if (!suggestions?.length) return null
 
   return (
     <div className="shrink-0 px-3 pt-2.5 pb-1.5 border-b border-white/8 max-h-24 overflow-hidden">
-      {hasPinned ? (
-        <div>
-          <button
-            onClick={onUnpin}
-            className="w-full text-left flex items-center gap-2 px-2.5 py-1.5 rounded-xl
-                       bg-amber-500/10 border border-amber-500/25 hover:bg-amber-500/15
-                       transition-colors group"
+      <div className="flex flex-wrap gap-1 overflow-hidden" style={{ maxHeight: '3.2rem' }}>
+        {suggestions.map((s, i) => (
+          <span
+            key={i}
+            className={`flex items-center gap-1 border rounded-full px-2 py-0.5 text-[10px] font-medium ${SUG_STYLE[s.type] ?? SUG_STYLE.tip}`}
           >
-            <span className="text-amber-300 text-sm shrink-0">📌</span>
-            <span className="text-amber-200/80 text-[10px] flex-1 truncate leading-relaxed">{pinnedText}</span>
-            <span className="text-amber-300/40 text-[9px] shrink-0 group-hover:text-amber-300/70 transition-colors">✕ limpiar</span>
-          </button>
-        </div>
-      ) : (
-        <div className="flex flex-wrap gap-1 overflow-hidden" style={{ maxHeight: '3.2rem' }}>
-          {suggestions.map((s, i) => (
-            <span
-              key={i}
-              className={`flex items-center gap-1 border rounded-full px-2 py-0.5 text-[10px] font-medium ${SUG_STYLE[s.type] ?? SUG_STYLE.tip}`}
-            >
-              {s.icon && <span className="text-xs leading-none">{s.icon}</span>}
-              {s.text}
-            </span>
-          ))}
-        </div>
-      )}
+            {s.icon && <span className="text-xs leading-none">{s.icon}</span>}
+            {s.text}
+          </span>
+        ))}
+      </div>
     </div>
   )
 }
@@ -167,7 +150,7 @@ function resolveAvatar(key = '') {
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-export default function RightPanel({ weatherData, avatarState, autoSend, simulatedMode }) {
+export default function RightPanel({ weatherData, avatarState, autoSend, simulatedMode, emergency, onDismissEmergency }) {
   const [messages,    setMessages]    = useState([])
   const [input,       setInput]       = useState('')
   const [chatLoading, setChatLoading] = useState(false)
@@ -177,19 +160,23 @@ export default function RightPanel({ weatherData, avatarState, autoSend, simulat
 
   const cfg = resolveAvatar(avatarState)
 
+  // Auto-pin emergency message when broadcast arrives
+  useEffect(() => {
+    if (!emergency) return
+    const text = `🚨 ${emergency.title}\n\n${emergency.actions.map((a, i) => `${i + 1}. ${a}`).join('\n')}`
+    setPinnedText(text)
+  }, [emergency])
+
+  const handleEntendido = () => {
+    setPinnedText(null)
+    onDismissEmergency?.()
+  }
+
   // Auto-suggestions from latest forecast
   const { suggestions } = useMemo(
     () => extractSuggestions(weatherData?.llm_response ?? ''),
     [weatherData?.llm_response]
   )
-
-  // Index of last AI message (for pin button)
-  const lastAiIdx = useMemo(() => {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].role === 'ai') return i
-    }
-    return -1
-  }, [messages])
 
   // Auto-send triggered by questionnaire completion
   useEffect(() => {
@@ -213,9 +200,7 @@ export default function RightPanel({ weatherData, avatarState, autoSend, simulat
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
   }
 
-  const handlePin = (msgText) => {
-    setPinnedText(msgText)
-  }
+  const handlePin = (msgText) => setPinnedText(msgText)
 
   return (
     <div className="flex flex-col h-full rounded-2xl border border-white/8 bg-white/3 backdrop-blur-sm overflow-hidden">
@@ -228,12 +213,39 @@ export default function RightPanel({ weatherData, avatarState, autoSend, simulat
         <span className="text-white/20 text-[10px]">WeatherSelf</span>
       </div>
 
-      {/* ── Suggestions (pinned top) ── */}
-      <SuggestionsSection
-        suggestions={suggestions}
-        pinnedText={pinnedText}
-        onUnpin={() => setPinnedText(null)}
-      />
+      {/* ── Suggestion pills ── */}
+      <SuggestionsSection suggestions={suggestions} />
+
+      {/* ── Pinned message bar ── */}
+      <AnimatePresence>
+        {pinnedText && (
+          emergency ? (
+            <motion.div
+              key="emergency-pin"
+              className="mx-3 mt-3 rounded-xl p-3 border-2"
+              style={{ borderColor: emergency.color, backgroundColor: `${emergency.color}18` }}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18 }}
+            >
+              <div className="flex items-start gap-2">
+                <span className="text-sm shrink-0 mt-0.5">🚨</span>
+                <pre className="text-white/85 text-xs leading-snug flex-1 whitespace-pre-wrap font-sans">{pinnedText}</pre>
+                <button
+                  onClick={handleEntendido}
+                  className="shrink-0 text-[10px] font-bold px-2 py-1 rounded-lg transition-colors whitespace-nowrap"
+                  style={{ backgroundColor: `${emergency.color}30`, color: emergency.color }}
+                >
+                  ✓ Entendido
+                </button>
+              </div>
+            </motion.div>
+          ) : (
+            <PinnedMessage key="pinned" text={pinnedText} onClear={() => setPinnedText(null)} />
+          )
+        )}
+      </AnimatePresence>
 
       {/* ── Chat messages ── */}
       <div
@@ -253,11 +265,7 @@ export default function RightPanel({ weatherData, avatarState, autoSend, simulat
             <ChatBubble
               key={i}
               msg={msg}
-              isLast={i === lastAiIdx}
-              onPin={!pinnedText && i === lastAiIdx && msg.role === 'ai'
-                ? () => handlePin(msg.text)
-                : null
-              }
+              onPin={msg.role === 'ai' && !pinnedText ? () => handlePin(msg.text) : null}
             />
           ))}
           {chatLoading && (

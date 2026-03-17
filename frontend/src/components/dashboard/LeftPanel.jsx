@@ -2,19 +2,8 @@ import { motion } from 'framer-motion'
 import { RotateCcw } from 'lucide-react'
 import AvatarSelector from '../user/AvatarSelector'
 
-const PHYSICAL_LABELS = {
-  energized: '⚡ Energizado', normal: '😐 Normal', tired: '😴 Cansado', sick: '🤒 Enfermo',
-}
-const PROFILE_PILL = {
-  energized: 'bg-green-500/20 text-green-300 border-green-500/30',
-  tired:     'bg-blue-500/20  text-blue-300  border-blue-500/30',
-  sick:      'bg-amber-500/20 text-amber-300 border-amber-500/30',
-  normal:    'bg-slate-500/20 text-slate-300 border-slate-500/30',
-}
-
 export default function LeftPanel({ user, profile, onSelect, onReset }) {
   const initial = user?.username?.[0]?.toUpperCase() ?? '?'
-  const pillClass = profile ? (PROFILE_PILL[profile.physical] ?? PROFILE_PILL.normal) : ''
 
   return (
     <div className="flex flex-col h-full rounded-2xl border border-white/8 bg-white/3 backdrop-blur-sm overflow-hidden">
@@ -26,15 +15,7 @@ export default function LeftPanel({ user, profile, onSelect, onReset }) {
         </div>
         <div className="min-w-0">
           <p className="text-white font-semibold text-sm leading-none truncate">{user?.username}</p>
-          {profile ? (
-            <motion.span
-              className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full border ${pillClass}`}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-            >
-              {profile.avatarName}
-            </motion.span>
-          ) : (
+          {!profile && (
             <p className="text-white/30 text-xs mt-0.5">Completa el test</p>
           )}
         </div>

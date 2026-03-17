@@ -7,6 +7,7 @@ import RightPanel from '../components/dashboard/RightPanel'
 import WeatherBackground from '../components/shared/WeatherBackground'
 import Navbar from '../components/shared/Navbar'
 import { useAuth } from '../context/AuthContext'
+import { useWebSocket } from '../context/WebSocketContext'
 import api from '../services/api'
 import { extractWeather } from '../utils/weather'
 
@@ -58,6 +59,7 @@ const MODE_BG_DESC = {
 
 export default function Dashboard() {
   const { user, updateAvatar, deleteAccount, loading: authLoading } = useAuth()
+  const { emergency, dismissEmergency } = useWebSocket()
 
   const [avatarState,     setAvatarState]     = useState(user?.avatar_state ?? 'energized')
   const [profile,         setProfile]         = useState(null)
@@ -94,7 +96,7 @@ export default function Dashboard() {
         commute: 'solo en desplazamientos', indoors: 'en casa',
       }[profileObj.exposure] ?? profileObj.exposure
       setAutoSend({
-        text: `Soy ${profileObj.avatarName} ${profileObj.avatarEmoji} -- hoy estoy ${physLabel}, mentalmente ${mentalLabel} y voy a estar ${expLabel}. Dame mi prevision meteorologica personalizada para hoy.`,
+        text: `Soy ${user?.username ?? 'usuario'}, hoy estoy ${physLabel}, mentalmente ${mentalLabel} y voy a estar ${expLabel}. Dame mi previsión meteorológica personalizada para hoy.`,
         id: Date.now(),
       })
     }
@@ -147,10 +149,21 @@ export default function Dashboard() {
   const { temp }    = extractWeather(weatherData?.weather_data ?? {})
   const leftProps   = { user, profile, onSelect: handleAvatarSelect, onReset: handleReset }
   const centerProps = { weatherData, loading, onRefresh: fetchWeather, forecastDone, simulatedMode, onModeChange: setSimulatedMode }
-  const rightProps  = { weatherData, avatarState, autoSend, simulatedMode }
+  const rightProps  = { weatherData, avatarState, autoSend, simulatedMode, emergency, onDismissEmergency: dismissEmergency }
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
+      {/* Emergency screen border pulse */}
+      {emergency && (
+        <div className={`
+          fixed inset-0 pointer-events-none z-50
+          border-4
+          ${emergency.severity === 'rojo'    ? 'border-red-500'    :
+            emergency.severity === 'naranja' ? 'border-orange-400' :
+            'border-yellow-400'}
+          animate-emergency-pulse
+        `} />
+      )}
       <WeatherBackground weatherData={bgWeather} />
       <Navbar simulatedMode={simulatedMode} onResetMode={() => setSimulatedMode('auto')} onDeleteAccount={openDeleteModal} />
 

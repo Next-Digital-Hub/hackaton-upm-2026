@@ -1,5 +1,6 @@
 import csv
 import io
+import json
 import logging
 import os
 from datetime import datetime, timedelta
@@ -159,55 +160,41 @@ async def emergency_broadcast(body: dict, db: Session = Depends(get_db)):
     """
     THE RED BUTTON.
     1. Verifies admin password.
-    2. Fetches disaster weather from external API (?disaster=true).
-    3. Sends to LLM with crisis system_prompt.
-    4. Broadcasts to ALL connected WebSocket clients.
-    5. Persists to EmergencyBroadcast table.
+    2. Accepts structured alert payload (cause, severity, actions, title, color).
+    3. Broadcasts to ALL connected WebSocket clients.
+    4. Persists to EmergencyBroadcast table.
     """
     _require_admin(body.get("password", ""))
 
-    logger.warning("🚨🚨🚨 EMERGENCY BROADCAST TRIGGERED 🚨🚨🚨")
+    cause    = body.get("cause", "")
+    severity = body.get("severity", "")
+    actions  = body.get("actions", [])
+    title    = body.get("title", "🚨 Alerta de Emergencia")
+    color    = body.get("color", "#ef4444")
 
-    # Step 1 — fetch disaster weather
-    try:
-        disaster_data = await get_weather(disaster=True)
-    except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Cannot fetch disaster weather: {exc}")
+    logger.warning(f"🚨🚨🚨 EMERGENCY BROADCAST: {title} ({cause}/{severity}) 🚨🚨🚨")
 
-    # Step 2 — generate LLM emergency message
-    try:
-        llm_raw = await call_llm(
-            build_emergency_system_prompt(),
-            build_emergency_user_prompt(disaster_data),
-        )
-        emergency_msg = extract_llm_text(llm_raw)
-    except Exception as exc:
-        logger.error(f"LLM failed during emergency: {exc}")
-        emergency_msg = (
-            "🚨 EMERGENCY WEATHER ALERT 🚨\n\n"
-            "Severe dangerous weather conditions detected. "
-            "Take shelter immediately and contact emergency services.\n\n"
-            "⚠️ IMMEDIATE ACTIONS:\n"
-            "1. Move to a safe indoor location\n"
-            "2. Do not travel\n"
-            "3. Monitor official emergency channels\n\n"
-            "📞 Emergency: 112"
-        )
-
-    # Step 3 — broadcast via WebSocket
+    # Broadcast via WebSocket
     connected = manager.connection_count
-    await manager.broadcast({
+    await manager.broadcast(json.dumps({
         "type": "EMERGENCY_BROADCAST",
-        "message": emergency_msg,
-        "weather_data": disaster_data,
+        "cause": cause,
+        "severity": severity,
+        "actions": actions,
+        "title": title,
+        "color": color,
         "timestamp": datetime.utcnow().isoformat(),
-        "severity": "CRITICAL",
-    })
+    }))
 
-    # Step 4 — persist
+    # Persist
     record = EmergencyBroadcast(
-        weather_data=disaster_data,
-        llm_message=emergency_msg,
+        weather_data={"cause": cause, "severity": severity},
+        llm_message=title,
+        cause=cause,
+        severity=severity,
+        alert_title=title,
+        alert_color=color,
+        actions=actions,
         triggered_by="admin",
         recipients_count=connected,
     )
@@ -219,7 +206,7 @@ async def emergency_broadcast(body: dict, db: Session = Depends(get_db)):
 
     return {
         "status": "broadcast_sent",
-        "message": emergency_msg,
+        "message": title,
         "recipients": connected,
         "broadcast_id": record.id,
     }
