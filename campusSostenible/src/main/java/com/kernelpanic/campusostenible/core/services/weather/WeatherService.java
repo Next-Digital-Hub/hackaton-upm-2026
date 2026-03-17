@@ -6,18 +6,23 @@ import java.util.Optional;
 
 import com.kernelpanic.campusostenible.core.domain.WeatherData;
 import com.kernelpanic.campusostenible.core.domain.Alert;
+import com.kernelpanic.campusostenible.core.domain.Province;
 import com.kernelpanic.campusostenible.core.providers.MeteoData;
 
 public interface WeatherService {
-    public Optional<WeatherData> getMeteoDataByProvinceAndDate(Long provinceId, LocalDate date);
+    public Optional<WeatherData> getMeteoDataByProvinceAndDate(Province province, LocalDate date);
 
-    public List<WeatherData> getWeatherByProvice(Long provinceId);
+    public List<WeatherData> getWeatherByProvice(Province province);
 
     WeatherData saveWeather(WeatherData weatherData);
 
     List<MeteoData> getAllMeteoData(LocalDate date);
 
-    String getAlertAdvice(MeteoData data);
-
     void saveWeatherAlert(Alert alert);
+
+    List<Province> getProvinces();
+
+    List<WeatherData> getWeatherHistory(Province province, LocalDate fromDate, int days);
+
+    List<Alert> getActiveAlerts(String provinceName, LocalDate date);
 }

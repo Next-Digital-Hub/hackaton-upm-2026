@@ -29,15 +29,14 @@ public class AdminWeatherController {
         LocalDate selectedDate = (date != null) ? LocalDate.parse(date) : LocalDate.now();
         List<MeteoData> allData = weatherService.getAllMeteoData(selectedDate);
 
-        // Find the "most interesting" data or just use the first one for the advice
-        // demo
-        MeteoData latestData = allData.isEmpty() ? null : allData.get(0);
-        String advice = latestData != null ? weatherService.getAlertAdvice(latestData)
-                : "No hay datos meteorológicos disponibles para esta fecha.";
+        // Advice logic moved to frontend; providing a simple message here
+        String advice = allData.isEmpty() ? "No hay datos meteorológicos disponibles para esta fecha." 
+                : "Revise los niveles de alerta según los parámetros detectados.";
 
         model.addAttribute("meteoDataList", allData);
         model.addAttribute("advice", advice);
         model.addAttribute("alertLevels", AlertLevel.values());
+        model.addAttribute("provinces", Province.values());
         model.addAttribute("selectedDate", selectedDate);
         model.addAttribute("prevDate", selectedDate.minusDays(1));
         model.addAttribute("nextDate", selectedDate.plusDays(1));
@@ -51,12 +50,14 @@ public class AdminWeatherController {
     public String createAlert(
             @RequestParam AlertLevel level,
             @RequestParam String safety,
-            @RequestParam String province,
+            @RequestParam Long provinceId,
             @RequestParam String date) {
 
+        Province province = Province.fromId(provinceId);
+        
         Alert alert = Alert.builder()
                 .alertLevel(level)
-                .province(province)
+                .province(province != null ? province.getName() : "Unknown")
                 .safetyRecommendation(safety)
                 .date(LocalDate.parse(date))
                 .build();
