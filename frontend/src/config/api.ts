@@ -1,11 +1,64 @@
 import type { Libro, LibroInput } from "../types/Libro";
 import type { CondicionClimatica } from "../types/CondicionClimatica";
 import type { Alerta } from "../types/Alerta";
+import type { RegisterDTO } from "../types/Register";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 const LIBROS = `${BASE_URL}/api/libros`;
 const CLIMA = `${BASE_URL}/api/clima`;
 const ALERTAS = `${BASE_URL}/api/alertas`;
+const USUARIOS = `${BASE_URL}/api/usuarios`;
+const ENUMS = `${BASE_URL}/api/enums`;
+
+// --- Enums (cargados dinámicamente desde el backend) ---
+
+// Devuelve los valores del enum RolUsuario: ["CIUDADANO", "ADMINISTRADOR"]
+// GET /api/enums/roles
+export async function getRoles(): Promise<string[]> {
+  const res = await fetch(`${ENUMS}/roles`);
+  if (!res.ok) throw new Error("Error al cargar roles");
+  return res.json();
+}
+
+// Devuelve los valores del enum TipoVivienda: ["SOTANO", "PLANTA_BAJA", ...]
+// GET /api/enums/tipos-vivienda
+export async function getTiposVivienda(): Promise<string[]> {
+  const res = await fetch(`${ENUMS}/tipos-vivienda`);
+  if (!res.ok) throw new Error("Error al cargar tipos de vivienda");
+  return res.json();
+}
+
+// Devuelve los valores del enum NecesidadEspecial: ["MOVILIDAD_REDUCIDA", ...]
+// GET /api/enums/necesidades-especiales
+export async function getNecesidadesEspeciales(): Promise<string[]> {
+  const res = await fetch(`${ENUMS}/necesidades-especiales`);
+  if (!res.ok) throw new Error("Error al cargar necesidades especiales");
+  return res.json();
+}
+
+// --- Registro de usuarios ---
+
+// Registra un ciudadano con sus datos personales y formulario de condiciones
+// POST /api/usuarios/register/ciudadano — body: RegisterDTO (con userForm)
+export async function registerCiudadano(dto: RegisterDTO): Promise<void> {
+  const res = await fetch(`${USUARIOS}/register/ciudadano`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(dto),
+  });
+  if (!res.ok) throw new Error("Error al registrar ciudadano");
+}
+
+// Registra un administrador (solo nombre y contraseña)
+// POST /api/usuarios/register/admin — body: { nombre, password, rol: "ADMINISTRADOR" }
+export async function registerAdmin(dto: RegisterDTO): Promise<void> {
+  const res = await fetch(`${USUARIOS}/register/admin`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(dto),
+  });
+  if (!res.ok) throw new Error("Error al registrar administrador");
+}
 
 // --- Clima ---
 
