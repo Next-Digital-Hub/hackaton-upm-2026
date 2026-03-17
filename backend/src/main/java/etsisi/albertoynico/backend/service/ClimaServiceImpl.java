@@ -80,10 +80,10 @@ public class ClimaServiceImpl implements ClimaService {
     }
 
     @Override
-    public CondicionClimatica simularNuevoDia() {
+    public CondicionClimatica simularNuevoDia(boolean disaster) {
         try {
-            log.info("Simulando nuevo día: consultando API meteorológica externa directamente");
-            URI uri = URI.create(apiUrl + "/weather?disaster=false");
+            log.info("Simulando nuevo día (disaster={}): consultando API meteorológica externa directamente", disaster);
+            URI uri = URI.create(apiUrl + "/weather?disaster=" + disaster);
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri)
                     .header("Authorization", "Bearer " + apiToken)

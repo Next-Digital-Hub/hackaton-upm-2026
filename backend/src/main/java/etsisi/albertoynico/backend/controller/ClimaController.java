@@ -5,6 +5,7 @@ import etsisi.albertoynico.backend.service.ClimaService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -23,7 +24,7 @@ public class ClimaController {
     }
 
     @PostMapping("/simular-dia")
-    public CondicionClimatica simularNuevoDia() {
-        return climaService.simularNuevoDia();
+    public CondicionClimatica simularNuevoDia(@RequestParam(defaultValue = "false") boolean disaster) {
+        return climaService.simularNuevoDia(disaster);
     }
 }

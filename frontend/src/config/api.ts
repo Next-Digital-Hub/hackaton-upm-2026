@@ -126,8 +126,8 @@ export async function getCondiciones(): Promise<CondicionClimatica | null> {
   return res.json();
 }
 
-export async function simularNuevoDia(): Promise<CondicionClimatica | null> {
-  const res = await fetch(`${CLIMA}/simular-dia`, {
+export async function simularNuevoDia(disaster: boolean = false): Promise<CondicionClimatica | null> {
+  const res = await fetch(`${CLIMA}/simular-dia?disaster=${disaster}`, {
     method: "POST",
     headers: { ...authHeader() },
   });

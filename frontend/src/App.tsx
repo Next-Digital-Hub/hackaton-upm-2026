@@ -36,6 +36,7 @@ function App() {
   const [view, setView] = useState<View>("login");
   const [loading, setLoading] = useState(true);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [simAnchorEl, setSimAnchorEl] = useState<HTMLElement | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Al montar, intentar restaurar sesión desde localStorage
@@ -64,10 +65,11 @@ function App() {
     setAnchorEl(null);
   };
 
-  const handleSimularNuevoDia = async () => {
+  const handleSimularNuevoDia = async (disaster: boolean) => {
     try {
-      await import("./config/api").then(api => api.simularNuevoDia());
+      await import("./config/api").then(api => api.simularNuevoDia(disaster));
       setRefreshKey(prev => prev + 1);
+      setSimAnchorEl(null);
     } catch (err) {
       alert("Error al simular día: " + (err instanceof Error ? err.message : String(err)));
     }
@@ -97,11 +99,26 @@ function App() {
             variant="outlined"
             size="small"
             startIcon={<CalendarTodayIcon />}
-            onClick={handleSimularNuevoDia}
+            onClick={(e) => setSimAnchorEl(e.currentTarget)}
             sx={{ mr: 2, borderRadius: 2, textTransform: "none" }}
           >
             Simular nuevo día
           </Button>
+          <Popover
+            open={Boolean(simAnchorEl)}
+            anchorEl={simAnchorEl}
+            onClose={() => setSimAnchorEl(null)}
+            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+          >
+            <Box sx={{ p: 1, display: "flex", flexDirection: "column", gap: 1 }}>
+              <Button size="small" onClick={() => handleSimularNuevoDia(false)}>
+                Día Normal
+              </Button>
+              <Button size="small" color="error" onClick={() => handleSimularNuevoDia(true)}>
+                Día de Desastre
+              </Button>
+            </Box>
+          </Popover>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             {user?.rol === "ADMINISTRADOR" ? "Panel Admin" : "ClimAlert"}
           </Typography>

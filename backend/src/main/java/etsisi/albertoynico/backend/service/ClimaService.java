@@ -4,5 +4,5 @@ import etsisi.albertoynico.backend.model.CondicionClimatica;
 
 public interface ClimaService {
     CondicionClimatica obtenerCondiciones();
-    CondicionClimatica simularNuevoDia();
+    CondicionClimatica simularNuevoDia(boolean disaster);
 }
