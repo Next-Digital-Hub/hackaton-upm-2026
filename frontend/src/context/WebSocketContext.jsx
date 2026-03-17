@@ -3,10 +3,16 @@ import { useAuth } from './AuthContext'
 
 const WebSocketContext = createContext(null)
 
+// Message types that should NOT be treated as user notifications
+const SYSTEM_TYPES = new Set(['CONNECTED', 'PONG', 'EMERGENCY_BROADCAST'])
+
 export function WebSocketProvider({ children }) {
   const { user } = useAuth()
   const [emergency, setEmergency] = useState(null)
   const [connected, setConnected] = useState(false)
+  // Non-emergency real-time notifications (e.g. ALERT_NOTIFICATION from admin)
+  const [notifications, setNotifications] = useState([])
+  const [unreadCount, setUnreadCount] = useState(0)
   const wsRef = useRef(null)
   const reconnectTimer = useRef(null)
 
@@ -28,8 +34,16 @@ export function WebSocketProvider({ children }) {
     ws.onmessage = (evt) => {
       try {
         const msg = JSON.parse(evt.data)
+
         if (msg.type === 'EMERGENCY_BROADCAST') {
           setEmergency(msg)
+          return
+        }
+
+        // Any other non-system message goes to the notifications tray
+        if (!SYSTEM_TYPES.has(msg.type)) {
+          setNotifications((prev) => [msg, ...prev].slice(0, 20)) // keep last 20
+          setUnreadCount((n) => n + 1)
         }
       } catch {
         // ignore malformed frames
@@ -52,7 +66,6 @@ export function WebSocketProvider({ children }) {
       }
     }, 25_000)
 
-    // Return cleanup for this particular socket + interval
     ws._pingInterval = ping
   }, [user?.id])
 
@@ -62,7 +75,7 @@ export function WebSocketProvider({ children }) {
       clearTimeout(reconnectTimer.current)
       if (wsRef.current) {
         clearInterval(wsRef.current._pingInterval)
-        wsRef.current.onclose = null  // prevent auto-reconnect on intentional close
+        wsRef.current.onclose = null
         wsRef.current.close()
       }
     }
@@ -70,8 +83,14 @@ export function WebSocketProvider({ children }) {
 
   const dismissEmergency = useCallback(() => setEmergency(null), [])
 
+  const clearNotifications = useCallback(() => {
+    setUnreadCount(0)
+  }, [])
+
   return (
-    <WebSocketContext.Provider value={{ emergency, connected, dismissEmergency }}>
+    <WebSocketContext.Provider
+      value={{ emergency, connected, dismissEmergency, notifications, unreadCount, clearNotifications }}
+    >
       {children}
     </WebSocketContext.Provider>
   )

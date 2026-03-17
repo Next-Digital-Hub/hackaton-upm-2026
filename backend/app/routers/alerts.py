@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -8,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.models import Alert
 from app.schemas.schemas import AlertCreate, AlertOut, AlertUpdate
+from app.websocket_manager import manager
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/alerts", tags=["alerts"])
@@ -59,6 +61,17 @@ async def create_alert(
     db.add(alert)
     db.commit()
     db.refresh(alert)
+
+    # Push real-time notification to all connected users
+    await manager.broadcast({
+        "type": "ALERT_NOTIFICATION",
+        "id": alert.id,
+        "title": alert.title,
+        "message": alert.message,
+        "severity": alert.severity,
+        "timestamp": datetime.utcnow().isoformat(),
+    })
+
     return alert
 
 
