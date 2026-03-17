@@ -1,8 +1,8 @@
-package com.kernelpanic.campusSostenible.controller;
+package com.kernelpanic.campusostenible.controller;
 
-import com.kernelpanic.campusSostenible.domain.*;
-import com.kernelpanic.campusSostenible.dto.*;
-import com.kernelpanic.campusSostenible.service.WeatherService;
+import com.kernelpanic.campusostenible.domain.*;
+import com.kernelpanic.campusostenible.dto.*;
+import com.kernelpanic.campusostenible.service.WeatherService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;

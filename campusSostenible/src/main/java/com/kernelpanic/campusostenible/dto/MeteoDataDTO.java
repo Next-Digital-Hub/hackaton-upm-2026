@@ -1,4 +1,4 @@
-package com.kernelpanic.campusSostenible.dto;
+package com.kernelpanic.campusostenible.dto;
 
 import lombok.*;
 import java.time.LocalDate;

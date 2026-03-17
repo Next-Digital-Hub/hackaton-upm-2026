@@ -1,7 +1,7 @@
-package com.kernelpanic.campusSostenible.service;
+package com.kernelpanic.campusostenible.service;
 
-import com.kernelpanic.campusSostenible.domain.*;
-import com.kernelpanic.campusSostenible.dto.WeatherRecommendationDTO;
+import com.kernelpanic.campusostenible.domain.*;
+import com.kernelpanic.campusostenible.dto.WeatherRecommendationDTO;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

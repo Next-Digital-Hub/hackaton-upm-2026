@@ -1,4 +1,4 @@
-package com.kernelpanic.campusSostenible;
+package com.kernelpanic.campusostenible;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

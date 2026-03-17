@@ -1,4 +1,4 @@
-package com.kernelpanic.campusSostenible.domain;
+package com.kernelpanic.campusostenible.domain;
 
 import lombok.*;
 import java.time.LocalDate;

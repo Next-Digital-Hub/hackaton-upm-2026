@@ -1,4 +1,4 @@
-package com.kernelpanic.campusSostenible.config;
+package com.kernelpanic.campusostenible.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

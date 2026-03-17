@@ -1,4 +1,4 @@
-package com.kernelpanic.campusSostenible.domain;
+package com.kernelpanic.campusostenible.domain;
 
 public enum AlertType {
     HEAT("Calor extremo", "🌡️"),

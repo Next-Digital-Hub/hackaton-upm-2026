@@ -1,4 +1,4 @@
-package com.kernelpanic.campussostenible.domain;
+package com.kernelpanic.campusostenible.domain;
 
 public enum AlertLevel {
     GREEN("Verde", "#22c55e", "Sin riesgo"),

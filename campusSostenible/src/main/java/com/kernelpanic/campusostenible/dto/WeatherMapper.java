@@ -1,6 +1,6 @@
-package com.kernelpanic.campusSostenible.dto;
+package com.kernelpanic.campusostenible.dto;
 
-import com.kernelpanic.campusSostenible.domain.*;
+import com.kernelpanic.campusostenible.domain.*;
 
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
