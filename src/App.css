@@ -449,6 +449,61 @@
 }
 
 /* ============================================================================
+   Confirm Email Page
+   ============================================================================ */
+
+.confirm-email-illustration {
+  display: flex;
+  justify-content: center;
+  margin-top: 48px;
+}
+
+.confirm-email-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--primary-50);
+  color: var(--primary);
+  margin: 0 auto 24px;
+}
+
+.confirm-email-address {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--primary);
+  background: var(--primary-50);
+  border: 1px solid var(--primary-100, #bfdbfe);
+  border-radius: var(--radius);
+  padding: 10px 18px;
+  text-align: center;
+  margin-bottom: 20px;
+  word-break: break-all;
+}
+
+.confirm-email-hint {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.confirm-email-actions {
+  display: flex;
+  flex-direction: column;
+}
+
+.confirm-email-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ============================================================================
    Complete Profile Page
    ============================================================================ */
 

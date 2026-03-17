@@ -4,6 +4,7 @@ import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import ConfirmEmailPage from './pages/ConfirmEmailPage'
 import CompleteProfilePage from './pages/CompleteProfilePage'
 import DashboardPage from './pages/citizen/DashboardPage'
 import BackofficePage from './pages/admin/BackofficePage'
@@ -34,6 +35,7 @@ function App() {
           {/* Public auth routes (no Header/Footer) */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/confirm-email" element={<ConfirmEmailPage />} />
 
           {/* Post-login profile completion (with Layout) */}
           <Route
