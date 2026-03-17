@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -173,8 +174,51 @@ public class getRecomendationAPI implements RecomendationProvider{
 
         } catch (Exception e) {
             e.printStackTrace();
+            return Optional.empty();
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public String generateSafetyRecommendation(AlertLevel level, Province province, LocalDate date) {
+        String url = "http://ec2-54-171-51-31.eu-west-1.compute.amazonaws.com/prompt";
+        String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTZXJnaW8iLCJleHAiOjE3NzM4MjQ3NDd9.zloyQhaXgRSd-PPJH6EVbQj0zsxve0q0AWYrOdqo0UE";
+
+        String userPrompt = String.format(
+                "Genera una recomendación de seguridad breve (máximo 150 palabras) para la provincia de %s " +
+                "con un nivel de riesgo '%s' para la fecha %s. " +
+                "La recomendación debe ser clara, concisa y útil para el ciudadano.",
+                province.getName(),
+                level.getDisplayName(),
+                date.toString()
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(token);
+
+        Map<String, String> bodyMap = new HashMap<>();
+        bodyMap.put("system_prompt", "Eres un asistente experto en meteorología y seguridad ciudadana.");
+        bodyMap.put("user_prompt", userPrompt);
+
+        try {
+            String jsonBody = objectMapper.writeValueAsString(bodyMap);
+            HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    entity,
+                    String.class);
+
+            if (response.getBody() != null) {
+                return response.getBody();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        return Optional.empty();
+        return "Manténgase informado a través de los canales oficiales.";
     }
 }

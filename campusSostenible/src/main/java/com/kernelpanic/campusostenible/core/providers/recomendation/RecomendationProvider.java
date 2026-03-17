@@ -2,11 +2,10 @@ package com.kernelpanic.campusostenible.core.providers.recomendation;
 
 import java.util.Optional;
 
-import com.kernelpanic.campusostenible.core.domain.Alert;
-import com.kernelpanic.campusostenible.core.domain.Citizen;
-import com.kernelpanic.campusostenible.core.domain.SystemAlert;
-import com.kernelpanic.campusostenible.core.domain.WeatherData;
+import com.kernelpanic.campusostenible.core.domain.*;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
 
 @Component
 public interface RecomendationProvider {
@@ -15,4 +14,6 @@ public interface RecomendationProvider {
     String getSimplifiedRecommendation(Citizen citizen, Alert alert);
 
     Optional<SystemAlert> recomendAlert(WeatherData meteoData);
+
+    String generateSafetyRecommendation(AlertLevel level, Province province, LocalDate date);
 }

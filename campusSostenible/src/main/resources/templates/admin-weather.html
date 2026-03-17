@@ -76,6 +76,16 @@
 
         .success-msg { background: #dcfce7; color: #166534; padding: 12px; border-radius: 6px; margin-bottom: 20px; text-align: center; font-weight: 600; }
         .past-warning { background: #fee2e2; color: #991b1b; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; margin-bottom: 20px; border: 1px solid #fecaca; }
+        
+        /* System Alerts Banner */
+        .system-alerts-banner { background: #fff7ed; border: 2px solid #fb923c; border-radius: 12px; padding: 20px; margin-bottom: 30px; }
+        .system-alerts-title { display: flex; align-items: center; gap: 10px; color: #9a3412; font-weight: 800; margin-bottom: 12px; font-size: 1.1rem; }
+        .system-alert-item { background: white; padding: 12px; border-radius: 8px; border: 1px solid #ffedd5; margin-bottom: 8px; font-size: 0.9rem; }
+        .system-alert-province { font-weight: 700; color: #c2410c; }
+        
+        .btn-ai { background: #8b5cf6; color: white; padding: 6px 12px; border: none; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer; margin-top: 5px; display: inline-flex; align-items: center; gap: 4px; }
+        .btn-ai:hover { background: #7c3aed; }
+        .btn-ai:disabled { background: #c4b5fd; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -103,6 +113,17 @@
 
     <div th:if="${isPast}" class="past-warning">
         ⚠️ Estás visualizando datos históricos. La emisión de nuevas alertas está deshabilitada para fechas pasadas.
+    </div>
+
+    <!-- System Alerts Banner -->
+    <div th:if="${not #lists.isEmpty(systemAlerts)}" class="system-alerts-banner">
+        <div class="system-alerts-title">
+            <span>🚨</span> Alertas Sugeridas por el Sistema de IA
+        </div>
+        <div th:each="sa : ${systemAlerts}" class="system-alert-item">
+            <span class="system-alert-province" th:text="${sa.province.name}">Provincia</span>: 
+            <span th:text="${sa.alert}">Mensaje de alerta...</span>
+        </div>
     </div>
 
     <!-- Main Content -->
@@ -160,7 +181,10 @@
 
                                     <div class="form-group" style="flex-grow: 1;">
                                         <label>Recomendación de seguridad</label>
-                                        <textarea name="safety" required placeholder="Ej: Evite salir en horas centrales..."></textarea>
+                                        <textarea th:id="'safety-' + ${iter.index}" name="safety" required placeholder="Ej: Evite salir en horas centrales..."></textarea>
+                                        <button type="button" class="btn-ai" th:onclick="'suggestAlert(' + ${iter.index} + ')'">
+                                            <span>✨</span> Sugerir con IA
+                                        </button>
                                     </div>
 
                                     <input type="hidden" name="startDate" th:value="${selectedDate}"/>
@@ -190,6 +214,43 @@
     function toggleForm(index) {
         const row = document.getElementById('form-' + index);
         if (row) row.classList.toggle('active');
+    }
+
+    async function suggestAlert(index) {
+        const row = document.getElementById('form-' + index);
+        const provinceName = row.querySelector('input[name="province"]').value;
+        const level = row.querySelector('select[name="level"]').value;
+        const date = "[[${selectedDate}]]";
+        const textarea = document.getElementById('safety-' + index);
+        const btn = row.querySelector('.btn-ai');
+
+        // Find province ID from provinces list
+        const provinces = {
+            "A Coruña": 1, "Álava": 2, "Albacete": 3, "Alicante": 4, "Almería": 5, "Asturias": 6, "Ávila": 7, "Badajoz": 8, "Barcelona": 9, "Burgos": 10,
+            "Cáceres": 11, "Cádiz": 12, "Cantabria": 13, "Castellón": 14, "Ciudad Real": 15, "Córdoba": 16, "Cuenca": 17, "Girona": 18, "Granada": 19,
+            "Guadalajara": 20, "Guipúzcoa": 21, "Huelva": 22, "Huesca": 23, "Illes Balears": 24, "Jaén": 25, "Las Palmas": 26, "León": 27, "Lleida": 28,
+            "Lugo": 29, "Madrid": 30, "Málaga": 31, "Murcia": 32, "Navarra": 33, "Ourens": 34, "Palencia": 35, "Pontevedra": 36, "La Rioja": 37,
+            "Salamanca": 38, "Santa Cruz de Tenerife": 39, "Segovia": 40, "Sevilla": 41, "Soria": 42, "Tarragona": 43, "Teruel": 44, "Toledo": 45,
+            "Valencia": 46, "Valladolid": 47, "Vizcaya": 48, "Zamora": 49, "Zaragoza": 50
+        };
+        const provinceId = provinces[provinceName];
+
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳</span> Generando...';
+        
+        try {
+            const response = await fetch(`/admin/weather/generate-recommendation?level=${level}&provinceId=${provinceId}&date=${date}`);
+            const data = await response.json();
+            if (data.recommendation) {
+                textarea.value = data.recommendation;
+            }
+        } catch (error) {
+            console.error('Error generating recommendation:', error);
+            alert('Error al conectar con la IA');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<span>✨</span> Sugerir con IA';
+        }
     }
 </script>
 
