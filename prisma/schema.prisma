@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String         @id @default(cuid())
+  username       String         @unique
+  password       String
+  role           String         @default("USER")
+  province       String
+  housingType    String
+  specialNeeds   String?
+  isDependent    Boolean        @default(false)
+  campusRole     String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  llmQueries     LlmHistory[]
+  weatherQueries WeatherQuery[]
+  contacts       EmergencyContact[] @relation("contactOwner")
+  contactOf      EmergencyContact[] @relation("contactTarget")
+}
+
+model WeatherQuery {
+  id        String   @id @default(cuid())
+  userId    String
+  timestamp DateTime @default(now())
+  data      String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LlmHistory {
+  id           String   @id @default(cuid())
+  userId       String
+  timestamp    DateTime @default(now())
+  systemPrompt String
+  userPrompt   String
+  response     String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Alert {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  level     String   @default("WARNING")
+  province  String
+  emittedBy String
+  createdAt DateTime @default(now())
+}
+
+model EmergencyContact {
+  id        String   @id @default(cuid())
+  userId    String
+  contactId String
+  status    String   @default("PENDING") // PENDING, ACCEPTED
+  createdAt DateTime @default(now())
+
+  owner   User @relation("contactOwner", fields: [userId], references: [id], onDelete: Cascade)
+  contact User @relation("contactTarget", fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contactId])
+}
