@@ -10,7 +10,6 @@ import React from "react";
 
 export default function AppSidebar() {
   return (
-  
           <Sidebar className="bg-primary" variant="inset">
           <SidebarHeader>Sidebar header</SidebarHeader>
           

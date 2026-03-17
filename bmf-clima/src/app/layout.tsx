@@ -27,10 +27,10 @@ export default function RootLayout({
   
   return (
           <html lang="en">
-          <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+          <body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans bg-primary`}>
           <SidebarProvider>
           <AppSidebar />
-          <main className="h-full w-full">
+          <main className="h-full w-full bg-primary">
           <SidebarTrigger />
           {children}
           </main>
