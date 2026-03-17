@@ -27,7 +27,7 @@ public class Usuario {
         return nik;
     }
 
-    public void setNic(String nik) {
+    public void setNik(String nik) {
         this.nik = nik;
     }
 
