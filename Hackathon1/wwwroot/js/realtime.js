@@ -8,7 +8,7 @@
         .build();
 
     // Handle incoming weather updates (Ciudadano dashboard)
-    connection.on('SendWeather', function (weather) {
+    connection.on('WeatherUpdated', function (weather) {
         function setText(id, value) {
             var el = document.getElementById(id);
             if (el && value !== undefined && value !== null) el.textContent = value;

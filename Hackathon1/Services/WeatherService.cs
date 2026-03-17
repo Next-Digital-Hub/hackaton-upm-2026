@@ -98,7 +98,8 @@ namespace Hackathon1.Services
             _context.WeatherRecords.Add(record);
             await _context.SaveChangesAsync();
 
-            await _hub.Clients.Group("Ciudadano").SendAsync("SendWeather", dto);
+            var groupName = string.IsNullOrWhiteSpace(provincia) ? NotificationsHub.DefaultGroup : provincia;
+            await _hub.Clients.Group(groupName).SendAsync("WeatherUpdated", dto);
 
             return dto;
         }
