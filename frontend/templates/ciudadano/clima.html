@@ -1,68 +1,27 @@
 {% extends "base.html" %}
-{% block title %}Meteorología — ClimAlert{% endblock %}
+{% block title %}Clima — ClimAlert{% endblock %}
 {% block content %}
-<div class="page-h page-h-row">
-    <div>
-        <h1>🌦️ Meteorología</h1>
-        <p class="sub">Datos meteorológicos para Valencia</p>
-    </div>
-    <div class="btns">
-        <a href="{{ url_for('citizen_weather', disaster='false') }}" class="btn {{ 'btn-p' if not disaster else 'btn-s' }}">Normal</a>
-        <a href="{{ url_for('citizen_weather', disaster='true') }}" class="btn {{ 'btn-d' if disaster else 'btn-s' }}">⛈ Desastre</a>
-    </div>
-</div>
+<div class="page-h"><h1>🌦️ Datos Meteorológicos</h1><p class="sub">Previsión para {{ current_user.provincia }}</p></div>
 
-{% if weather.get('error') %}
-<div class="card"><div class="fl-msg fl-danger"><span class="fl-ico">✕</span>{{ weather.error }}</div></div>
+{% if error %}
+<div class="card"><div class="flash flash-danger">{{ error }}</div></div>
 {% else %}
 <div class="card mb2">
-    <div class="card-h">
-        <div class="card-ico ico-b">📊</div>
-        <div class="card-t">Datos Meteorológicos<small>{{ 'Modo desastre activado' if disaster else 'Condiciones actuales' }}</small></div>
+    <h3 class="mb2">📊 Condiciones actuales</h3>
+    <div class="wg">
+        {% if weather.temperatura is defined %}<div class="wi"><div class="wi-l">Temperatura</div><div class="wi-v">{{ weather.temperatura }}°C</div></div>{% endif %}
+        {% if weather.precipitacion is defined %}<div class="wi"><div class="wi-l">Precipitación</div><div class="wi-v">{{ weather.precipitacion }} mm</div></div>{% endif %}
+        {% if weather.viento_kmh is defined %}<div class="wi"><div class="wi-l">Viento</div><div class="wi-v">{{ weather.viento_kmh }} km/h</div></div>{% endif %}
+        {% if weather.descripcion %}<div class="wi"><div class="wi-l">Condición</div><div class="wi-v" style="font-size:1rem">{{ weather.descripcion }}</div></div>{% endif %}
+        {% if weather.nivel_alerta %}<div class="wi"><div class="wi-l">Nivel alerta</div><div class="wi-v"><span class="nv nv-{{ weather.nivel_alerta[0] }}">{{ weather.nivel_alerta|upper }}</span></div></div>{% endif %}
     </div>
-    <div class="wg" id="wGrid"></div>
 </div>
 
-<div class="card mb2">
-    <div class="card-h">
-        <div class="card-ico ico-a">{ }</div>
-        <div class="card-t">Datos en bruto (JSON)</div>
-    </div>
-    <div class="json" id="wJson"></div>
-</div>
-
+{% if weather.raw %}
 <div class="card">
-    <div class="card-h">
-        <div class="card-ico ico-a">🤖</div>
-        <div class="card-t">¿Qué debo hacer?<small>Recomendación personalizada con estos datos</small></div>
-    </div>
-    <button class="btn btn-p" onclick="getRec({{ 'true' if disaster else 'false' }})">Obtener recomendación personalizada</button>
-    <div id="recBox" class="reco mt2 hidden">
-        <div id="recLoad" class="reco-load hidden"><div class="spinner"></div><span>Analizando datos con tu perfil…</span></div>
-        <div class="reco-text" id="recTxt"></div>
-    </div>
+    <h3 class="mb2">{ } Datos completos</h3>
+    <pre class="json">{{ weather.raw | tojson(indent=2) }}</pre>
 </div>
 {% endif %}
-{% endblock %}
-
-{% block scripts %}
-<script>
-const W = {{ weather|tojson }};
-renderWeather(W, 'wGrid');
-document.getElementById('wJson').textContent = JSON.stringify(W, null, 2);
-
-async function getRec(disaster) {
-    const box = document.getElementById('recBox');
-    const load = document.getElementById('recLoad');
-    const txt = document.getElementById('recTxt');
-    box.classList.remove('hidden'); load.classList.remove('hidden'); txt.innerHTML = '';
-    const fd = new FormData(); fd.append('disaster', disaster);
-    try {
-        const r = await fetch('{{ url_for("citizen_recomendacion") }}', {method:'POST', body:fd});
-        const d = await r.json();
-        txt.innerHTML = renderLLM(d.respuesta);
-    } catch(e) { txt.textContent = 'Error de conexión.'; }
-    finally { load.classList.add('hidden'); }
-}
-</script>
+{% endif %}
 {% endblock %}

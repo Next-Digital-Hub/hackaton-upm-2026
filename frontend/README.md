@@ -1,92 +1,92 @@
-# ClimAlert Valencia ⚡
+# ClimAlert Valencia — Frontend
 
-**Aplicación Web para la Gestión de Emergencias Climáticas — Valencia**
+Frontend Flask que llama al backend API y renderiza HTML.
 
-Hackatón Campus Sostenible · Universidad Politécnica de Madrid 2026
+## Arquitectura
 
-## Descripción
-
-ClimAlert Valencia proporciona **instrucciones de seguridad personalizadas** ante emergencias climáticas. El sistema considera el perfil del usuario (tipo de vivienda, planta, necesidades especiales, personas en el hogar) para dar recomendaciones que salvan vidas, en lugar de avisos genéricos.
-
-## Instalación
-
-```bash
-pip install -r requirements.txt
-python app.py
+```
+Usuario → localhost:3000 (Frontend Flask) → localhost:5000 (Backend API)
+                ↓                                    ↓
+          Renderiza HTML                    SQLAlchemy + JWT + Weather API
 ```
 
-Abrir `http://localhost:5000`
-
-## Credenciales
-
-| Cuenta | Email | Contraseña |
-|--------|-------|------------|
-| Admin | admin@emergencias.es | admin2026 |
-| Ciudadano | (crear desde registro) | — |
-| Código admin extra | — | UPM2026ADMIN |
-
-## Funcionalidades
-
-### Ciudadano
-- Registro con perfil completo (provincia, municipio, tipo vivienda, planta, necesidades especiales, vehículo, personas en hogar)
-- Dashboard con asistente IA de consulta libre
-- Recomendaciones personalizadas (modo normal / desastre)
-- Visualización de datos meteorológicos + JSON
-- Alertas activas con notificaciones toast en tiempo real
-- Historial de consultas al LLM y datos meteorológicos
-
-### Backoffice (Administrador)
-- Panel con estadísticas (ciudadanos, alertas activas)
-- Análisis IA: recomienda si emitir alerta y de qué nivel
-- Crear y emitir alertas (amarilla/naranja/roja) a todos los ciudadanos
-- Desactivar alertas
-- Historial global de todas las consultas
-
-### Integración LLM
-- Prompt engineering personalizado por perfil del usuario
-- System prompt experto en protección civil valenciana
-- Adaptación para sótanos, movilidad reducida, mascotas, embarazadas, etc.
-- Endpoints `/weather` y `/prompt` de la API del hackatón
-
-### Sistema de Notificaciones
-- Polling cada 30 segundos para nuevas alertas
-- Toast notifications con sonido y nivel de alerta
-- Banners persistentes para alertas activas
-- Badge en título del navegador con número de alertas
-
-## Stack
-
-- **Backend:** Python 3.10+, Flask, SQLite (sin ORM, zero deps extra)
-- **Frontend:** HTML5, CSS3 (variables, grid, responsive), Vanilla JS
-- **API:** API del Hackatón (weather + LLM vía AWS Bedrock)
-- **Diseño:** Dark theme, responsive, accesible
+El frontend **no tiene base de datos**. Solo guarda el JWT en la sesión de Flask.
 
 ## Estructura
 
 ```
 frontend/
-├── app.py                  # Flask app completa
-├── requirements.txt
-├── .gitignore
+├── app.py                             ← Flask: todas las rutas
+├── requirements.txt                   ← flask + requests
 ├── static/
-│   ├── css/style.css       # Estilos completos
-│   └── js/app.js           # Polling alertas + toasts
+│   ├── css/style.css                  ← Dark theme
+│   └── js/app.js                      ← Polling alertas, toasts, campana
 └── templates/
-    ├── base.html            # Layout con nav + alertas + footer
-    ├── perfil.html
+    ├── base.html                      ← Layout: nav, 🔔, toasts, footer
+    ├── 404.html
+    ├── perfil.html                    ← PUT /api/auth/me
     ├── auth/
-    │   ├── login.html
-    │   └── registro.html
+    │   ├── login.html                 ← POST /api/auth/login
+    │   └── registro.html              ← POST /api/auth/register
     ├── ciudadano/
-    │   ├── dashboard.html
-    │   ├── clima.html
-    │   └── historial.html
+    │   ├── dashboard.html             ← GET /api/citizen/alerts
+    │   ├── clima.html                 ← GET /api/citizen/weather
+    │   ├── recomendaciones.html       ← GET /api/citizen/recommendations
+    │   └── historial.html             ← GET /api/citizen/history/*
     └── backoffice/
-        ├── dashboard.html
-        ├── clima.html
-        └── historial.html
+        ├── dashboard.html             ← CRUD /api/backoffice/alerts
+        ├── clima.html                 ← GET /api/backoffice/weather/<prov>
+        └── historial.html             ← GET /api/backoffice/logs/*
 ```
 
-## Licencia
+## Cómo probarlo
 
-Proyecto académico — Hackatón UPM 2026
+### Terminal 1 — Backend (puerto 5000)
+```bash
+cd backend
+pip install -r requirements.txt
+python app.py
+```
+
+### Terminal 2 — Frontend (puerto 3000)
+```bash
+cd frontend
+pip install flask requests
+python app.py
+```
+
+Abre **http://localhost:3000** en tu navegador.
+
+## Flujo
+
+1. **Login/Registro** → Frontend envía POST al backend → recibe `{token, user}` → guarda JWT en session de Flask
+2. **Cada página** → Frontend mete `Authorization: Bearer <token>` en peticiones al backend → recibe JSON → renderiza HTML
+3. **Alertas en tiempo real** → JS hace polling cada 15s → muestra toasts + actualiza campana 🔔
+4. **Si el token expira** → el backend devuelve 401 → el frontend redirige a login
+
+## Variables de entorno (opcionales)
+
+```bash
+export BACKEND_URL=http://localhost:5000   # default
+export SECRET_KEY=tu-clave-secreta         # para session de Flask
+```
+
+## Endpoints del backend que usa
+
+| Frontend | Método | Backend API |
+|----------|--------|-------------|
+| Login | POST | `/api/auth/login` |
+| Registro | POST | `/api/auth/register` |
+| Ver perfil | GET | `/api/auth/me` |
+| Editar perfil | PUT | `/api/auth/me` |
+| Clima ciudadano | GET | `/api/citizen/weather` |
+| Recomendaciones IA | GET | `/api/citizen/recommendations` |
+| Alertas ciudadano | GET | `/api/citizen/alerts` |
+| Historial weather | GET | `/api/citizen/history/weather` |
+| Historial LLM | GET | `/api/citizen/history/llm` |
+| Panel admin | GET | `/api/backoffice/alerts` + `/api/backoffice/users` |
+| Clima admin | GET | `/api/backoffice/weather/<provincia>` |
+| Crear alerta | POST | `/api/backoffice/alerts` |
+| Desactivar alerta | DELETE | `/api/backoffice/alerts/<id>` |
+| Logs weather | GET | `/api/backoffice/logs/weather` |
+| Logs LLM | GET | `/api/backoffice/logs/llm` |

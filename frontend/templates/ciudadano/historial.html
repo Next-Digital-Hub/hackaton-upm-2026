@@ -1,55 +1,35 @@
 {% extends "base.html" %}
 {% block title %}Historial — ClimAlert{% endblock %}
 {% block content %}
-<div class="page-h">
-    <h1>📋 Historial</h1>
-    <p class="sub">Registro de tus consultas meteorológicas y al asistente</p>
-</div>
+<div class="page-h"><h1>📋 Historial</h1><p class="sub">Tus consultas anteriores</p></div>
 
 <div class="tabs">
-    <button class="tab on" onclick="switchTab('llm')">Consultas IA ({{ llm|length }})</button>
-    <button class="tab" onclick="switchTab('meteo')">Datos Meteorológicos ({{ meteo|length }})</button>
+    <button class="tab on" onclick="switchTab('weather')">Meteorología ({{ weather_logs|length }})</button>
+    <button class="tab" onclick="switchTab('llm')">Recomendaciones IA ({{ llm_logs|length }})</button>
 </div>
 
-<div id="tab-llm" class="tab-c on">
-    {% if llm %}
-    {% for i in llm %}
+<div id="tab-weather" class="tab-c on">
+{% if weather_logs %}
+    {% for l in weather_logs %}
     <div class="card mb2">
-        <div style="display:flex;justify-content:space-between;align-items:center" class="mb1">
-            <span class="ts tm tmo">{{ i.created_at|dt }}</span>
+        <div style="display:flex;justify-content:space-between" class="mb1">
+            <span class="ts tm">{{ l.consultado_en[:16] }}</span>
+            <span class="ts tm">{{ l.provincia }}</span>
         </div>
-        <div class="mb1">
-            <strong class="ts" style="color:var(--blue)">Pregunta:</strong>
-            <p class="ts">{{ i.user_p[:300] }}{% if i.user_p|length > 300 %}…{% endif %}</p>
-        </div>
-        <div>
-            <strong class="ts" style="color:var(--accent)">Respuesta:</strong>
-            <p class="ts" style="white-space:pre-wrap">{{ i.respuesta[:600] }}{% if i.respuesta|length > 600 %}…{% endif %}</p>
-        </div>
+        <pre class="json" style="max-height:150px">{{ l.datos | tojson(indent=2) if l.datos is mapping else l.datos }}</pre>
     </div>
     {% endfor %}
-    {% else %}
-    <div class="empty"><div class="empty-ico">💬</div><p>Aún no has realizado consultas.</p></div>
-    {% endif %}
+{% else %}<div class="empty"><p>Sin consultas meteorológicas.</p></div>{% endif %}
 </div>
 
-<div id="tab-meteo" class="tab-c">
-    {% if meteo %}
-    {% for i in meteo %}
+<div id="tab-llm" class="tab-c">
+{% if llm_logs %}
+    {% for l in llm_logs %}
     <div class="card mb2">
-        <div style="display:flex;justify-content:space-between;align-items:center" class="mb1">
-            <span class="ts tm tmo">{{ i.created_at|dt }}</span>
-            {% if i.disaster %}
-            <span class="nv nv-r">Modo desastre</span>
-            {% else %}
-            <span class="nv nv-g">Normal</span>
-            {% endif %}
-        </div>
-        <div class="json" style="max-height:180px;font-size:.72rem">{{ i.datos|json_pretty }}</div>
+        <span class="ts tm">{{ l.consultado_en[:16] }}</span>
+        <div class="reco mt1"><div class="reco-text">{{ l.respuesta }}</div></div>
     </div>
     {% endfor %}
-    {% else %}
-    <div class="empty"><div class="empty-ico">🌦️</div><p>Sin registros meteorológicos.</p></div>
-    {% endif %}
+{% else %}<div class="empty"><p>Sin consultas al asistente.</p></div>{% endif %}
 </div>
 {% endblock %}
