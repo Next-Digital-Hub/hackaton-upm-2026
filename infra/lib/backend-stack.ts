@@ -4,7 +4,23 @@ import * as apprunner from "aws-cdk-lib/aws-apprunner";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as path from "path";
+import * as fs from "fs";
 import { Construct } from "constructs";
+
+/** Lee un fichero .env y devuelve un Record<string, string> */
+function loadEnv(filePath: string): Record<string, string> {
+  const env: Record<string, string> = {};
+  if (!fs.existsSync(filePath)) return env;
+  const lines = fs.readFileSync(filePath, "utf-8").split("\n");
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const idx = trimmed.indexOf("=");
+    if (idx === -1) continue;
+    env[trimmed.substring(0, idx)] = trimmed.substring(idx + 1);
+  }
+  return env;
+}
 
 export class BackendStack extends cdk.Stack {
   /** URL del servicio App Runner, consumida por FrontendStack */
@@ -62,6 +78,12 @@ export class BackendStack extends cdk.Stack {
     alertasTable.grantReadWriteData(instanceRole);
 
     // --- App Runner ---
+    const envVars = loadEnv(path.join(__dirname, "../../.env"));
+
+    const runtimeEnv: apprunner.CfnService.KeyValuePairProperty[] = Object.entries(envVars).map(
+      ([name, value]) => ({ name, value })
+    );
+
     const backendService = new apprunner.CfnService(this, "BackendService", {
       serviceName: "hackathon-backend",
       sourceConfiguration: {
@@ -69,7 +91,10 @@ export class BackendStack extends cdk.Stack {
         imageRepository: {
           imageIdentifier: backendImage.imageUri,
           imageRepositoryType: "ECR",
-          imageConfiguration: { port: "8080" },
+          imageConfiguration: {
+            port: "8080",
+            runtimeEnvironmentVariables: runtimeEnv,
+          },
         },
       },
       instanceConfiguration: {
