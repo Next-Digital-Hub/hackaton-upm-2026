@@ -25,7 +25,7 @@ public class getWeatherAPI {
         this.objectMapper = new ObjectMapper();
     }
 
-    public List<MeteoData> fetchWeather() {
+    public List<WeatherData> fetchWeather() {
         String url = "http://ec2-54-171-51-31.eu-west-1.compute.amazonaws.com/weather?disaster=false";
 
         HttpHeaders headers = new HttpHeaders();
@@ -44,16 +44,16 @@ public class getWeatherAPI {
 
             if (response.getBody() != null) {
                 JsonNode root = objectMapper.readTree(response.getBody());
-                List<MeteoData> result = new ArrayList<>();
+                List<WeatherData> result = new ArrayList<>();
                 
                 if (root.isArray()) {
                     for (JsonNode node : root) {
-                        MeteoData data = objectMapper.treeToValue(node, MeteoData.class);
+                        WeatherData data = objectMapper.treeToValue(node, WeatherData.class);
                         result.add(data);
                     }
                 } 
                 else if (root.isObject()) {
-                    MeteoData data = objectMapper.treeToValue(root, MeteoData.class);
+                    WeatherData data = objectMapper.treeToValue(root, WeatherData.class);
                     result.add(data);
                 }
                 

@@ -8,6 +8,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Repository
-public interface WeatherAlertRepository extends JpaRepository<WeatherAlert, Long> {
-    List<WeatherAlert> findByStartDateLessThanEqualAndEndDateGreaterThanEqual(LocalDate date1, LocalDate date2);
+public interface AlertRepository extends JpaRepository<Alert, Long> {
+
 }

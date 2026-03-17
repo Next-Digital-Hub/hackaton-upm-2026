@@ -9,6 +9,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import com.kernelpanic.campusostenible.domain.MeteoData;
+import com.kernelpanic.campusostenible.domain.Alert;
+import com.kernelpanic.campusostenible.domain.Citizen;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -98,14 +101,13 @@ public class getRecomendationAPI {
         String url = "http://ec2-54-171-51-31.eu-west-1.compute.amazonaws.com/prompt";
         String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTZXJnaW8iLCJleHAiOjE3NzM4MjQ3NDd9.zloyQhaXgRSd-PPJH6EVbQj0zsxve0q0AWYrOdqo0UE";
         
-        String userPrompt = "Teniendo en cuenta los siguientes datos de la provincia " + meteoData.getProvince() + ": " + 
-                            "Temperatura Máxima: " + meteoData.getTemperatureMax() + ", Mínima: " + meteoData.getTemperatureMin() + ", " +
-                            "Humedad: " + meteoData.getHumidity() + "%, Viento: " + meteoData.getWindSpeed() + "km/h, " +
-                            "Probabilidad de lluvia: " + meteoData.getRainProbability() + "%. " +
-                            "Indica si recomiendas generar una alerta ciudadana. Responde estricta y únicamente con un bloque JSON " +
-                            "con el formato: {\"recomienda_alerta\": true/false, \"alerta\": { \"id\": \"string\", \"date\": \"string\", \"province\": \"string\", \"message\": \"string\" } }. " +
-                            "Si recomienda_alerta es false, el objeto alerta puede ser null.";
-
+        String userPrompt = "Teniendo en cuenta los siguientes datos de la provincia " + meteoData.getProvincia() + ": " + 
+            "Temperatura Máxima: " + meteoData.getTmax() + "°C, Mínima: " + meteoData.getTmin() + "°C, " +
+            "Humedad: " + meteoData.getHrMedia() + "%, Viento: " + meteoData.getVelmedia() + " km/h, " +
+            "Precipitación: " + meteoData.getPrec() + "mm. " +
+            "Indica si recomiendas generar una alerta ciudadana. Responde estricta y únicamente con un bloque JSON " +
+            "con el formato: {\"recomienda_alerta\": true/false, \"alerta\": { \"id\": \"string\", \"date\": \"string\", \"province\": \"string\", \"message\": \"string\" } }. " +
+            "Si recomienda_alerta es false, el objeto alerta puede ser null.";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(token);

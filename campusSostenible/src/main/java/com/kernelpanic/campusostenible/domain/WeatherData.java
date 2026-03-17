@@ -6,11 +6,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
+@Entity
+@Table(name = "weather_data")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class WeatherData {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private LocalDate date;
     private String province;
     private double temperatureMax;
@@ -19,6 +24,5 @@ public class WeatherData {
     private double windSpeed;
     private String windDirection;
     private WeatherCondition weatherCondition;
-    private int uvIndex;
     private int rainProbability;
 }

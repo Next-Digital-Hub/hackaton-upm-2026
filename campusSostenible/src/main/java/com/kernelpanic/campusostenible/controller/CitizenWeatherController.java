@@ -33,8 +33,8 @@ public class CitizenWeatherController {
                 : LocalDate.now();
 
         // Get weather data and convert to DTO
-        WeatherData meteoData = weatherService.getWeatherForDate(province, selectedDate);
-        MeteoDataDTO meteoDTO = WeatherMapper.toDTO(meteoData);
+        WeatherData weatherData = weatherService.getMeteoDataByProvinceAndDate(province, selectedDate);
+        WeatherDataDTO weatherDataDTO = WeatherMapper.toDTO(weatherData);
 
         // Get alerts and convert to DTOs
         List<WeatherAlert> alerts = weatherService.getActiveAlerts(province, selectedDate);

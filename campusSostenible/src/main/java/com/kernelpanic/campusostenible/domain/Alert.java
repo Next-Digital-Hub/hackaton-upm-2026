@@ -13,7 +13,8 @@ import lombok.*;
 public class Alert{
     @Id
     @Column(nullable = false, unique = true)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false)
     private String date;
@@ -23,4 +24,7 @@ public class Alert{
 
     @Column(nullable = false)
     private String message;
+
+    @Column(nullable = false)
+    private AlertLevel alertLevel;
 }

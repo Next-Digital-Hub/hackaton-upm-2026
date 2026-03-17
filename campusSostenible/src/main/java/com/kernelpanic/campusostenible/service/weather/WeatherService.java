@@ -25,11 +25,15 @@ public class WeatherService {
         this.meteoDataRepository = meteoDataRepository;
     }
 
-    public List<MeteoData> getAllMeteoData() {
+    public List<WeatherData> getAllMeteoData() {
         return meteoDataRepository.findAll();
     }
 
-    public List<MeteoData> getAllMeteoData(LocalDate date) {
+    public WeatherData getMeteoDataByProvinceAndDate(String province, LocalDate date) {
+        return meteoDataRepository.findByProvinciaAndFecha(province, date.toString());
+    }
+
+    public List<WeatherData> getAllMeteoData(LocalDate date) {
         return meteoDataRepository.findByFecha(date.toString());
     }
 

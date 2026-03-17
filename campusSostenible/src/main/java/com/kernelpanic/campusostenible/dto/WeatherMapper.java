@@ -13,7 +13,7 @@ public class WeatherMapper {
 
     private WeatherMapper() {}
 
-    public static MeteoDataDTO toDTO(WeatherData data) {
+    public static WeatherDataDTO toDTO(WeatherData data) {
         String bgClass = switch (data.getWeatherCondition()) {
             case SUNNY -> "bg-sunny";
             case PARTLY_CLOUDY -> "bg-partly-cloudy";
