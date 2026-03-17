@@ -12,6 +12,48 @@ const limpiarTextoIA = (texto) => {
     .filter(line => line.trim() !== '');
 };
 
+// ✅ MEJORA 1: RenderizarRespuestaIA con limpieza manual de Markdown
+const RenderizarRespuestaIA = ({ texto }) => {
+  if (!texto) return null;
+
+  // Limpiamos el Markdown básico para que no se vean las almohadillas
+  const limpiarMarkdown = (t) => {
+    return t.replaceAll('###', '').replaceAll('##', '').replaceAll('**', '').replaceAll('#', '');
+  };
+
+  return (
+    <div style={{ marginTop: '20px', textAlign: 'left', fontFamily: 'system-ui', color: '#333' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px', color: '#2980b9' }}>
+        <span style={{ fontSize: '24px' }}>💬</span>
+        <strong style={{ fontSize: '1.2rem' }}>Respuesta a tu consulta personalizada</strong>
+      </div>
+
+      <div style={{ 
+        backgroundColor: '#fdfae3', 
+        padding: '20px', 
+        borderRadius: '12px', 
+        borderLeft: '8px solid #3498db',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        lineHeight: '1.6'
+      }}>
+        {/* Usamos whiteSpace: 'pre-line' para que respete los saltos de línea sin fuente rara */}
+        <div style={{ whiteSpace: 'pre-line' }}>
+          {limpiarMarkdown(texto)}
+        </div>
+
+        {/* BOTÓN DE EMERGENCIA SIEMPRE VISIBLE ABAJO SI ES CRÍTICO */}
+        <div style={{ marginTop: '20px', borderTop: '1px solid #ddd', paddingTop: '15px', textAlign: 'center' }}>
+          <p style={{ fontWeight: 'bold', color: '#c62828' }}>🚨 ¿Peligro inminente?</p>
+          <a href="tel:112" style={{ 
+            display: 'inline-block', padding: '10px 20px', backgroundColor: '#e74c3c', 
+            color: 'white', borderRadius: '20px', textDecoration: 'none', fontWeight: 'bold' 
+          }}> Llamar al 112 </a>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ==========================================
 // COMPONENTE DE HISTORIAL (PARA CIUDADANO)
 // ==========================================
@@ -298,7 +340,7 @@ function HistorialAdmin({ usuario }) {
 }
 
 // ==========================================
-// 1. COMPONENTE: DASHBOARD DEL CIUDADANO (CON CHAT IA)
+// 1. COMPONENTE: DASHBOARD DEL CIUDADANO (REORDENADO + CHAT AL FINAL)
 // ==========================================
 function Dashboard({ usuario, onLogout }) {
   const [datosEmergencia, setDatosEmergencia] = useState(null);
@@ -306,15 +348,17 @@ function Dashboard({ usuario, onLogout }) {
   const [cargando, setCargando] = useState(true);
   const [mostrarHistorial, setMostrarHistorial] = useState(false);
   
-  // ✅ AÑADIDO: Estados para el chat interactivo con IA
+  // Estados para el chat interactivo con IA
   const [preguntaUsuario, setPreguntaUsuario] = useState("");
   const [respuestaIA, setRespuestaIA] = useState(null);
   const [cargandoChat, setCargandoChat] = useState(false);
 
-  // ✅ AÑADIDO: Función para enviar pregunta personalizada a la IA
+  // Función para enviar pregunta personalizada a la IA
   const enviarPregunta = async () => {
-    if (!preguntaUsuario.trim()) return; // Evitar preguntas vacías
+    if (!preguntaUsuario) return;
+    setRespuestaIA("Pensando..."); // Feedback visual
     setCargandoChat(true);
+
     try {
       const res = await fetch(`http://localhost:3000/api/preguntar`, {
         method: 'POST',
@@ -324,14 +368,19 @@ function Dashboard({ usuario, onLogout }) {
           pregunta: preguntaUsuario 
         })
       });
+      
       const data = await res.json();
-      setRespuestaIA(data.recomendacion?.response || "No pude procesar tu pregunta, intenta de nuevo.");
+      
+      // Verificamos que data.recomendacion.response exista
+      if (data.recomendacion && data.recomendacion.response) {
+        setRespuestaIA(data.recomendacion.response);
+      } else {
+        setRespuestaIA("No recibí una respuesta clara. Intenta de nuevo.");
+      }
     } catch (err) {
-      console.error("Error en el chat con IA:", err);
-      setRespuestaIA("Ocurrió un error al conectar con la IA. Revisa el servidor.");
+      setRespuestaIA("Error de conexión con el servidor.");
     } finally {
       setCargandoChat(false);
-      setPreguntaUsuario(""); // Limpiar campo después de enviar
     }
   };
 
@@ -376,7 +425,7 @@ function Dashboard({ usuario, onLogout }) {
     return <AdminPanel usuario={usuario} onLogout={onLogout} />;
   }
 
-  // VISTA CIUDADANO (CON CHAT IA)
+  // VISTA CIUDADANO (REORDENADA)
   return (
     <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto', fontFamily: 'system-ui' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #eee', paddingBottom: '10px' }}>
@@ -400,133 +449,123 @@ function Dashboard({ usuario, onLogout }) {
         </div>
       </header>
 
-      {/* ALERTA OFICIAL */}
-      {alertaOficial && (
-        <div style={{ 
-          background: '#ff4d4d', 
-          color: 'white', 
-          padding: '15px', 
-          borderRadius: '8px', 
-          marginTop: '20px', 
-          animation: 'pulse 2s infinite', 
-          border: '2px solid #b30000' 
-        }}>
-          <h3 style={{ margin: '0' }}>⚠️ AVISO OFICIAL DE AUTORIDAD</h3>
-          <p style={{ fontSize: '18px', fontWeight: 'bold' }}>{alertaOficial.mensaje}</p>
-          <small>Publicado el: {new Date(alertaOficial.created_at).toLocaleString()}</small>
-        </div>
-      )}
-
       {/* CONTENIDO PRINCIPAL */}
       {!mostrarHistorial ? (
-        <div style={{ marginTop: '30px' }}>
-          <h3 style={{ color: '#2c3e50', borderLeft: '4px solid #3498db', paddingLeft: '10px' }}>
-            Hola, {usuario.nickName}
-          </h3>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          {/* ✅ REORDENACIÓN 1: Alerta Oficial (primero) */}
+          {alertaOficial && (
+            <div style={{ 
+              background: '#ff4d4d', 
+              color: 'white', 
+              padding: '15px', 
+              borderRadius: '8px', 
+              marginTop: '20px', 
+              animation: 'pulse 2s infinite', 
+              border: '2px solid #b30000' 
+            }}>
+              <h3 style={{ margin: '0' }}>⚠️ AVISO OFICIAL DE AUTORIDAD</h3>
+              <p style={{ fontSize: '18px', fontWeight: 'bold' }}>{alertaOficial.mensaje}</p>
+              <small>Publicado el: {new Date(alertaOficial.created_at).toLocaleString()}</small>
+            </div>
+          )}
 
           {cargando ? (
-            <p>Cargando datos meteorológicos...</p>
+            <p style={{ marginTop: '20px' }}>Cargando datos meteorológicos...</p>
           ) : (
             <>
-              {/* ✅ AÑADIDO: CHAT INTERACTIVO CON IA */}
+              {/* ✅ REORDENACIÓN 2: Datos Meteorológicos (segundo) */}
               <div style={{ 
-                backgroundColor: '#fff', 
-                borderRadius: '12px', 
-                boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-                marginBottom: '20px',
-                overflow: 'hidden',
-                border: '1px solid #3498db'
+                background: '#f8f9fa', 
+                padding: '15px', 
+                borderRadius: '10px', 
+                border: '1px solid #dee2e6',
+                marginTop: '20px' 
               }}>
-                <div style={{ background: '#3498db', color: 'white', padding: '12px 20px' }}>
-                  <h4 style={{ margin: 0 }}>💬 Consulta Directa a Emergencias IA</h4>
-                </div>
-                
-                <div style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <input 
-                      type="text" 
-                      value={preguntaUsuario}
-                      onChange={(e) => setPreguntaUsuario(e.target.value)}
-                      placeholder="Escribe tu duda (ej: ¿Es seguro salir al garaje?)"
-                      style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #ddd', minWidth: '250px' }}
-                      disabled={cargandoChat}
-                    />
-                    <button 
-                      onClick={enviarPregunta}
-                      disabled={cargandoChat || !preguntaUsuario.trim()}
-                      style={{ 
-                        background: cargandoChat ? '#95a5a6' : '#3498db', 
-                        color: 'white', 
-                        border: 'none', 
-                        padding: '0 20px', 
-                        borderRadius: '8px', 
-                        cursor: cargandoChat ? 'not-allowed' : 'pointer',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      {cargandoChat ? "..." : "Preguntar"}
-                    </button>
-                  </div>
-
-                  {/* Resultado de la pregunta personalizada */}
-                  {respuestaIA && (
-                    <div style={{ marginTop: '20px', padding: '15px', background: '#f0f7ff', borderRadius: '8px', borderLeft: '4px solid #3498db' }}>
-                      <strong style={{ color: '#2980b9' }}>Respuesta específica:</strong>
-                      <p style={{ marginTop: '10px', color: '#333', lineHeight: '1.5' }}>{respuestaIA}</p>
-                    </div>
-                  )}
+                <h4 style={{ margin: '0 0 10px 0', color: '#495057' }}>🌡️ Datos Meteorológicos (AEMET)</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px' }}>
+                  <span><strong>Temp:</strong> {datosEmergencia?.clima?.tmed || 'N/A'}°C</span>
+                  <span><strong>Humedad:</strong> {datosEmergencia?.clima?.hrMedia || 'N/A'}%</span>
+                  <span><strong>Lluvia:</strong> {datosEmergencia?.clima?.prec || 'N/A'} mm</span>
+                  <span><strong>Viento:</strong> {datosEmergencia?.clima?.horaracha || 'N/A'}</span>
                 </div>
               </div>
 
-              {/* TARJETAS ORIGINALES (CLIMA + IA AUTOMÁTICA) */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {/* TARJETA DE CLIMA */}
-                <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '10px', border: '1px solid #dee2e6' }}>
-                  <h4 style={{ margin: '0 0 10px 0', color: '#495057' }}>🌡️ Datos Meteorológicos (AEMET)</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px' }}>
-                    <span><strong>Temp:</strong> {datosEmergencia?.clima?.tmed || 'N/A'}°C</span>
-                    <span><strong>Humedad:</strong> {datosEmergencia?.clima?.hrMedia || 'N/A'}%</span>
-                    <span><strong>Lluvia:</strong> {datosEmergencia?.clima?.prec || 'N/A'} mm</span>
-                    <span><strong>Viento:</strong> {datosEmergencia?.clima?.horaracha || 'N/A'}</span>
-                  </div>
+              {/* ✅ REORDENACIÓN 3: Instrucciones Automáticas (tercero) */}
+              <div style={{ 
+                backgroundColor: '#fff', 
+                borderRadius: '12px', 
+                borderLeft: '8px solid #f1c40f',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                overflow: 'hidden',
+                marginTop: '20px'
+              }}>
+                <div style={{ backgroundColor: '#fdfae3', padding: '15px', borderBottom: '1px solid #f9ebcc' }}>
+                  <h4 style={{ margin: 0, color: '#856404', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    🤖 Instrucciones de Supervivencia IA (Automáticas)
+                  </h4>
+                </div>
+                
+                <div style={{ padding: '20px', maxHeight: '400px', overflowY: 'auto' }}>
+                  {limpiarTextoIA(datosEmergencia?.recomendacion?.response || 'No hay recomendaciones disponibles').map((linea, index) => {
+                    const esTitulo = linea.includes(':') && linea.length < 50;
+                    return (
+                      <p key={index} style={{ 
+                        marginBottom: '12px',
+                        lineHeight: '1.5',
+                        fontSize: esTitulo ? '1.1rem' : '0.95rem',
+                        fontWeight: esTitulo ? '700' : '400',
+                        color: esTitulo ? '#2c3e50' : '#444',
+                        paddingLeft: linea.startsWith('-') ? '15px' : '0'
+                      }}>
+                        {linea}
+                      </p>
+                    );
+                  })}
+                </div>
+                
+                <div style={{ backgroundColor: '#f8f9fa', padding: '10px', fontSize: '12px', textAlign: 'center', color: '#95a5a6' }}>
+                  Análisis generado para vivienda en <strong>{usuario.tipoVivienda?.replace('_', ' ') || 'desconocida'}</strong>
+                </div>
+              </div>
+
+              {/* ✅ REORDENACIÓN 4: Chat / Pregunta Personalizada (cuarto/último) */}
+              <div style={{ 
+                marginTop: '30px', 
+                backgroundColor: 'rgba(255,255,255,0.9)', 
+                padding: '20px', 
+                borderRadius: '15px', 
+                border: '1px solid #3498db',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+              }}>
+                <h4 style={{ margin: '0 0 15px 0', color: '#2980b9' }}>❓ ¿Tienes alguna duda específica?</h4>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  <input 
+                    type="text" 
+                    value={preguntaUsuario}
+                    onChange={(e) => setPreguntaUsuario(e.target.value)}
+                    placeholder="Ej: ¿Qué hago con los electrodomésticos?"
+                    style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #ddd', minWidth: '250px' }}
+                    disabled={cargandoChat}
+                  />
+                  <button 
+                    onClick={enviarPregunta}
+                    disabled={cargandoChat || !preguntaUsuario.trim()}
+                    style={{ 
+                      background: cargandoChat ? '#95a5a6' : '#3498db', 
+                      color: 'white', 
+                      border: 'none', 
+                      padding: '0 20px', 
+                      borderRadius: '8px', 
+                      cursor: cargandoChat ? 'not-allowed' : 'pointer',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {cargandoChat ? "..." : "Preguntar"}
+                  </button>
                 </div>
 
-                {/* TARJETA DE IA AUTOMÁTICA */}
-                <div style={{ 
-                  backgroundColor: '#fff', 
-                  borderRadius: '12px', 
-                  borderLeft: '8px solid #f1c40f',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  overflow: 'hidden'
-                }}>
-                  <div style={{ backgroundColor: '#fdfae3', padding: '15px', borderBottom: '1px solid #f9ebcc' }}>
-                    <h4 style={{ margin: 0, color: '#856404', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      🤖 Instrucciones de Supervivencia IA (Automáticas)
-                    </h4>
-                  </div>
-                  
-                  <div style={{ padding: '20px', maxHeight: '400px', overflowY: 'auto' }}>
-                    {limpiarTextoIA(datosEmergencia?.recomendacion?.response || 'No hay recomendaciones disponibles').map((linea, index) => {
-                      const esTitulo = linea.includes(':') && linea.length < 50;
-                      return (
-                        <p key={index} style={{ 
-                          marginBottom: '12px',
-                          lineHeight: '1.5',
-                          fontSize: esTitulo ? '1.1rem' : '0.95rem',
-                          fontWeight: esTitulo ? '700' : '400',
-                          color: esTitulo ? '#2c3e50' : '#444',
-                          paddingLeft: linea.startsWith('-') ? '15px' : '0'
-                        }}>
-                          {linea}
-                        </p>
-                      );
-                    })}
-                  </div>
-                  
-                  <div style={{ backgroundColor: '#f8f9fa', padding: '10px', fontSize: '12px', textAlign: 'center', color: '#95a5a6' }}>
-                    Análisis generado para vivienda en <strong>{usuario.tipoVivienda?.replace('_', ' ') || 'desconocida'}</strong>
-                  </div>
-                </div>
+                {/* Respuesta del chat (abajo del input/botón) */}
+                {respuestaIA && <RenderizarRespuestaIA texto={respuestaIA} />}
               </div>
             </>
           )}

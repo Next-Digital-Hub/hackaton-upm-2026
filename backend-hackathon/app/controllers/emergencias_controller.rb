@@ -33,6 +33,42 @@ class EmergenciasController < ApplicationController
     end
   end
 
+def preguntar
+  user = User.find_by(nickName: params[:nickName])
+  
+  if user.nil?
+    return render json: { recomendacion: { response: "Error: Usuario no encontrado" } }, status: :not_found
+  end
+
+  pregunta_ciudadano = params[:pregunta]
+  token = UPM_BEARER_TOKEN
+
+  # 1. Obtenemos el clima actual para que la respuesta sea precisa
+  clima_data = fetch_weather(token, true)
+
+  # 2. Creamos el System Prompt para el chat (basado en el perfil)
+  # Reutilizamos tu lógica de personalización
+  system_prompt = personalizar_prompt_segun_perfil(user, clima_data)
+  system_prompt += "\nINSTRUCCIÓN ADICIONAL: El usuario te hará una pregunta específica. Respóndela basándote en su perfil y el clima actual."
+
+  # 3. El User Prompt es la pregunta directa del ciudadano
+  user_prompt = "Pregunta del ciudadano: #{pregunta_ciudadano}"
+
+  begin
+    # LLAMADA A LA API DE LA UPM (que ya tienes definida abajo)
+    llm_response = fetch_llm_prompt(token, system_prompt, user_prompt)
+    
+    # Devolvemos la respuesta con la estructura que espera tu React
+    render json: { 
+      recomendacion: { 
+        response: llm_response["response"] || llm_response["answer"] || "No tengo una respuesta clara en este momento." 
+      } 
+    }
+  rescue => e
+    render json: { recomendacion: { response: "La IA de emergencias no responde. Por favor, contacta con el 112." } }
+  end
+end
+
   private
 
   def fetch_weather(token, disaster)
@@ -409,24 +445,3 @@ class EmergenciasController < ApplicationController
   end
 end
 
-
-
-def preguntar
-  user = User.find_by(nickName: params[:nickName])
-  pregunta_ciudadano = params[:pregunta]
-
-  # Recuperamos los datos del clima actuales (puedes reutilizar tu lógica)
-  clima_data = obtener_clima_actual # (asumiendo que tienes este método extraído)
-
-  # Creamos un prompt que combine la situación real con la duda del usuario
-  prompt_personalizado = "El ciudadano pregunta: '#{pregunta_ciudadano}'. " \
-                         "Contexto: Vive en un #{user.tipoVivienda} en #{user.provincia}. " \
-                         "Clima actual: #{clima_data['prec']}mm de lluvia. " \
-                         "Responde de forma breve y priorizando su seguridad."
-
-  # Llamada a Amazon Bedrock
-  # (Usa el mismo código de llamada que ya tienes para la recomendación automática)
-  llm_response = llamar_a_bedrock(prompt_personalizado)
-
-  render json: { recomendacion: llm_response }
-end
