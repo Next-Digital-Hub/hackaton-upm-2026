@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -13,6 +14,18 @@ from app.services.weather_proxy import call_llm, extract_llm_text, get_weather
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/weather", tags=["weather"])
+
+# ─── Simulated weather data per mode ─────────────────────────────────────────
+SIMULATED_WEATHER = {
+    "rain":   {"temperature": 12, "tmin": 8,  "humidity": 95, "wind_speed": 40,
+               "description": "Lluvia fuerte",     "prec": 25},
+    "fog":    {"temperature": 10, "tmin": 7,  "humidity": 98, "wind_speed": 5,
+               "description": "Niebla densa",      "prec": 2},
+    "desert": {"temperature": 42, "tmin": 28, "humidity": 15, "wind_speed": 20,
+               "description": "Despejado extremo", "prec": 0},
+    "snow":   {"temperature": 1,  "tmin": -3, "humidity": 88, "wind_speed": 15,
+               "description": "Nevada",            "prec": 8},
+}
 
 
 def _extract_scalars(data: dict) -> dict:
@@ -45,20 +58,51 @@ def _extract_scalars(data: dict) -> dict:
         or (weather_list[0].get("description") if weather_list else None)
         or (data.get("current") or {}).get("weather_description")
     )
-    return {"temperature": temp, "humidity": hum, "wind_speed": wind, "description": str(desc) if desc else None}
+    return {"temperature": temp, "humidity": hum, "wind_speed": wind,
+            "description": str(desc) if desc else None}
 
 
 @router.get("/current", response_model=WeatherResponse)
 async def get_current_weather(
     avatar_state: str = "energized",
+    mode: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user),
 ):
-    """Fetch live weather + personalized LLM analysis based on avatar state."""
-    try:
-        weather_data = await get_weather(disaster=False)
-    except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Weather API unreachable: {exc}")
+    """Fetch live weather + personalized LLM analysis based on avatar state.
+    mode=rain|fog|desert|snow → use simulated data instead of EC2 API.
+    """
+    # ── 10-minute cache (only for real/non-simulated requests) ───────────────
+    if mode is None and current_user:
+        cutoff = datetime.utcnow() - timedelta(minutes=10)
+        cached = (
+            db.query(WeatherRecord)
+            .filter(
+                WeatherRecord.user_id == current_user.id,
+                WeatherRecord.is_disaster == False,  # noqa: E712
+                WeatherRecord.created_at >= cutoff,
+            )
+            .order_by(WeatherRecord.created_at.desc())
+            .first()
+        )
+        if cached:
+            logger.info(f"Returning cached weather record {cached.id} for user {current_user.id}")
+            return WeatherResponse(
+                weather_data=cached.weather_data,
+                llm_response=cached.llm_response or "",
+                avatar_state=cached.avatar_state or avatar_state,
+                record_id=cached.id,
+            )
+
+    # ── Fetch or select weather data ─────────────────────────────────────────
+    if mode and mode in SIMULATED_WEATHER:
+        weather_data = SIMULATED_WEATHER[mode]
+        logger.info(f"Using simulated weather mode: {mode}")
+    else:
+        try:
+            weather_data = await get_weather(disaster=False)
+        except Exception as exc:
+            raise HTTPException(status_code=502, detail=f"Weather API unreachable: {exc}")
 
     user_name = current_user.username if current_user else "friend"
 
@@ -117,7 +161,7 @@ async def get_weather_history(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """7-day weather history for the authenticated user."""
+    """Weather history for the authenticated user."""
     if not current_user:
         raise HTTPException(status_code=401, detail="Login required")
 

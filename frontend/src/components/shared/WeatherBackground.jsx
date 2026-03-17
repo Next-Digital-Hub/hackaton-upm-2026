@@ -4,18 +4,8 @@
  */
 import { motion } from 'framer-motion'
 import { useMemo } from 'react'
-
-// ─── Condition detection ──────────────────────────────────────────────────────
-export function getCondition(description = '') {
-  const d = description.toLowerCase()
-  if (d.includes('thunder') || d.includes('storm'))            return 'stormy'
-  if (d.includes('snow') || d.includes('sleet') || d.includes('blizzard')) return 'snowy'
-  if (d.includes('rain') || d.includes('shower') || d.includes('drizzle')) return 'rainy'
-  if (d.includes('fog')  || d.includes('mist')  || d.includes('haze'))     return 'foggy'
-  if (d.includes('overcast') || d.includes('broken cloud'))   return 'overcast'
-  if (d.includes('cloud') || d.includes('partly'))            return 'cloudy'
-  return 'clear'
-}
+import { getCondition } from '../../utils/weather'
+export { getCondition }  // re-export so WeatherTopBar import keeps working
 
 const GRADIENT = {
   clear:    ['#1a0a00', '#3b1c00', '#0f172a'],   // warm amber night → slate

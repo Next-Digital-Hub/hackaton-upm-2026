@@ -344,7 +344,19 @@ async def chat_response(
 
 LANGUAGE RULE (mandatory): Detect the language of the user's message and reply in
 that EXACT language. Spanish message → Spanish reply. English → English. Any other
-language → match it. The weather data above is irrelevant to language selection."""
+language → match it. The weather data above is irrelevant to language selection.
+
+SUGGESTIONS BLOCK (mandatory): After your main response, append a <SUGGESTIONS> block
+with a JSON array of 2–4 short actionable cards based on today's conditions:
+<SUGGESTIONS>
+[
+  {{"type": "tip",   "icon": "🌂", "text": "Lleva paraguas por si acaso"}},
+  {{"type": "alert", "icon": "⚠️", "text": "Índice UV alto: protector solar"}},
+  {{"type": "gear",  "icon": "🧥", "text": "Chaqueta ligera por la mañana"}}
+]
+</SUGGESTIONS>
+Valid types: "tip" (neutral), "alert" (warning), "gear" (clothing/equipment), "time" (timing).
+Keep each text under 40 characters. Match the user's language. This block is parsed and hidden from display — it is NOT shown as text."""
 
     raw = await call_llm(system_prompt, user_prompt)
     return extract_llm_text(raw)

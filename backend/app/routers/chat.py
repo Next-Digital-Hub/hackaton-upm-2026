@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -11,12 +12,25 @@ from app.services.weather_proxy import get_weather
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
-VALID_AVATAR_STATES = {"tired", "energized", "sick", "athletic", "important"}
+# Same dict as weather.py — keeps things self-contained
+SIMULATED_WEATHER = {
+    "rain":   {"temperature": 12, "tmin": 8,  "humidity": 95, "wind_speed": 40,
+               "description": "Lluvia fuerte",     "prec": 25},
+    "fog":    {"temperature": 10, "tmin": 7,  "humidity": 98, "wind_speed": 5,
+               "description": "Niebla densa",      "prec": 2},
+    "desert": {"temperature": 42, "tmin": 28, "humidity": 15, "wind_speed": 20,
+               "description": "Despejado extremo", "prec": 0},
+    "snow":   {"temperature": 1,  "tmin": -3, "humidity": 88, "wind_speed": 15,
+               "description": "Nevada",            "prec": 8},
+}
+
+SIMPLE_STATES = {"tired", "energized", "sick", "athletic", "important"}
 
 
 class ChatRequest(BaseModel):
     user_prompt: str
     avatar_state: str = "energized"
+    weather_mode: Optional[str] = None  # "rain" | "fog" | "desert" | "snow"
 
 
 class ChatResponse(BaseModel):
@@ -31,20 +45,23 @@ async def chat(
 ):
     """
     Conversational weather endpoint.
-    1. Fetches current (non-disaster) weather from the external API.
-    2. Combines the user's message with their avatar system_prompt + weather context.
-    3. Calls the LLM and returns the personalised reply.
-    The LLM is instructed to always match the user's writing language.
+    • weather_mode overrides EC2 fetch with simulated data for the chosen mode.
+    • Compound avatar_state keys (e.g. energized_focused_outdoors) are passed through.
     """
-    if body.avatar_state not in VALID_AVATAR_STATES:
-        # Fall back gracefully instead of 400 — chat should be forgiving
+    # Allow compound questionnaire keys; only fall back for truly unknown simple keys
+    is_compound = "_" in body.avatar_state
+    if not is_compound and body.avatar_state not in SIMPLE_STATES:
         logger.warning(f"Unknown avatar_state '{body.avatar_state}', using 'energized'")
         body.avatar_state = "energized"
 
-    try:
-        weather_data = await get_weather(disaster=False)
-    except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Weather API unavailable: {exc}")
+    # Resolve weather context
+    if body.weather_mode and body.weather_mode in SIMULATED_WEATHER:
+        weather_data = SIMULATED_WEATHER[body.weather_mode]
+    else:
+        try:
+            weather_data = await get_weather(disaster=False)
+        except Exception as exc:
+            raise HTTPException(status_code=502, detail=f"Weather API unavailable: {exc}")
 
     try:
         reply = await chat_response(
