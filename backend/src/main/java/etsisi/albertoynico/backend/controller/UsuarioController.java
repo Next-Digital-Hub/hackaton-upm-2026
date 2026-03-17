@@ -35,6 +35,9 @@ public class UsuarioController {
 
     @PostMapping
     public Usuario createUsuario(@RequestBody Usuario usuario) {
+        if (usuario.getNombre() != null && usuarioManager.findByNombre(usuario.getNombre()).isPresent()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "El nombre de usuario ya está en uso");
+        }
         usuario.setId(usuarioManager.newId());
         usuarioManager.save(usuario);
         return usuario;
@@ -42,6 +45,13 @@ public class UsuarioController {
 
     @PutMapping("/{id}")
     public Usuario updateUsuario(@PathVariable("id") String id, @RequestBody Usuario usuario) {
+        if (usuario.getNombre() != null) {
+            usuarioManager.findByNombre(usuario.getNombre()).ifPresent(u -> {
+                if (!u.getId().equals(id)) {
+                    throw new ApiException(HttpStatus.BAD_REQUEST, "El nombre de usuario ya está en uso");
+                }
+            });
+        }
         usuario.setId(id);
         usuarioManager.update(usuario);
         return usuario;

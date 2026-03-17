@@ -33,6 +33,10 @@ public class AuthController {
 
     @PostMapping("/registerCiudadano")
     public Map<String, Object> registerCiudadano(@RequestBody RegisterDTO dto) {
+        if (usuarioManager.findByNombre(dto.getNombre()).isPresent()) {
+            throw new RuntimeException("El nombre de usuario ya está en uso");
+        }
+
         // 1. Crear y guardar Usuario con rol CIUDADANO
         Usuario usuario = new Usuario();
         usuario.setId(usuarioManager.newId());
@@ -62,6 +66,10 @@ public class AuthController {
 
     @PostMapping("/registerAdmin")
     public Map<String, Object> registerAdmin(@RequestBody etsisi.albertoynico.backend.dto.RegisterAdminDTO dto) {
+        if (usuarioManager.findByNombre(dto.getNombre()).isPresent()) {
+            throw new RuntimeException("El nombre de usuario ya está en uso");
+        }
+
         // 1. Crear y guardar Usuario con rol ADMINISTRADOR
         Usuario usuario = new Usuario();
         usuario.setId(usuarioManager.newId());

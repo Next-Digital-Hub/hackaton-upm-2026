@@ -125,4 +125,28 @@ public class AlertaController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteAlerta(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
+        try {
+            Usuario usuario = getUsuarioFromToken(authHeader);
+            if (!etsisi.albertoynico.backend.model.RolUsuario.ADMINISTRADOR.name().equals(usuario.getRol())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Acceso denegado: Se requiere rol ADMINISTRADOR");
+            }
+            
+            Alerta alerta = alertaManager.findById(id).orElse(null);
+            if (alerta == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Alerta no encontrada");
+            }
+
+            if (!usuario.getId().equals(alerta.getAdminId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No eres el propietario de esta alerta");
+            }
+
+            alertaManager.deleteById(id);
+            return ResponseEntity.ok("Alerta eliminada correctamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
+    }
 }
