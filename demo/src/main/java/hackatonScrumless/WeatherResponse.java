@@ -1,5 +1,7 @@
 package hackatonScrumless;
 
+import org.springframework.web.client.RestTemplate;
+
 public class WeatherResponse {
         private String altitud;
         private String dir;
@@ -27,7 +29,41 @@ public class WeatherResponse {
         private String tmin;
         private String velmedia;
 
+    public WeatherResponse(String datos , ApiController a) {
+        String[] campos = a.weather(false).split(",");
+
+        // Verificamos que el array tenga el tamaño esperado para evitar errores
+        if (campos.length >= 25) {
+            this.altitud = campos[0];
+            this.dir = campos[1];
+            this.fecha = campos[2];
+            this.horaHrMax = campos[3];
+            this.horaHrMin = campos[4];
+            this.horaPresMax = campos[5];
+            this.horaPresMin = campos[6];
+            this.horaracha = campos[7];
+            this.horatmax = campos[8];
+            this.horatmin = campos[9];
+            this.hrMax = campos[10];
+            this.hrMedia = campos[11];
+            this.hrMin = campos[12];
+            this.indicativo = campos[13];
+            this.nombre = campos[14];
+            this.prec = campos[15];
+            this.presMax = campos[16];
+            this.presMin = campos[17];
+            this.provincia = campos[18];
+            this.racha = campos[19];
+            this.sol = campos[20];
+            this.tmax = campos[21];
+            this.tmed = campos[22];
+            this.tmin = campos[23];
+            this.velmedia = campos[24];
+        }
+    }
+
         // getters y setters
+
 
         public String getAltitud() {
             return altitud;

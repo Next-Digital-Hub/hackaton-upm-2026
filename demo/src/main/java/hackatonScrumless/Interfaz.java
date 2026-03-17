@@ -1,5 +1,7 @@
 package hackatonScrumless;
 
+import org.springframework.web.client.RestTemplate;
+
 public abstract class Interfaz {
     private String nik;
     private String contraseña;
@@ -29,9 +31,8 @@ public abstract class Interfaz {
 
 
     public void previsionMeteorologiva() {
-        double tempActual = servicioClima.consultarTemperatura(miCiudadano.getProvincia());
-        String estadoActual = servicioClima.consultarEstadoAtmosferico(miCiudadano.getProvincia());
-        System.out.println("la temperatura actual es: "+tempActual+",el clima esta: "+estadoActual);
+        WeatherService w = new WeatherService(new RestTemplate());
+        w.toString();
     }
 
     public void consultaDatos(){
