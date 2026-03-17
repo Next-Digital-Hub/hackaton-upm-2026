@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>GeoGuard - Ciudadano</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50">
+<nav class="bg-white shadow-sm p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold text-blue-600">GeoGuard</h1>
+    <div class="flex items-center gap-4">
+        <button id="btnNotificaciones" class="relative">
+            <span class="text-2xl">🔔</span>
+            <span id="dotAlerta" class="hidden absolute top-0 right-0 h-3 w-3 bg-red-500 rounded-full border-2 border-white"></span>
+        </button>
+        <button onclick="logout()" class="text-sm text-gray-500 underline">Salir</button>
+    </div>
+</nav>
+
+<main class="max-w-4xl mx-auto p-6 space-y-6">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+        <h2 class="text-gray-400 text-xs font-bold uppercase mb-4">Estado del Tiempo</h2>
+        <div id="infoClima" class="flex items-center gap-6">
+            <p>Cargando datos meteorológicos...</p>
+        </div>
+    </div>
+
+    <div id="panelIA" class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 rounded-2xl text-white shadow-lg">
+        <span class="text-[10px] bg-white/20 px-2 py-1 rounded-md uppercase font-bold">Asistente Inteligente</span>
+        <p id="textoIA" class="mt-3 text-lg italic font-medium">"Analizando tu perfil para darte el mejor consejo..."</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-white p-4 rounded-xl shadow-sm">
+            <h3 class="font-bold border-b pb-2 mb-3">Historial de Alertas</h3>
+            <ul id="listaAlertas" class="space-y-2 text-sm text-gray-600">
+            </ul>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow-sm">
+            <h3 class="font-bold border-b pb-2 mb-3">Consultas Recientes</h3>
+            <ul id="listaConsultas" class="space-y-2 text-sm text-gray-600 italic">
+            </ul>
+        </div>
+    </div>
+</main>
+
+<script src="js/main.js"></script>
+</body>
+</html>
