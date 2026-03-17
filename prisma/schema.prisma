@@ -7,54 +7,24 @@ datasource db {
   provider = "postgresql"
 }
 
-// ─── Enums ────────────────────────────────────────────────
-
-enum Role {
-  CITIZEN
-  ADMIN
-}
-
-enum HousingType {
-  BASEMENT
-  GROUND_FLOOR
-  HIGH_FLOOR
-  COUNTRY_HOUSE
-}
-
-enum SpecialNeed {
-  WHEELCHAIR
-  DEPENDENT
-  PETS
-}
-
-enum AlertSeverity {
-  LOW
-  MODERATE
-  SEVERE
-  EXTREME
-}
-
-// ─── Auth Models (NextAuth compatible) ────────────────────
-
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime? @map("email_verified")
-  image         String?
-  password      String
-  role          Role      @default(CITIZEN)
-  phone         String?
-  province      String
-  housingType   HousingType @map("housing_type")
-  specialNeeds  SpecialNeed[]  @map("special_needs")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-
+  id                 String              @id @default(cuid())
+  name               String?
+  email              String              @unique
+  emailVerified      DateTime?           @map("email_verified")
+  image              String?
+  password           String
+  role               Role                @default(CITIZEN)
+  phone              String?
+  province           String
+  housingType        HousingType         @map("housing_type")
+  specialNeeds       SpecialNeed[]       @map("special_needs")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
   accounts           Account[]
-  sessions           Session[]
-  llmQueries         LlmQuery[]
   alertNotifications AlertNotification[]
+  llmQueries         LlmQuery[]
+  sessions           Session[]
 
   @@map("users")
 }
@@ -65,15 +35,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
@@ -98,8 +67,6 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
-// ─── Domain Models ────────────────────────────────────────
-
 model WeatherRecord {
   id        String   @id @default(cuid())
   data      Json
@@ -115,12 +82,11 @@ model WeatherRecord {
 model LlmQuery {
   id           String   @id @default(cuid())
   userId       String   @map("user_id")
-  systemPrompt String   @map("system_prompt") @db.Text
-  userPrompt   String   @map("user_prompt") @db.Text
-  response     String   @db.Text
+  systemPrompt String   @map("system_prompt")
+  userPrompt   String   @map("user_prompt")
+  response     String
   createdAt    DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([createdAt])
@@ -128,15 +94,14 @@ model LlmQuery {
 }
 
 model Alert {
-  id          String        @id @default(cuid())
-  title       String
-  description String        @db.Text
-  severity    AlertSeverity
-  active      Boolean       @default(true)
-  createdBy   String        @map("created_by")
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-
+  id            String              @id @default(cuid())
+  title         String
+  description   String
+  severity      AlertSeverity
+  active        Boolean             @default(true)
+  createdBy     String              @map("created_by")
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
   notifications AlertNotification[]
 
   @@index([active])
@@ -149,11 +114,35 @@ model AlertNotification {
   alertId String    @map("alert_id")
   userId  String    @map("user_id")
   readAt  DateTime? @map("read_at")
-
-  alert Alert @relation(fields: [alertId], references: [id], onDelete: Cascade)
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alert   Alert     @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([alertId, userId])
   @@index([userId])
   @@map("alert_notifications")
+}
+
+enum Role {
+  CITIZEN
+  ADMIN
+}
+
+enum HousingType {
+  BASEMENT
+  GROUND_FLOOR
+  HIGH_FLOOR
+  COUNTRY_HOUSE
+}
+
+enum SpecialNeed {
+  WHEELCHAIR
+  DEPENDENT
+  PETS
+}
+
+enum AlertSeverity {
+  LOW
+  MODERATE
+  SEVERE
+  EXTREME
 }
