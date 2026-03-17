@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RegisterDTO {
     private String nombre;
-    private String contrasena;
+    private String password;
     private UserFormDTO userForm;
 }

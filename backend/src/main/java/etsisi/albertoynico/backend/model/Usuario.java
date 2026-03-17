@@ -14,7 +14,7 @@ public class Usuario {
     private String id;
     private String nombre;
     private String rol;
-    private String contrasena;
+    private String password;
 
     @DynamoDbPartitionKey
     public String getId() {

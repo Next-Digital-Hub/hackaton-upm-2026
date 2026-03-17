@@ -7,6 +7,7 @@ import etsisi.albertoynico.backend.manager.UsuarioManager;
 import etsisi.albertoynico.backend.model.CondicionUsuario;
 import etsisi.albertoynico.backend.model.Usuario;
 import etsisi.albertoynico.backend.service.JwtService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -18,13 +19,16 @@ public class AuthController {
     private final UsuarioManager usuarioManager;
     private final CondicionUsuarioManager condicionUsuarioManager;
     private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthController(UsuarioManager usuarioManager,
             CondicionUsuarioManager condicionUsuarioManager,
-            JwtService jwtService) {
+            JwtService jwtService,
+            PasswordEncoder passwordEncoder) {
         this.usuarioManager = usuarioManager;
         this.condicionUsuarioManager = condicionUsuarioManager;
         this.jwtService = jwtService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/registerCiudadano")
@@ -33,7 +37,7 @@ public class AuthController {
         Usuario usuario = new Usuario();
         usuario.setId(usuarioManager.newId());
         usuario.setNombre(dto.getNombre());
-        usuario.setContrasena(dto.getContrasena());
+        usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
         usuario.setRolEnum(etsisi.albertoynico.backend.model.RolUsuario.CIUDADANO);
         usuarioManager.save(usuario);
 
@@ -62,7 +66,7 @@ public class AuthController {
         Usuario usuario = new Usuario();
         usuario.setId(usuarioManager.newId());
         usuario.setNombre(dto.getNombre());
-        usuario.setContrasena(dto.getContrasena());
+        usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
         usuario.setRolEnum(etsisi.albertoynico.backend.model.RolUsuario.ADMINISTRADOR);
         usuarioManager.save(usuario);
 
@@ -72,5 +76,24 @@ public class AuthController {
         return Map.of(
                 "token", token,
                 "usuario", usuario);
+    }
+    @PostMapping("/login")
+    public Map<String, Object> login(@RequestBody etsisi.albertoynico.backend.dto.LoginDTO dto) {
+        // 1. Buscar usuario por nombre
+        Usuario usuario = usuarioManager.findByNombre(dto.getNombre())
+                .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
+
+        // 2. Comprobar contraseña
+        if (!passwordEncoder.matches(dto.getPassword(), usuario.getPassword())) {
+            throw new RuntimeException("Credenciales inválidas");
+        }
+
+        // 3. Generar JWT
+        String token = jwtService.generarToken(usuario.getId(), usuario.getNombre(), usuario.getRol());
+
+        return Map.of(
+                "token", token,
+                "usuario", usuario
+        );
     }
 }
