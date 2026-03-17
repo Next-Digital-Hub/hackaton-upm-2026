@@ -18,7 +18,7 @@ public class UserService {
     public User registrarCiudadano(UserRegitrationDto dto){
         User ciudadano= new User();
 
-        ciudadano.setNombre(dto.nombre());
+        ciudadano.setUsername(dto.nombre());
         ciudadano.setProvincia(dto.provincia());
         ciudadano.setTipoVivienda(dto.tipoVivienda());
         ciudadano.setTipoNecesidades(dto.tipoNecesidades());
