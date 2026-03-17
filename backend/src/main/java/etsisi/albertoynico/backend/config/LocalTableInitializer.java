@@ -26,7 +26,8 @@ public class LocalTableInitializer {
             new TableDef("hackathon-libros", "id"),
             new TableDef("hackathon-usuarios", "id"),
             new TableDef("hackathon-condiciones-usuario", "id"),
-            new TableDef("hackathon-alertas", "id"));
+            new TableDef("hackathon-alertas", "id"),
+            new TableDef("hackathon-llm-calls", "id"));
 
     @Bean
     CommandLineRunner initDynamoTables(DynamoDbClient client) {

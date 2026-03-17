@@ -77,6 +77,14 @@ export class BackendStack extends cdk.Stack {
     });
     alertasTable.grantReadWriteData(instanceRole);
 
+    const llmCallsTable = new dynamodb.Table(this, "LLMCallsTable", {
+      tableName: "hackathon-llm-calls",
+      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+    llmCallsTable.grantReadWriteData(instanceRole);
+
     // --- App Runner ---
     const envVars = loadEnv(path.join(__dirname, "../../.env"));
 
