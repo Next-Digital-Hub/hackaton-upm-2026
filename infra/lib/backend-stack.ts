@@ -37,13 +37,21 @@ export class BackendStack extends cdk.Stack {
     );
 
     // --- DynamoDB ---
-    const librosTable = new dynamodb.Table(this, "LibrosTable", {
-      tableName: "hackathon-libros",
+    const usuariosTable = new dynamodb.Table(this, "UsuariosTable", {
+      tableName: "hackathon-usuarios",
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
-    librosTable.grantReadWriteData(instanceRole);
+    usuariosTable.grantReadWriteData(instanceRole);
+
+    const condicionesUsuarioTable = new dynamodb.Table(this, "CondicionesUsuarioTable", {
+      tableName: "hackathon-condiciones-usuario",
+      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+    condicionesUsuarioTable.grantReadWriteData(instanceRole);
 
     // --- App Runner ---
     const backendService = new apprunner.CfnService(this, "BackendService", {

@@ -1,0 +1,15 @@
+package etsisi.albertoynico.backend.model;
+
+public enum NecesidadEspecial {
+    MOVILIDAD_REDUCIDA,
+    DISCAPACIDAD_VISUAL,
+    DISCAPACIDAD_AUDITIVA,
+    PERSONAS_MAYORES,
+    NINOS_PEQUENOS,
+    EMBARAZO,
+    ENFERMEDAD_CRONICA,
+    DEPENDENCIA_OXIGENO,
+    ASISTENCIA_MEDICA,
+    SILLA_RUEDAS,
+    MASCOTAS
+}

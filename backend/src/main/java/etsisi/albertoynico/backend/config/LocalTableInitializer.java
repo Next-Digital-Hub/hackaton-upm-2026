@@ -21,7 +21,9 @@ public class LocalTableInitializer {
 
     /** Lista de tablas a crear. Añade aquí las nuevas entidades. */
     private static final List<TableDef> TABLES = List.of(
-        new TableDef("hackathon-libros", "id")
+        new TableDef("hackathon-libros", "id"),
+        new TableDef("hackathon-usuarios", "id"),
+        new TableDef("hackathon-condiciones-usuario", "id")
     );
 
     @Bean

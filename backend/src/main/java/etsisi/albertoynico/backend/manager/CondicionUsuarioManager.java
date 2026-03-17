@@ -1,0 +1,18 @@
+package etsisi.albertoynico.backend.manager;
+
+import etsisi.albertoynico.backend.model.CondicionUsuario;
+import org.springframework.stereotype.Component;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+
+@Component
+public class CondicionUsuarioManager extends AbstractManager<CondicionUsuario> {
+
+    public CondicionUsuarioManager(DynamoDbEnhancedClient client) {
+        super(client, "hackathon-condiciones-usuario", CondicionUsuario.class);
+    }
+
+    @Override
+    public String newId() {
+        return super.newId();
+    }
+}
