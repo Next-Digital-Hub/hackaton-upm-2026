@@ -2,7 +2,7 @@ package com.kernelpanic.campusostenible.ui.backoffice;
 
 import com.kernelpanic.campusostenible.core.domain.*;
 import com.kernelpanic.campusostenible.core.providers.MeteoData;
-import com.kernelpanic.campusostenible.core.services.WeatherService;
+import com.kernelpanic.campusostenible.core.services.weather.WeatherService;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

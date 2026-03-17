@@ -8,7 +8,7 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MeteoDataDTO {
+public class WeatherDataDTO {
 
     private LocalDate date;
     private String formattedDate;

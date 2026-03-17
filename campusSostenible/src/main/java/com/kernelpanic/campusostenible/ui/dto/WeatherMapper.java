@@ -4,7 +4,12 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.Locale;
 
-import com.kernelpanic.campusostenible.core.domain.*;
+import com.kernelpanic.campusostenible.core.domain.WeatherData;
+import com.kernelpanic.campusostenible.core.domain.Alert;
+import com.kernelpanic.campusostenible.core.domain.WeatherCondition;
+
+import com.kernelpanic.campusostenible.ui.dto.WeatherDataDTO;
+import com.kernelpanic.campusostenible.ui.dto.WeatherAlertDTO;
 
 public class WeatherMapper {
 
@@ -25,13 +30,13 @@ public class WeatherMapper {
             case FOGGY -> "bg-foggy";
         };
 
-        return MeteoDataDTO.builder()
-                .date(data.getDate())
-                .formattedDate(data.getDate().format(DATE_FMT))
-                .dayOfWeek(data.getDate().getDayOfWeek().getDisplayName(TextStyle.FULL, ES))
-                .province(data.getProvince())
-                .temperatureMax(data.getTemperatureMax())
-                .temperatureMin(data.getTemperatureMin())
+        return WeatherDataDTO.builder()
+                .date(data.date())
+                .formattedDate(data.date().format(DATE_FMT))
+                .dayOfWeek(data.date().getDayOfWeek().getDisplayName(TextStyle.FULL, ES))
+                .province(data.province())
+                .temperatureMax(data.temperatureMax())
+                .temperatureMin(data.temperatureMin())
                 .humidity(data.getHumidity())
                 .windSpeed(data.getWindSpeed())
                 .windDirection(data.getWindDirection())
@@ -45,7 +50,7 @@ public class WeatherMapper {
                 .build();
     }
 
-    public static WeatherAlertDTO toDTO(WeatherAlert alert) {
+    public static WeatherAlertDTO toDTO(Alert alert) {
         return WeatherAlertDTO.builder()
                 .levelName(alert.getAlertLevel().getDisplayName())
                 .levelColor(alert.getAlertLevel().getColor())

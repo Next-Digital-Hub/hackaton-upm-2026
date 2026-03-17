@@ -1,7 +1,7 @@
 package com.kernelpanic.campusostenible.ui.citizen;
 
 import com.kernelpanic.campusostenible.core.domain.*;
-import com.kernelpanic.campusostenible.core.services.WeatherService;
+import com.kernelpanic.campusostenible.core.services.weather.WeatherService;
 import com.kernelpanic.campusostenible.ui.dto.*;
 
 import org.springframework.stereotype.Controller;
