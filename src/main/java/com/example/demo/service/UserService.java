@@ -20,7 +20,7 @@ public class UserService {
     private BCryptPasswordEncoder passwordEncoder;
 
     public void registrarCiudadano(UserRegitrationDTO dto){
-        if (userRepository.exitsByUsername(dto.nombre())){
+        if (userRepository.existsByUsername(dto.nombre())){
             throw new RuntimeException("Error: El nombre de usuario "+dto.nombre().trim()+" ya existe.");
         }
 
