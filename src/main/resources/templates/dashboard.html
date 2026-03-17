@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoGuard - Mi Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans">
+
+<nav class="bg-white border-b border-slate-200 p-4 w-full sticky top-0 z-50">
+    <div class="flex justify-between items-center px-6 md:px-10">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl">⛈️</span>
+            <h1 class="text-xl font-black text-blue-600 tracking-tighter uppercase">GEOGUARD</h1>
+        </div>
+
+        <div class="flex items-center gap-6">
+            <button class="relative group" onclick="abrirHistorialAlertas()">
+                <span class="text-2xl transition-transform group-hover:scale-110 block">🔔</span>
+                <span id="notif-count" class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold px-1.5 rounded-full border-2 border-white">3</span>
+            </button>
+
+            <div class="h-8 w-[1px] bg-slate-200"></div>
+
+            <button onclick="location.href='/'" class="text-sm font-bold text-slate-500 hover:text-red-500 transition-colors">
+                Cerrar Sesión
+            </button>
+        </div>
+    </div>
+</nav>
+
+<main class="max-w-6xl mx-auto p-6 space-y-8">
+
+    <header class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+            <h2 class="text-3xl font-black text-slate-800">Panel de Control</h2>
+            <p class="text-slate-500 font-medium">Ubicación: <span class="text-blue-600" id="user-provincia">Valencia</span> | Vivienda: <span class="text-blue-600" id="user-vivienda">Sótano</span></p>
+        </div>
+        <div id="status-badge" class="px-4 py-2 bg-green-100 text-green-700 rounded-2xl text-xs font-black uppercase flex items-center gap-2">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+            Sistema Vigilando
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+            <h3 class="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest">Datos Meteorológicos</h3>
+            <div class="space-y-4">
+                <div class="flex items-center gap-4">
+                    <span id="weather-icon" class="text-4xl">🌧️</span>
+                    <div>
+                        <p class="text-3xl font-black text-slate-800" id="temp-val">14°C</p>
+                        <p class="text-slate-500 text-sm italic" id="weather-desc">Lluvia moderada</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-[11px] font-bold uppercase text-slate-400 pt-4 border-t border-slate-50">
+                    <div>Viento: <span class="text-slate-700" id="wind-val">22 km/h</span></div>
+                    <div>Humedad: <span class="text-slate-700" id="hum-val">85%</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 bg-slate-900 p-8 rounded-3xl text-white shadow-xl relative overflow-hidden">
+            <div class="relative z-10">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="bg-blue-500 px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider">Consejo personalizado</span>
+                </div>
+                <p class="text-xl font-medium leading-relaxed italic text-blue-50" id="ia-text">
+                    Dado que resides en un sótano y la lluvia supera los 100mm, te recomendamos elevar tus pertenencias valiosas y revisar los desagües de entrada.
+                </p>
+            </div>
+            <div class="absolute -right-4 -bottom-4 text-8xl opacity-10">🤖</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+        <section>
+            <h4 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <span class="p-1 bg-blue-100 rounded text-blue-600">📊</span> Registro Meteorológico
+            </h4>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-400 uppercase font-bold">
+                    <tr>
+                        <th class="px-4 py-3">Fecha</th>
+                        <th class="px-4 py-3">Hora</th>
+                        <th class="px-4 py-3">Condición</th>
+                        <th class="px-4 py-3">Temp.</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tabla-meteo-ciudadano" class="divide-y divide-slate-50">
+                    <tr>
+                        <td class="px-4 py-3 text-slate-400">17/03</td>
+                        <td class="px-4 py-3 text-slate-400">11:30</td>
+                        <td class="px-4 py-3 font-medium">Lluvia</td>
+                        <td class="px-4 py-3 text-blue-600 font-bold">14°C</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section>
+            <h4 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <span class="p-1 bg-indigo-100 rounded text-indigo-600">💬</span> Consultas hechas a la IA
+            </h4>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-2 space-y-2 max-h-[180px] overflow-y-auto" id="lista-consultas">
+                <div class="p-3 bg-slate-50 rounded-xl">
+                    <p class="text-[10px] text-slate-400 font-bold mb-1 uppercase">17/03/2026 - 10:15</p>
+                    <p class="text-xs text-slate-600 italic">"¿Qué precauciones tomar ante vientos de 50km/h?"</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</main>
+
+<script>
+    // FUNCIÓN CLAVE: Simulación de Pop-up de Alerta
+    // Esta función se activaría cuando el backend detecte una alerta nueva
+    function lanzarPopUpAlerta(titulo, mensaje, nivel) {
+        const color = nivel === 'EXTREMO' ? '#ef4444' : '#f59e0b';
+
+        Swal.fire({
+            title: `<span style="color: ${color}">${titulo}</span>`,
+            html: `<div class="text-left"><p class="font-bold mb-2">Instrucción inmediata:</p><p class="text-gray-600">${mensaje}</p></div>`,
+            icon: 'warning',
+            confirmButtonText: 'He leído y comprendido',
+            confirmButtonColor: color,
+            backdrop: `rgba(255,0,0,0.2)`, // Fondo rojizo suave
+            allowOutsideClick: false
+        });
+    }
+
+    function abrirHistorialAlertas() {
+        Swal.fire({
+            title: 'Historial de Alertas',
+            html: `
+                    <div class="text-left space-y-2 max-h-60 overflow-y-auto p-2">
+                        <div class="p-2 border-b text-xs">
+                            <p class="font-bold text-red-600">ALERTA ROJA - Lluvia Extrema</p>
+                            <p class="text-gray-400 text-[10px]">17/03/2026 - 11:00</p>
+                        </div>
+                        <div class="p-2 border-b text-xs">
+                            <p class="font-bold text-orange-500">ALERTA NARANJA - Viento</p>
+                            <p class="text-gray-400 text-[10px]">17/03/2026 - 09:30</p>
+                        </div>
+                    </div>
+                `,
+            confirmButtonColor: '#2563eb'
+        });
+    }
+
+    // Simulación
+    window.onload = () => {
+        setTimeout(() => {
+            lanzarPopUpAlerta(
+                '¡AVISO URGENTE!',
+                'Se ha detectado un aumento del caudal cerca de tu zona. Sube a las plantas superiores.',
+                'EXTREMO'
+            );
+        }, 3000);
+    };
+</script>
+<script src="../static/dashboard.js" type="application/js"></script>
+</body>
+</html>
