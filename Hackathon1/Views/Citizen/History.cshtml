@@ -1,0 +1,206 @@
+@model Hackathon1.Models.ViewModels.CitizenHistoryViewModel
+@{
+    ViewData["Title"] = "Histórico";
+    string activeTab = Model.ActiveTab ?? "weather";
+}
+
+<div class="container py-4">
+    <h2 class="mb-4"><i class="bi bi-clock-history"></i> Histórico</h2>
+
+    <ul class="nav nav-tabs mb-4" id="historyTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(activeTab == "weather" ? "active" : "")"
+               asp-action="History" asp-route-tab="weather"
+               asp-route-weatherPage="@Model.WeatherPage" asp-route-alertsPage="@Model.AlertsPage"
+               role="tab">
+                <i class="bi bi-cloud-sun-fill"></i> Datos meteorológicos
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(activeTab == "alerts" ? "active" : "")"
+               asp-action="History" asp-route-tab="alerts"
+               asp-route-weatherPage="@Model.WeatherPage" asp-route-alertsPage="@Model.AlertsPage"
+               role="tab">
+                <i class="bi bi-exclamation-triangle-fill"></i> Alertas
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Datos meteorológicos -->
+        <div class="tab-pane @(activeTab == "weather" ? "show active" : "")">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-cloud-sun-fill"></i> Historial Meteorológico</h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.WeatherRecords.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Provincia</th>
+                                        <th>Nombre</th>
+                                        <th>Tmax (°C)</th>
+                                        <th>Tmed (°C)</th>
+                                        <th>Prec (mm)</th>
+                                        <th>HrMax (%)</th>
+                                        <th>Velmedia</th>
+                                        <th>Racha</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var record in Model.WeatherRecords)
+                                    {
+                                        <tr>
+                                            <td class="text-nowrap">@record.Fecha.ToString("dd/MM/yyyy")</td>
+                                            <td>@record.Provincia</td>
+                                            <td>@record.Nombre</td>
+                                            <td>@record.Tmax</td>
+                                            <td>@record.Tmed</td>
+                                            <td>@record.Prec</td>
+                                            <td>@(record.HrMax.HasValue ? record.HrMax.ToString() : "—")</td>
+                                            <td>@(string.IsNullOrEmpty(record.Velmedia) ? "—" : record.Velmedia)</td>
+                                            <td>@(string.IsNullOrEmpty(record.Racha) ? "—" : record.Racha)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        @if (Model.WeatherTotalPages > 1)
+                        {
+                            <nav class="d-flex justify-content-center py-3">
+                                <ul class="pagination mb-0">
+                                    <li class="page-item @(Model.WeatherPage <= 1 ? "disabled" : "")">
+                                        <a class="page-link"
+                                           asp-action="History"
+                                           asp-route-tab="weather"
+                                           asp-route-weatherPage="@(Model.WeatherPage - 1)"
+                                           asp-route-alertsPage="@Model.AlertsPage">&#8249; Anterior</a>
+                                    </li>
+                                    @for (int i = 1; i <= Model.WeatherTotalPages; i++)
+                                    {
+                                        <li class="page-item @(i == Model.WeatherPage ? "active" : "")">
+                                            <a class="page-link"
+                                               asp-action="History"
+                                               asp-route-tab="weather"
+                                               asp-route-weatherPage="@i"
+                                               asp-route-alertsPage="@Model.AlertsPage">@i</a>
+                                        </li>
+                                    }
+                                    <li class="page-item @(Model.WeatherPage >= Model.WeatherTotalPages ? "disabled" : "")">
+                                        <a class="page-link"
+                                           asp-action="History"
+                                           asp-route-tab="weather"
+                                           asp-route-weatherPage="@(Model.WeatherPage + 1)"
+                                           asp-route-alertsPage="@Model.AlertsPage">Siguiente &#8250;</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted p-3 mb-0"><i class="bi bi-info-circle"></i> No hay registros meteorológicos.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas -->
+        <div class="tab-pane @(activeTab == "alerts" ? "show active" : "")">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Historial de Alertas</h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.Alerts.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Título</th>
+                                        <th>Mensaje</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var alert in Model.Alerts)
+                                    {
+                                        <tr>
+                                            <td class="text-nowrap">@alert.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td><strong>@alert.Title</strong></td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(alert.Message))
+                                                {
+                                                    <span title="@alert.Message">
+                                                        @(alert.Message.Length > 80 ? alert.Message.Substring(0, 80) + "…" : alert.Message)
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">—</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (alert.IsActive)
+                                                {
+                                                    <span class="badge bg-success">Activa</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Inactiva</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        @if (Model.AlertsTotalPages > 1)
+                        {
+                            <nav class="d-flex justify-content-center py-3">
+                                <ul class="pagination mb-0">
+                                    <li class="page-item @(Model.AlertsPage <= 1 ? "disabled" : "")">
+                                        <a class="page-link"
+                                           asp-action="History"
+                                           asp-route-tab="alerts"
+                                           asp-route-weatherPage="@Model.WeatherPage"
+                                           asp-route-alertsPage="@(Model.AlertsPage - 1)">&#8249; Anterior</a>
+                                    </li>
+                                    @for (int i = 1; i <= Model.AlertsTotalPages; i++)
+                                    {
+                                        <li class="page-item @(i == Model.AlertsPage ? "active" : "")">
+                                            <a class="page-link"
+                                               asp-action="History"
+                                               asp-route-tab="alerts"
+                                               asp-route-weatherPage="@Model.WeatherPage"
+                                               asp-route-alertsPage="@i">@i</a>
+                                        </li>
+                                    }
+                                    <li class="page-item @(Model.AlertsPage >= Model.AlertsTotalPages ? "disabled" : "")">
+                                        <a class="page-link"
+                                           asp-action="History"
+                                           asp-route-tab="alerts"
+                                           asp-route-weatherPage="@Model.WeatherPage"
+                                           asp-route-alertsPage="@(Model.AlertsPage + 1)">Siguiente &#8250;</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted p-3 mb-0"><i class="bi bi-info-circle"></i> No hay alertas registradas.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

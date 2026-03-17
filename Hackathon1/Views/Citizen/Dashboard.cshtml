@@ -1,0 +1,195 @@
+@model Hackathon1.Models.ViewModels.CitizenDashboardViewModel
+@{
+    ViewData["Title"] = "Mi Dashboard";
+}
+
+<div class="container py-4">
+    <h2 class="mb-4">Bienvenido/a, @(Model.User.FullName ?? Model.User.UserName)</h2>
+
+    <div class="row g-4">
+        <!-- Perfil del ciudadano -->
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-person-fill"></i> Mi Perfil</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Provincia:</strong> @(string.IsNullOrEmpty(Model.User.Provincia) ? "No especificada" : Model.User.Provincia)</p>
+                    <p><strong>Tipo de vivienda:</strong> @(string.IsNullOrEmpty(Model.User.TipoVivienda) ? "No especificado" : Model.User.TipoVivienda)</p>
+                    @if (!string.IsNullOrEmpty(Model.User.NecesidadesEspeciales))
+                    {
+                        <p><strong>Necesidades especiales:</strong> @Model.User.NecesidadesEspeciales</p>
+                    }
+                    <a asp-controller="Citizen" asp-action="Profile" class="btn btn-outline-primary btn-sm mt-2">Editar perfil</a>
+                    <a asp-controller="Citizen" asp-action="History" class="btn btn-outline-secondary btn-sm mt-2 ms-1"><i class="bi bi-clock-history"></i> Histórico</a>
+                    <a asp-controller="Citizen" asp-action="Logs" class="btn btn-outline-dark btn-sm mt-2 ms-1"><i class="bi bi-journal-text"></i> Logs LLM</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Previsión meteorológica -->
+        <div class="col-md-8">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-cloud-sun-fill"></i> Previsión para <span id="rt-provincia">@Model.Forecast.Provincia</span> — <span id="rt-fecha">@Model.Forecast.Fecha.ToString("dd/MM/yyyy")</span></h5>
+                </div>
+                <div class="card-body">
+                    <div class="row row-cols-2 row-cols-sm-3 g-3">
+                        <div class="col">
+                            <div class="border rounded p-2 text-center">
+                                <div class="text-muted small">Tmax</div>
+                                <div class="fs-5 fw-bold"><span id="rt-tmax">@Model.Forecast.Tmax</span> °C</div>
+                                <div class="text-muted small">(<span id="rt-horatmax">@Model.Forecast.HoraTmax</span>)</div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border rounded p-2 text-center">
+                                <div class="text-muted small">Tmin</div>
+                                <div class="fs-5 fw-bold"><span id="rt-tmin">@Model.Forecast.Tmin</span> °C</div>
+                                <div class="text-muted small">(<span id="rt-horatmin">@Model.Forecast.HoraTmin</span>)</div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border rounded p-2 text-center">
+                                <div class="text-muted small">Tmed</div>
+                                <div class="fs-5 fw-bold"><span id="rt-tmed">@Model.Forecast.Tmed</span> °C</div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border rounded p-2 text-center">
+                                <div class="text-muted small">Precipitación</div>
+                                <div class="fs-5 fw-bold"><span id="rt-prec">@Model.Forecast.Prec</span> mm</div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border rounded p-2 text-center">
+                                <div class="text-muted small">Humedad media</div>
+                                <div class="fs-5 fw-bold"><span id="rt-hrmedia">@Model.Forecast.HrMedia</span> %</div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border rounded p-2 text-center">
+                                <div class="text-muted small">Racha máx.</div>
+                                <div class="fs-5 fw-bold"><span id="rt-racha">@Model.Forecast.Racha</span> km/h</div>
+                                <div class="text-muted small">(<span id="rt-horaracha">@Model.Forecast.Horaracha</span>)</div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border rounded p-2 text-center">
+                                <div class="text-muted small">Vel. media viento</div>
+                                <div class="fs-5 fw-bold"><span id="rt-velmedia">@Model.Forecast.Velmedia</span> km/h</div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border rounded p-2 text-center">
+                                <div class="text-muted small">Dirección viento</div>
+                                <div class="fs-5 fw-bold"><span id="rt-dir">@Model.Forecast.Dir</span></div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border rounded p-2 text-center">
+                                <div class="text-muted small">Horas de sol</div>
+                                <div class="fs-5 fw-bold"><span id="rt-sol">@Model.Forecast.Sol</span> h</div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border rounded p-2 text-center">
+                                <div class="text-muted small">Pres. máx.</div>
+                                <div class="fs-5 fw-bold"><span id="rt-presmax">@Model.Forecast.PresMax</span> hPa</div>
+                                <div class="text-muted small">(<span id="rt-horapresmax">@Model.Forecast.HoraPresMax</span>)</div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border rounded p-2 text-center">
+                                <div class="text-muted small">Pres. mín.</div>
+                                <div class="fs-5 fw-bold"><span id="rt-presmin">@Model.Forecast.PresMin</span> hPa</div>
+                                <div class="text-muted small">(<span id="rt-horapresmin">@Model.Forecast.HoraPresMin</span>)</div>
+                            </div>
+                        </div>
+                        @if (Model.Forecast.Altitud.HasValue)
+                        {
+                            <div class="col">
+                                <div class="border rounded p-2 text-center">
+                                    <div class="text-muted small">Altitud</div>
+                                    <div class="fs-5 fw-bold"><span id="rt-altitud">@Model.Forecast.Altitud</span> m</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas activas -->
+    <div class="row mt-4">
+        <div class="col">
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Alertas activas</h5>
+                </div>
+                <ul id="citizen-alerts-list" class="list-group list-group-flush">
+                @if (Model.Alerts.Any())
+                {
+                    @foreach (var alertItem in Model.Alerts)
+                    {
+                        <li class="list-group-item" data-alert-id="@alertItem.Alert.Id">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>@alertItem.Alert.Title</strong>
+                                    @if (!string.IsNullOrEmpty(alertItem.Alert.Message))
+                                    {
+                                        <p class="mb-0 text-muted small mt-1">@alertItem.Alert.Message</p>
+                                    }
+                                    @if (alertItem.Guidance.Any())
+                                    {
+                                        <ul class="mb-0 mt-2 small text-primary ps-3">
+                                            @foreach (var tip in alertItem.Guidance)
+                                            {
+                                                <li>@tip</li>
+                                            }
+                                        </ul>
+                                    }
+                                </div>
+                                <span class="text-muted small text-nowrap ms-3">@alertItem.Alert.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                        </li>
+                    }
+                }
+                else
+                {
+                    <li class="list-group-item text-muted" id="no-citizen-alerts-placeholder">No hay alertas activas en este momento.</li>
+                }
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recomendaciones -->
+    @if (Model.Recommendations.Any())
+    {
+        <div class="row mt-4">
+            <div class="col">
+                <div class="card shadow-sm border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Recomendaciones</h5>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var rec in Model.Recommendations)
+                        {
+                            <li class="list-group-item">
+                                <i class="bi bi-check2-circle text-warning me-2"></i>@rec
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        window.realtimeRole = 'Ciudadano';
+    </script>
+}

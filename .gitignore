@@ -1,0 +1,27 @@
+## .gitignore for .NET projects
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+bin/
+obj/
+Migrations/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# User-specific files
+*.rsuser
+appsettings.*
+# NuGet
+*.nupkg
+*.snupkg
+packages/

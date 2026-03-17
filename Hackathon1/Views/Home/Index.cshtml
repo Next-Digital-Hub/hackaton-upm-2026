@@ -1,0 +1,55 @@
+﻿@{
+    ViewData["Title"] = "Inicio";
+}
+
+<div class="text-center py-5">
+    <h1 class="display-4 fw-bold">Plataforma de Gestión de Emergencias</h1>
+    <p class="lead mt-3">Sistema de alertas y recomendaciones para ciudadanos y equipos de gestión de emergencias.</p>
+</div>
+
+@if (User.Identity?.IsAuthenticated != true)
+{
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body text-center p-4">
+                    <h5 class="card-title">Bienvenido</h5>
+                    <p class="card-text">Accede a tu cuenta o regístrate para recibir alertas y recomendaciones personalizadas según tu provincia.</p>
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-primary me-2">Entrar</a>
+                    <a asp-controller="Account" asp-action="Register" class="btn btn-outline-secondary">Registrarse</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (User.IsInRole("Ciudadano"))
+{
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-success">
+                <div class="card-body text-center p-4">
+                    <h5 class="card-title text-success">Área Ciudadano</h5>
+                    <p class="card-text">Consulta el pronóstico meteorológico y las alertas activas para tu zona.</p>
+                    <a asp-controller="Citizen" asp-action="Dashboard" class="btn btn-success me-2">Ir a mi Dashboard</a>
+                    <a asp-controller="Citizen" asp-action="Profile" class="btn btn-outline-success">Editar perfil</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (User.IsInRole("Backoffice"))
+{
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-primary">
+                <div class="card-body text-center p-4">
+                    <h5 class="card-title text-primary">Área Backoffice</h5>
+                    <p class="card-text">Gestiona alertas y consulta los registros meteorológicos del sistema.</p>
+                    <a asp-controller="Backoffice" asp-action="Index" class="btn btn-primary">Ir al Panel Backoffice</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
