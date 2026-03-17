@@ -12,7 +12,8 @@ import Popover from "@mui/material/Popover";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
-import { AccountCircle, CalendarToday as CalendarTodayIcon } from "@mui/icons-material";
+import { AccountCircle, CalendarToday as CalendarTodayIcon, History as HistoryIcon } from "@mui/icons-material";
+import { LLMHistoryPage } from "./pages/LLMHistoryPage";
 
 interface UserSession {
   token: string;
@@ -38,6 +39,7 @@ function App() {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [simAnchorEl, setSimAnchorEl] = useState<HTMLElement | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showLLMHistory, setShowLLMHistory] = useState(false);
 
   // Al montar, intentar restaurar sesión desde localStorage
   useEffect(() => {
@@ -122,6 +124,17 @@ function App() {
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             {user?.rol === "ADMINISTRADOR" ? "Panel Admin" : "ClimAlert"}
           </Typography>
+          {user?.rol === "ADMINISTRADOR" && (
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<HistoryIcon />}
+              onClick={() => setShowLLMHistory((v) => !v)}
+              sx={{ mr: 1, borderRadius: 2, textTransform: "none" }}
+            >
+              {showLLMHistory ? "Panel" : "Historial LLM"}
+            </Button>
+          )}
           <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} aria-label="Perfil de usuario">
             <AccountCircle />
           </IconButton>
@@ -146,7 +159,11 @@ function App() {
       </AppBar>
 
       {user?.rol === "ADMINISTRADOR" ? (
-        <AdminPage key={`admin-${refreshKey}`} />
+        showLLMHistory ? (
+          <LLMHistoryPage onBack={() => setShowLLMHistory(false)} />
+        ) : (
+          <AdminPage key={`admin-${refreshKey}`} />
+        )
       ) : (
         <CiudadanoPage key={`user-${refreshKey}`} />
       )}

@@ -81,10 +81,7 @@ public class AlertaManager extends AbstractManager<Alerta> {
 
         List<CondicionUsuario> usuarios = condicionUsuarioManager.findAll();
         if (usuarios.isEmpty()) {
-            log.info("No hay usuarios registrados con condiciones, guardando alertas base");
-            for (Alerta alerta : alertasBase) {
-                save(alerta);
-            }
+            log.info("No hay usuarios registrados con condiciones, no se generan alertas");
             return List.of();
         }
 
@@ -111,22 +108,7 @@ public class AlertaManager extends AbstractManager<Alerta> {
                     String respuestaLlm = bedrockService.sendMessage(systemPrompt, userPrompt);
                     parsearYGuardarAlertas(respuestaLlm, usuario.getUsuarioId(), condicion.getProvincia(), condicion.getFecha(), alertasFinales);
                 } catch (Exception e) {
-                    log.error("Error generando alertas para usuario {}, guardando alertas sin LLM", usuario.getUsuarioId(), e);
-                    // Guardar alertas base sin descripción/recomendaciones del LLM
-                    for (Alerta base : alertasBase) {
-                        Alerta alerta = new Alerta();
-                        alerta.setId(newId());
-                        alerta.setFecha(base.getFecha());
-                        alerta.setTipo(base.getTipo());
-                        alerta.setNivel(base.getNivel());
-                        alerta.setProvincia(base.getProvincia());
-                        alerta.setValorDetectado(base.getValorDetectado());
-                        alerta.setUmbralSuperado(base.getUmbralSuperado());
-                        alerta.setActive(true);
-                        alerta.setUsuarioId(usuario.getUsuarioId());
-                        save(alerta);
-                        alertasFinales.add(alerta);
-                    }
+                    log.error("Error generando alertas para usuario {}", usuario.getUsuarioId(), e);
                 }
             });
             futures.add(future);

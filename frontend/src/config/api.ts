@@ -2,6 +2,7 @@ import type { Libro, LibroInput } from "../types/Libro";
 import type { CondicionClimatica } from "../types/CondicionClimatica";
 import type { Alerta } from "../types/Alerta";
 import type { RegisterDTO } from "../types/Register";
+import type { LLMCall } from "../types/LLMCall";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 const LIBROS = `${BASE_URL}/api/libros`;
@@ -9,6 +10,7 @@ const CLIMA = `${BASE_URL}/api/clima`;
 const ALERTAS = `${BASE_URL}/api/alertas`;
 const AUTH = `${BASE_URL}/api/auth`;
 const ENUMS = `${BASE_URL}/api/enums`;
+const LLM_CALLS = `${BASE_URL}/api/llm-calls`;
 
 /**
  * Lanza un error con el mensaje del body JSON si la respuesta no es ok.
@@ -259,4 +261,15 @@ export async function updateLibro(id: string, libro: LibroInput): Promise<Libro>
 export async function deleteLibro(id: string): Promise<void> {
   const res = await fetch(`${LIBROS}/${id}`, { method: "DELETE" });
   await throwIfError(res, "Error al eliminar libro");
+}
+
+
+// --- LLM Calls ---
+
+export async function getLLMCalls(): Promise<LLMCall[]> {
+  const res = await fetch(LLM_CALLS, {
+    headers: { ...authHeader() },
+  });
+  await throwIfError(res, "Error al cargar historial de LLM");
+  return res.json();
 }
