@@ -63,11 +63,25 @@ def build_user_prompt_analyze(weather_data: dict) -> str:
     """
 
 
-def build_user_prompt(user: dict) -> str:
-    """Construye el user_prompt en base al usuario"""
-    return f"""Situación meteorológica actual en {user.get('provincia')}:
+def build_user_prompt(user_data: dict) -> str:
+    """Construye el user_prompt con los datos del usuario."""
+    return f"""Los datos del usuario son:
+    - Nombre: {user_data.get('nombre')}
+    - Provincia: {user_data.get('provincia')}
+    - Municipio: {user_data.get('municipio') or 'No especificado'}
+    - Código postal: {user_data.get('codigo_postal') or 'No especificado'}
+    - Cerca de barranco/rambla: {'Sí' if user_data.get('cerca_cauce') else 'No'}
+    - Tipo de vivienda: {user_data.get('tipo_vivienda')}
+    - Número de planta: {user_data.get('numero_planta') or 'N/A'}
+    - Personas en el hogar: {user_data.get('num_personas', 1)}
+    - Tiene vehículo: {'Sí' if user_data.get('tiene_vehiculo') else 'No'}
+    - Garaje subterráneo: {'Sí (planta ' + str(user_data.get('planta_garaje', '?')) + ')' if user_data.get('garaje_subterraneo') else 'No'}
+    - Necesidades especiales: {user_data.get('necesidades_especiales') or 'Ninguna'}
+    - Detalle mascotas: {user_data.get('detalle_mascotas') or 'N/A'}
+    - Teléfono emergencia: {user_data.get('telefono_emergencia') or 'No proporcionado'}
 
-¿Qué debe hacer este ciudadano para protegerse? Da instrucciones concretas y personalizadas."""
+    ¿Qué debe hacer este ciudadano para protegerse? Da instrucciones concretas, numeradas y personalizadas según su perfil."""
+
 
 
 def ask_llm(function:str = "analyze", data: dict = {}) -> str:
