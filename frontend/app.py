@@ -376,6 +376,29 @@ def alertas_poll():
 def not_found(e):
     return render_template("404.html"), 404
 
+# ─── WebSocket proxy: reenvía eventos del backend al navegador ───────────
+from flask_socketio import SocketIO as FrontSocketIO
+import socketio as sio_client
+
+front_socketio = FrontSocketIO(app, cors_allowed_origins="*")
+
+# Cliente que escucha al backend
+backend_sio = sio_client.Client()
+
+@backend_sio.on("nueva_alerta")
+def on_nueva_alerta(data):
+    front_socketio.emit("nueva_alerta", data)
+
+@backend_sio.on("alerta_desactivada")
+def on_alerta_desactivada(data):
+    front_socketio.emit("alerta_desactivada", data)
+
+def connect_backend():
+    try:
+        backend_sio.connect(BACKEND, transports=["websocket", "polling"])
+        print("[WS] Conectado al backend WebSocket")
+    except Exception as e:
+        print(f"[WS] No se pudo conectar al backend: {e}")
 
 # ─── Run ─────────────────────────────────────────────────────────────────
 
