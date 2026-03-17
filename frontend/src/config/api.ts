@@ -36,6 +36,22 @@ export async function getNecesidadesEspeciales(): Promise<string[]> {
   return res.json();
 }
 
+// Devuelve los valores del enum TipoAlerta: ["TEMPERATURA", "LLUVIA", ...]
+// GET /api/enums/tipos-alerta
+export async function getTiposAlerta(): Promise<string[]> {
+  const res = await fetch(`${ENUMS}/tipos-alerta`);
+  if (!res.ok) throw new Error("Error al cargar tipos de alerta");
+  return res.json();
+}
+
+// Devuelve los valores del enum NivelAlerta: ["VERDE", "AMARILLO", "NARANJA", "ROJO"]
+// GET /api/enums/niveles-alerta
+export async function getNivelesAlerta(): Promise<string[]> {
+  const res = await fetch(`${ENUMS}/niveles-alerta`);
+  if (!res.ok) throw new Error("Error al cargar niveles de alerta");
+  return res.json();
+}
+
 // --- Registro de usuarios ---
 
 // Registra un ciudadano con sus datos personales y formulario de condiciones

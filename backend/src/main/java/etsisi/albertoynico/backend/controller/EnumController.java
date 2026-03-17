@@ -1,7 +1,9 @@
 package etsisi.albertoynico.backend.controller;
 
 import etsisi.albertoynico.backend.model.NecesidadEspecial;
+import etsisi.albertoynico.backend.model.NivelAlerta;
 import etsisi.albertoynico.backend.model.RolUsuario;
+import etsisi.albertoynico.backend.model.TipoAlerta;
 import etsisi.albertoynico.backend.model.TipoVivienda;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,5 +29,15 @@ public class EnumController {
     @GetMapping("/necesidades-especiales")
     public List<String> getNecesidadesEspeciales() {
         return Arrays.stream(NecesidadEspecial.values()).map(Enum::name).toList();
+    }
+
+    @GetMapping("/tipos-alerta")
+    public List<String> getTiposAlerta() {
+        return Arrays.stream(TipoAlerta.values()).map(Enum::name).toList();
+    }
+
+    @GetMapping("/niveles-alerta")
+    public List<String> getNivelesAlerta() {
+        return Arrays.stream(NivelAlerta.values()).map(Enum::name).toList();
     }
 }

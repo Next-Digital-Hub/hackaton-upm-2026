@@ -17,17 +17,14 @@ import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import { Delete as DeleteIcon, PowerSettingsNew as PowerSettingsNewIcon } from "@mui/icons-material";
 import type { CondicionClimatica } from "../types/CondicionClimatica";
-import type { Alerta, TipoAlerta, NivelAlerta } from "../types/Alerta";
-import { getCondicionesByProvincia, getAlertasByAdmin, crearAlerta, apagarAlerta, encenderAlerta, eliminarAlerta } from "../config/api";
+import type { Alerta } from "../types/Alerta";
+import { getCondicionesByProvincia, getAlertasByAdmin, crearAlerta, apagarAlerta, encenderAlerta, eliminarAlerta, getTiposAlerta, getNivelesAlerta } from "../config/api";
 import { CondicionesRow } from "../components/CondicionesRow";
 
 // TODO: el admin podrá seleccionar provincia
 const PROVINCIA = "VALENCIA";
 // TODO: obtener idAdmin del sistema de autenticación cuando exista register/login
 const ID_ADMIN = "admin-temp-001";
-
-const TIPOS_ALERTA: TipoAlerta[] = ["TEMPERATURA", "LLUVIA", "VIENTO", "PRESION", "HUMEDAD"];
-const NIVELES_ALERTA: NivelAlerta[] = ["VERDE", "AMARILLO", "NARANJA", "ROJO"];
 
 const emptyForm = {
   tipo: "" as string,
@@ -42,6 +39,8 @@ const emptyForm = {
 export function AdminPage() {
   const [condicion, setCondicion] = useState<CondicionClimatica | null>(null);
   const [alertas, setAlertas] = useState<Alerta[]>([]);
+  const [tiposAlerta, setTiposAlerta] = useState<string[]>([]);
+  const [nivelesAlerta, setNivelesAlerta] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -59,10 +58,14 @@ export function AdminPage() {
     Promise.all([
       getCondicionesByProvincia(PROVINCIA).catch(() => []),
       getAlertasByAdmin(ID_ADMIN).catch(() => []),
+      getTiposAlerta().catch(() => []),
+      getNivelesAlerta().catch(() => []),
     ])
-      .then(([conds, alts]) => {
+      .then(([conds, alts, tipos, niveles]) => {
         setCondicion(conds[0] ?? null);
         setAlertas(alts);
+        setTiposAlerta(tipos.length > 0 ? tipos : ["TEMPERATURA", "LLUVIA", "VIENTO", "PRESION", "HUMEDAD"]);
+        setNivelesAlerta(niveles.length > 0 ? niveles : ["VERDE", "AMARILLO", "NARANJA", "ROJO"]);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -79,8 +82,8 @@ export function AdminPage() {
         isActive: true,
         idAdmin: ID_ADMIN,
       };
-      if (form.tipo) nueva.tipo = form.tipo as TipoAlerta;
-      if (form.nivel) nueva.nivel = form.nivel as NivelAlerta;
+      if (form.tipo) nueva.tipo = form.tipo;
+      if (form.nivel) nueva.nivel = form.nivel;
       if (form.provincia) nueva.provincia = form.provincia;
       if (form.valorDetectado) nueva.valorDetectado = form.valorDetectado;
       if (form.umbralSuperado) nueva.umbralSuperado = form.umbralSuperado;
@@ -236,7 +239,7 @@ export function AdminPage() {
             onChange={(e) => handleChange("tipo", e.target.value)}
           >
             <MenuItem value="">— Ninguno —</MenuItem>
-            {TIPOS_ALERTA.map((t) => (
+            {tiposAlerta.map((t) => (
               <MenuItem key={t} value={t}>{t}</MenuItem>
             ))}
           </TextField>
@@ -247,7 +250,7 @@ export function AdminPage() {
             onChange={(e) => handleChange("nivel", e.target.value)}
           >
             <MenuItem value="">— Ninguno —</MenuItem>
-            {NIVELES_ALERTA.map((n) => (
+            {nivelesAlerta.map((n) => (
               <MenuItem key={n} value={n}>{n}</MenuItem>
             ))}
           </TextField>
