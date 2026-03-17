@@ -153,7 +153,7 @@
 
     <script>
         const provincias = ["Álava", "Albacete", "Alicante", "Almería", "Asturias", "Ávila", "Badajoz", "Barcelona", "Burgos", "Cáceres", "Cádiz", "Cantabria", "Castellón", "Ciudad Real", "Córdoba", "Cuenca", "Gerona", "Granada", "Guadalajara", "Guipúzcoa", "Huelva", "Huesca", "Islas Baleares", "Jaén", "La Coruña", "La Rioja", "Las Palmas", "León", "Lérida", "Lugo", "Madrid", "Málaga", "Murcia", "Navarra", "Orense", "Palencia", "Pontevedra", "Salamanca", "Santa Cruz de Tenerife", "Segovia", "Sevilla", "Soria", "Tarragona", "Teruel", "Toledo", "Valencia", "Valladolid", "Vizcaya", "Zamora", "Zaragoza"];
-        const ADMIN_SECRET = "UPM2026"; // Código de seguridad
+        const ADMIN_SECRET = "UPM2026"; 
 
         // Inicializar provincias
         const selectProv = document.getElementById('provincia');
@@ -162,196 +162,57 @@
             selectProv.add(opt);
         });
 
-        async function validarDNILocal() {
-        const dniInput = document.getElementById('checkDNI').value.trim().toUpperCase();
-        const letras = "TRWAGMYFPDXBNJZSQVHLCKE";
-        const regexDNI = /^[0-9]{8}[TRWAGMYFPDXBNJZSQVHLCKE]$/;
-
-        // 1. Validación matemática del DNI
-        if (!regexDNI.test(dniInput)) {
-            alert("Formato de DNI incorrecto.");
-            return;
-        }
-        const numero = dniInput.substring(0, 8);
-        if (letras[numero % 23] !== dniInput.substring(8, 9)) {
-            alert("La letra del DNI no es correcta.");
-            return;
-        }
-
-        // 2. CONSULTA AL SERVIDOR: ¿Ya existe este usuario?
-        try {
-            const res = await fetch(`http://localhost:3000/verificar-usuario/${dniInput}`);
-            const data = await res.json();
-
-            if (data.registrado) {
-                // USUARIO YA EXISTE: Carga directa al Dashboard
-                const user = data.usuario;
-                document.getElementById('welcomeMsg').innerText = "Hola de nuevo, " + user.nombre;
-                document.getElementById('perfilBadge').innerText = user.perfil;
-                
-                // Cargamos los datos del clima/IA para su provincia guardada
-                cargarDatosDashboard(user.perfil, user.provincia);
-                irA(3);
-            } else {
-                // USUARIO NUEVO: Abrir formulario de registro
-                irA(2);
-            }
-        } catch (error) {
-            alert("Error al conectar con el servidor.");
-        }
-    }
-
-// Función auxiliar para no repetir código al entrar al Dashboard
-async function cargarDatosDashboard(perfil, provincia) {
-    try {
-        const resData = await fetch(`http://localhost:3000/dashboard-data/${perfil}`);
-        const finalData = await resData.json();
-
-        const dashboardHTML = `
-            <div class="bg-blue-600 text-white p-6 rounded-2xl mb-4 shadow-inner">
-                <p class="text-xs uppercase opacity-75 font-bold mb-1">${provincia}</p>
-                <h3 class="text-4xl font-bold">${finalData.clima.main ? Math.round(finalData.clima.main.temp) : '20'}°C</h3>
-                <p class="capitalize">Estado: ${finalData.clima.weather[0].description}</p>
-            </div>
-            <div class="bg-amber-50 border-l-4 border-amber-400 p-4 text-left rounded-r-xl shadow-sm">
-                <p class="text-[10px] font-black text-amber-700 uppercase mb-1">Recomendación IA (Bedrock):</p>
-                <p class="text-sm text-amber-900 leading-relaxed italic">"${finalData.consejoIA}"</p>
-            </div>
-        `;
-        
-        const contenedorDash = document.querySelector('#step3');
-        const infoPrevia = contenedorDash.querySelector('.info-dinamica');
-        if (infoPrevia) infoPrevia.remove();
-        
-        const divDinamico = document.createElement('div');
-        divDinamico.className = "info-dinamica mt-4";
-        divDinamico.innerHTML = dashboardHTML;
-        contenedorDash.appendChild(divDinamico);
-    } catch (e) {
-        console.error("Error cargando dashboard");
-    }
-}
-
-async function abrirModalHistorico() {
-    const modal = document.getElementById('modalHistorico');
-    const listaMeteo = document.getElementById('modalListaMeteo');
-    const listaIA = document.getElementById('modalListaIA');
-
-    // 1. Mostrar estado de carga
-    listaMeteo.innerHTML = "<p class='text-xs text-gray-400 italic'>Cargando registros...</p>";
-    listaIA.innerHTML = "<p class='text-xs text-gray-400 italic'>Cargando consultas...</p>";
-    modal.classList.remove('hidden');
-
-    try {
-        // 2. Pedir datos al servidor
-        const res = await fetch('http://localhost:3000/historicos');
-        const data = await res.json();
-
-        // 3. Renderizar Clima
-        listaMeteo.innerHTML = data.meteo.length ? data.meteo.map(m => `
-            <div class="p-2 bg-blue-50 rounded-lg border border-blue-100">
-                <div class="flex justify-between text-[10px] text-blue-400 mb-1">
-                    <span>${m.provincia}</span>
-                    <span>${new Date(m.fecha).toLocaleString()}</span>
-                </div>
-                <p class="text-xs font-bold text-blue-900">${m.temp} - ${m.descripcion}</p>
-            </div>
-        `).join('') : "<p class='text-xs text-gray-400'>No hay registros aún.</p>";
-
-        // 4. Renderizar IA
-        listaIA.innerHTML = data.ia.length ? data.ia.map(i => `
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                <p class="text-[10px] text-slate-400 mb-1">${new Date(i.fecha).toLocaleString()}</p>
-                <p class="text-xs font-semibold text-slate-700 mb-1">Q: ${i.pregunta}</p>
-                <p class="text-xs text-slate-500 bg-white p-2 rounded border border-slate-100 italic">R: ${i.respuesta}</p>
-            </div>
-        `).join('') : "<p class='text-xs text-gray-400'>No hay consultas aún.</p>";
-
-    } catch (e) {
-        listaMeteo.innerHTML = "<p class='text-red-500 text-xs'>Error al cargar los datos.</p>";
-    }
-}
-
-        function cerrarModalHistorico() {
-            document.getElementById('modalHistorico').classList.add('hidden');
-        }
-
-        function irA(paso) {
-            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-            document.getElementById('step' + paso).classList.add('active');
-            for(let i=1; i<=3; i++) document.getElementById('dot'+i).className = `w-3 h-3 rounded-full ${i <= paso ? 'bg-blue-600' : 'bg-gray-200'}`;
-        }
-
-        function validarDNIProcesar() {
-            const dni = document.getElementById('checkDNI').value;
-            if(validarDNI(dni)) {
-                document.getElementById('dniError').classList.add('hidden');
-                irA(2);
-            } else {
-                document.getElementById('dniError').classList.remove('hidden');
-            }
-        }
-
-        function toggleAdminField() {
-            const field = document.getElementById('adminField');
-            field.style.display = (document.getElementById('tipoUsuario').value === 'administrador') ? 'block' : 'none';
-        }
-
-        function comprobarTutor() {
-            const edad = parseInt(document.getElementById('edad').value);
-            const label = document.getElementById('labelContacto');
-            label.innerText = (edad < 18) ? "Responsable / Tutor Legal" : "Persona de contacto";
-            label.className = (edad < 18) ? "text-[10px] font-black text-purple-600 uppercase mb-2 tracking-widest" : "text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest";
-        }
-
-        function procesarRegistroFinal() {
-            const edad = parseInt(document.getElementById('edad').value) || 0;
-            const esAdmin = document.getElementById('tipoUsuario').value === 'administrador';
-            const pass = document.getElementById('adminCode').value;
+        // --- PASO 1: VALIDACIÓN Y LOGIN ---
+        async function validarDNIProcesar() {
+            const dniInput = document.getElementById('checkDNI').value.trim().toUpperCase();
             
-            // Validación Admin
-            if(esAdmin && pass !== ADMIN_SECRET) {
+            // Validación de formato (regex)
+            const regexDNI = /^[0-9]{8}[TRWAGMYFPDXBNJZSQVHLCKE]$/;
+            if (!regexDNI.test(dniInput)) {
+                document.getElementById('dniError').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('dniError').classList.add('hidden');
+
+            try {
+                // Consultar si ya existe
+                const res = await fetch(`http://localhost:3000/verificar-usuario/${dniInput}`);
+                const data = await res.json();
+
+                if (data.registrado) {
+                    // LOGIN DIRECTO
+                    const user = data.usuario;
+                    cargarDatosDashboard(user.perfil, user.nombre, user.provincia);
+                } else {
+                    // IR A REGISTRO
+                    irA(2);
+                }
+            } catch (error) {
+                alert("Error: El servidor local no responde. ¿Has hecho 'node server.js'?");
+            }
+        }
+
+        // --- PASO 2: ENVÍO DE REGISTRO ---
+        async function procesarRegistroFinal() {
+            const esAdmin = document.getElementById('tipoUsuario').value === 'administrador';
+            const adminCode = document.getElementById('adminCode').value;
+            
+            if(esAdmin && adminCode !== ADMIN_SECRET) {
                 document.getElementById('adminError').classList.remove('hidden');
                 return;
             }
 
-            // Segmentación de Perfil
-            const tieneNecesidades = Array.from(document.querySelectorAll('.med-check:checked')).some(c => c.value !== 'mascota');
-            let perfil = "Estándar";
-            let estilo = "bg-blue-100 text-blue-600";
-
-            if (tieneNecesidades) {
-                perfil = "Dependiente";
-                estilo = "bg-orange-100 text-orange-600";
-            } else if (edad < 18) {
-                perfil = "Menor de Edad";
-                estilo = "bg-purple-100 text-purple-600";
-            }
-
-            // Setup Dashboard
-            document.getElementById('welcomeMsg').innerText = `¡Hola, ${document.getElementById('nombre').value.split(' ')[0] || 'Usuario'}!`;
-            document.getElementById('perfilBadge').innerText = perfil;
-            document.getElementById('perfilBadge').className = `inline-block px-4 py-1 rounded-full text-[10px] font-black uppercase mb-2 ${estilo}`;
-            document.getElementById('provinciaDash').innerText = document.getElementById('provincia').value || "España";
-            
-            if(esAdmin) document.getElementById('adminControls').classList.remove('hidden');
-            
-            irA(3);
-        }
-        async function enviarAlBackend() {
-            // 1. RECOGER DATOS DEL HTML
             const datos = {
+                dni: document.getElementById('checkDNI').value.trim().toUpperCase(),
                 nombre: document.getElementById('nombre').value,
-                dni: document.getElementById('checkDNI').value,
                 edad: document.getElementById('edad').value,
                 provincia: document.getElementById('provincia').value,
                 tipoUsuario: document.getElementById('tipoUsuario').value,
-                adminCode: document.getElementById('adminCode').value,
+                adminCode: adminCode,
                 necesidades: Array.from(document.querySelectorAll('.med-check:checked')).map(c => c.value)
             };
 
             try {
-                // 2. ENVIAR REGISTRO AL SERVIDOR LOCAL
                 const respuesta = await fetch('http://localhost:3000/registro', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -361,56 +222,118 @@ async function abrirModalHistorico() {
                 const resultado = await respuesta.json();
 
                 if (respuesta.ok) {
-                    // --- AQUÍ EMPIEZA LA PARTE NUEVA PARA LA HACKATON ---
-                    
-                    // Actualizamos los textos básicos
-                    document.getElementById('welcomeMsg').innerText = "Hola, " + resultado.nombre;
-                    document.getElementById('perfilBadge').innerText = resultado.perfil;
-
-                    // 3. PEDIR CLIMA E IA AL BACKEND (que a su vez consulta la API de AWS)
-                try {
-                    const resData = await fetch('http://localhost:3000/dashboard-data/${resultado.perfil}');
-                    const finalData = await resData.json();
-
-                    // Construimos el HTML dinámico con los datos de la Hackaton
-                    const dashboardHTML = `
-                        <div class="bg-blue-600 text-white p-6 rounded-2xl mb-4 shadow-inner">
-                            <p class="text-xs uppercase opacity-75 font-bold mb-1">${resultado.provincia}</p>
-                            <h3 class="text-4xl font-bold">${finalData.clima.main ? Math.round(finalData.clima.main.temp) : '20'}°C</h3>
-                            <p class="capitalize">Estado: ${finalData.clima.weather[0].description}</p>
-                        </div>
-                        <div class="bg-amber-50 border-l-4 border-amber-400 p-4 text-left rounded-r-xl shadow-sm">
-                            <p class="text-[10px] font-black text-amber-700 uppercase mb-1">Recomendación IA (Bedrock):</p>
-                            <p class="text-sm text-amber-900 leading-relaxed italic">"${finalData.consejoIA}"</p>
-                        </div>
-                    `;
-                    
-                    // Insertamos el bloque en el paso 3 (asegúrate de que el div esté vacío o identificado)
-                    const contenedorDash = document.querySelector('#step3');
-                    // Buscamos si ya hay un bloque de info previa para no duplicar
-                    const infoPrevia = contenedorDash.querySelector('.info-dinamica');
-                    if (infoPrevia) infoPrevia.remove();
-                    
-                    const divDinamico = document.createElement('div');
-                    divDinamico.className = "info-dinamica mt-4";
-                    divDinamico.innerHTML = dashboardHTML;
-                    contenedorDash.appendChild(divDinamico);
-
-                } catch (errIA) {
-                    console.error("Error al obtener datos de la API Hackaton:", errIA);
-                }
-
-                // 4. CAMBIAR A LA PANTALLA DASHBOARD
-                irA(3);
-                
-                // --- AQUÍ TERMINA LA PARTE NUEVA ---
-
+                    cargarDatosDashboard(resultado.perfil, resultado.nombre, resultado.provincia);
                 } else {
-                    alert("Error del servidor: " + resultado.error);
+                    alert("Error: " + resultado.error);
                 }
             } catch (error) {
-                alert("No se pudo conectar con el servidor. ¿Has ejecutado 'node server.js'?");
+                alert("Error al conectar con el servidor para el registro.");
             }
+        }
+
+        // --- PASO 3: DASHBOARD DINÁMICO ---
+        async function cargarDatosDashboard(perfil, nombre, provincia) {
+            // 1. Mostrar pantalla y textos básicos
+            document.getElementById('welcomeMsg').innerText = "Hola, " + nombre;
+            document.getElementById('perfilBadge').innerText = perfil;
+            document.getElementById('provinciaDash').innerText = provincia;
+            
+            // Estilo del badge según perfil
+            let estilo = "bg-blue-100 text-blue-600";
+            if (perfil === "Dependiente") estilo = "bg-orange-100 text-orange-600";
+            if (perfil === "Menor de Edad") estilo = "bg-purple-100 text-purple-600";
+            document.getElementById('perfilBadge').className = `inline-block px-4 py-1 rounded-full text-[10px] font-black uppercase mb-2 ${estilo}`;
+
+            if(document.getElementById('tipoUsuario').value === 'administrador') {
+                document.getElementById('adminControls').classList.remove('hidden');
+            }
+
+            irA(3);
+
+            // 2. Traer Clima e IA del servidor
+            try {
+                const resData = await fetch(`http://localhost:3000/dashboard-data/${perfil}`);
+                const finalData = await resData.json();
+
+                const dashboardHTML = `
+                    <div class="bg-blue-600 text-white p-6 rounded-2xl mb-4 shadow-inner">
+                        <p class="text-xs uppercase opacity-75 font-bold mb-1">${provincia}</p>
+                        <h3 class="text-4xl font-bold">${finalData.clima.main ? Math.round(finalData.clima.main.temp) : '--'}°C</h3>
+                        <p class="capitalize">Estado: ${finalData.clima.weather[0].description}</p>
+                    </div>
+                    <div class="bg-amber-50 border-l-4 border-amber-400 p-4 text-left rounded-r-xl shadow-sm">
+                        <p class="text-[10px] font-black text-amber-700 uppercase mb-1">Recomendación IA (Bedrock):</p>
+                        <p class="text-sm text-amber-900 leading-relaxed italic">"${finalData.consejoIA}"</p>
+                    </div>
+                `;
+                
+                const contenedorDash = document.querySelector('#step3');
+                const infoPrevia = contenedorDash.querySelector('.info-dinamica');
+                if (infoPrevia) infoPrevia.remove();
+                
+                const divDinamico = document.createElement('div');
+                divDinamico.className = "info-dinamica mt-4";
+                divDinamico.innerHTML = dashboardHTML;
+                contenedorDash.appendChild(divDinamico);
+
+            } catch (e) {
+                console.error("Error cargando dashboard extendido:", e);
+            }
+        }
+
+        // --- UTILIDADES ---
+        function irA(paso) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + paso).classList.add('active');
+            for(let i=1; i<=3; i++) {
+                const dot = document.getElementById('dot'+i);
+                if(dot) dot.className = `w-3 h-3 rounded-full ${i <= paso ? 'bg-blue-600' : 'bg-gray-200'}`;
+            }
+        }
+
+        function toggleAdminField() {
+            const field = document.getElementById('adminField');
+            field.style.display = (document.getElementById('tipoUsuario').value === 'administrador') ? 'block' : 'none';
+        }
+
+        function comprobarTutor() {
+            const edad = parseInt(document.getElementById('edad').value) || 0;
+            const label = document.getElementById('labelContacto');
+            label.innerText = (edad < 18) ? "Responsable / Tutor Legal" : "Persona de contacto";
+        }
+
+        async function abrirModalHistorico() {
+            const modal = document.getElementById('modalHistorico');
+            const listaMeteo = document.getElementById('modalListaMeteo');
+            const listaIA = document.getElementById('modalListaIA');
+
+            modal.classList.remove('hidden');
+            listaMeteo.innerHTML = "Cargando...";
+            listaIA.innerHTML = "Cargando...";
+
+            try {
+                const res = await fetch('http://localhost:3000/historicos');
+                const data = await res.json();
+
+                listaMeteo.innerHTML = data.meteo.map(m => `
+                    <div class="p-2 bg-blue-50 rounded-lg border border-blue-100 text-xs">
+                        <span class="text-blue-400">${new Date(m.fecha).toLocaleTimeString()}</span> - <b>${m.temp}</b> (${m.descripcion})
+                    </div>
+                `).join('') || "Vacio";
+
+                listaIA.innerHTML = data.ia.map(i => `
+                    <div class="p-2 bg-slate-50 rounded-lg border border-slate-200 text-xs">
+                        <p class="font-bold">Q: ${i.pregunta}</p>
+                        <p class="italic text-slate-500">R: ${i.respuesta}</p>
+                    </div>
+                `).join('') || "Vacio";
+            } catch (e) {
+                alert("Error al traer históricos");
+            }
+        }
+
+        function cerrarModalHistorico() {
+            document.getElementById('modalHistorico').classList.add('hidden');
         }
     </script>
 </body>
