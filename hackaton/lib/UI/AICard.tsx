@@ -3,15 +3,24 @@ import { AICardProps } from "@/lib/services/ServicioIA";
 
 export default async function AICard(dataProps : AICardProps) {
   const data = dataProps.data
-  
+
   const url = "http://ec2-54-171-51-31.eu-west-1.compute.amazonaws.com/prompt";
   const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqZXN1cyIsImV4cCI6MTc3MzgyMzM4MH0.m2YZVsFSXmhVOE54h_yMdiugogfHDifC2pvAghmin6o"; // Considera mover esto a .env
 
   let aiConsejo: string | null = null;
   
   if (true  ) {
-    const system_prompt = "Eres un experto meteorólogo que da consejos prácticos y cercanos. Tu respuesta debe ser concisa (máximo 2-3 frases).";
-    const user_prompt = `dime hola`;
+    const system_prompt = "Eres un experto meteorólogo que da consejos prácticos y cercanos. Tu respuesta debe ser concisa (máximo 3-4 frases). Se claro, conciso y empieza con imperativo. Los consejos deben ir separados en nuevas líneas y deben empezar con '·'. NO UTILICES SIMBOLOS, NI ENCABEZADOS. La estructura del prompt debe ser la siguiente:· <consejo1> \n · <consejo2> \n ..."
+    
+
+    // Usamos los datos de la interfaz para crear un prompt dinámico
+    const user_prompt = `
+      Hola, estoy en ${data.lugar}. 
+      Hoy hace una media de ${data.tmed}°C, de minima ${data.tmin} y de maxima ${data.tmax} y han caído ${data.prec}mm de lluvia. 
+      La humedad media es ${data.humedadMedia}
+      Vivo en una ${data.tipoVivienda} y mi situación es: ${data.necesidadesEspeciales}.
+      ¿Qué consejo me das?
+    `;
 
     try {
       const response = await fetch(url, {
@@ -31,6 +40,7 @@ export default async function AICard(dataProps : AICardProps) {
       } else {
         const returnData = await response.json();
         aiConsejo = returnData.response || "No se pudo generar un consejo.";
+        console.log(aiConsejo)
       }
     } catch (error) {
       console.error("Error de red al llamar a la IA:", error);
@@ -52,7 +62,7 @@ export default async function AICard(dataProps : AICardProps) {
       
       <h3 className="text-xl font-semibold text-white mb-2">Consejo Meteorológico</h3>
       
-      <p className="text-sm leading-relaxed text-blue-100 italic">
+      <p className="text-sm leading-relaxed text-blue-100 italic whitespace-pre-line">
         {aiConsejo}
       </p>
 
