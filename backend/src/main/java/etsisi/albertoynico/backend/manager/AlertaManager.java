@@ -72,6 +72,7 @@ public class AlertaManager extends AbstractManager<Alerta> {
      * 5. Guarda en DynamoDB
      */
     public List<Alerta> generarAlertas() {
+        borrarAlertasAutomaticas();
         List<CondicionClimatica> condiciones = condicionClimaticaManager.findAll();
         if (condiciones.isEmpty()) {
             log.warn("No hay condiciones climáticas en la base de datos");
@@ -158,6 +159,18 @@ public class AlertaManager extends AbstractManager<Alerta> {
         } catch (Exception e) {
             log.warn("Error parseando respuesta LLM para usuario {}: {}", usuarioId, e.getMessage());
         }
+    }
+
+    private void borrarAlertasAutomaticas() {
+        log.info("Borrando alertas automáticas previas...");
+        List<Alerta> automaticas = table.scan().items().stream()
+                .filter(a -> a.getAdminId() == null || a.getAdminId().isEmpty())
+                .toList();
+        
+        for (Alerta a : automaticas) {
+            deleteById(a.getId());
+        }
+        log.info("Se han borrado {} alertas automáticas", automaticas.size());
     }
 
     private String limpiarRespuestaJson(String raw) {
