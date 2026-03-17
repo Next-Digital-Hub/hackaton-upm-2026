@@ -2,6 +2,7 @@ using Hackathon1.Data;
 using Hackathon1.Hubs;
 using Hackathon1.Models;
 using Hackathon1.Models.ViewModels;
+using Hackathon1.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -14,25 +15,37 @@ namespace Hackathon1.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IHubContext<NotificationsHub> _hub;
+        private readonly IAlertEmitter _alertEmitter;
 
-        public BackofficeController(ApplicationDbContext context, IHubContext<NotificationsHub> hub)
+        public BackofficeController(ApplicationDbContext context, IHubContext<NotificationsHub> hub, IAlertEmitter alertEmitter)
         {
             _context = context;
             _hub = hub;
+            _alertEmitter = alertEmitter;
         }
 
         // GET: /Backoffice/Index
         public async Task<IActionResult> Index()
         {
+            var records = await _context.WeatherRecords
+                .OrderByDescending(w => w.Fecha)
+                .Take(50)
+                .ToListAsync();
+
+            var alerts = await _context.Alerts
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
+
+            var today = DateTime.UtcNow.Date;
+
             var vm = new BackofficeIndexViewModel
             {
-                WeatherRecords = await _context.WeatherRecords
-                    .OrderByDescending(w => w.Fecha)
-                    .Take(50)
-                    .ToListAsync(),
-                Alerts = await _context.Alerts
-                    .OrderByDescending(a => a.CreatedAt)
-                    .ToListAsync()
+                WeatherRecords = records,
+                Alerts = alerts,
+                CanEmit = true,
+                ActiveAlertsCount = alerts.Count(a => a.IsActive),
+                WeatherRecordsTodayCount = records.Count(w => w.Fecha.Date == today),
+                LastWeatherUpdate = records.FirstOrDefault()?.Fecha
             };
 
             return View(vm);
@@ -45,16 +58,26 @@ namespace Hackathon1.Controllers
         {
             if (!ModelState.IsValid)
             {
+                var records = await _context.WeatherRecords
+                    .OrderByDescending(w => w.Fecha)
+                    .Take(50)
+                    .ToListAsync();
+
+                var alerts = await _context.Alerts
+                    .OrderByDescending(a => a.CreatedAt)
+                    .ToListAsync();
+
+                var today = DateTime.UtcNow.Date;
+
                 var indexVm = new BackofficeIndexViewModel
                 {
-                    WeatherRecords = await _context.WeatherRecords
-                        .OrderByDescending(w => w.Fecha)
-                        .Take(50)
-                        .ToListAsync(),
-                    Alerts = await _context.Alerts
-                        .OrderByDescending(a => a.CreatedAt)
-                        .ToListAsync(),
-                    NewAlert = vm
+                    WeatherRecords = records,
+                    Alerts = alerts,
+                    NewAlert = vm,
+                    CanEmit = true,
+                    ActiveAlertsCount = alerts.Count(a => a.IsActive),
+                    WeatherRecordsTodayCount = records.Count(w => w.Fecha.Date == today),
+                    LastWeatherUpdate = records.FirstOrDefault()?.Fecha
                 };
                 return View("Index", indexVm);
             }
@@ -71,9 +94,26 @@ namespace Hackathon1.Controllers
             _context.Alerts.Add(alert);
             await _context.SaveChangesAsync();
 
-            await _hub.Clients.Group("Backoffice").SendAsync("SendAlert", alert);
+            await _alertEmitter.EmitAsync(alert);
 
-            TempData["Success"] = "Alerta creada correctamente.";
+            TempData["Success"] = "Alerta creada y emitida correctamente.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: /Backoffice/ToggleActive
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleActive(int id)
+        {
+            var alert = await _context.Alerts.FindAsync(id);
+            if (alert == null) return NotFound();
+
+            alert.IsActive = !alert.IsActive;
+            await _context.SaveChangesAsync();
+
+            await _alertEmitter.EmitAsync(alert);
+
+            TempData["Success"] = alert.IsActive ? "Alerta activada." : "Alerta desactivada.";
             return RedirectToAction(nameof(Index));
         }
     }

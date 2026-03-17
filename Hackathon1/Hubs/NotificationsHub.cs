@@ -9,6 +9,8 @@ namespace Hackathon1.Hubs
     public class NotificationsHub : Hub
     {
         public const string DefaultGroup = "default";
+        public const string CiudadanoGroup = "Ciudadano";
+        public const string BackofficeGroup = "Backoffice";
 
         private readonly UserManager<ApplicationUser> _userManager;
 
@@ -26,11 +28,12 @@ namespace Hackathon1.Hubs
                 {
                     var provincia = string.IsNullOrWhiteSpace(user.Provincia) ? DefaultGroup : user.Provincia;
                     await Groups.AddToGroupAsync(Context.ConnectionId, provincia);
+                    await Groups.AddToGroupAsync(Context.ConnectionId, CiudadanoGroup);
                 }
             }
             else if (Context.User?.IsInRole("Backoffice") == true)
             {
-                await Groups.AddToGroupAsync(Context.ConnectionId, "Backoffice");
+                await Groups.AddToGroupAsync(Context.ConnectionId, BackofficeGroup);
             }
 
             await base.OnConnectedAsync();
@@ -41,7 +44,7 @@ namespace Hackathon1.Hubs
             if (Context.User?.IsInRole("Backoffice") != true)
                 throw new HubException("No autorizado.");
 
-            await Clients.Group("Backoffice").SendAsync("SendAlert", alert);
+            await Clients.Group(BackofficeGroup).SendAsync("SendAlert", alert);
         }
 
         public async Task SendWeather(WeatherDto weather)

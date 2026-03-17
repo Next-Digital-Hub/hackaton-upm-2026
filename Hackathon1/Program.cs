@@ -22,6 +22,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<IWeatherService, WeatherService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+builder.Services.AddScoped<IAlertEmitter, AlertEmitter>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

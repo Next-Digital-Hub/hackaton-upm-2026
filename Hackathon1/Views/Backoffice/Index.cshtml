@@ -14,6 +14,43 @@
         </div>
     }
 
+    <!-- Tarjetas resumen -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-4">
+            <div class="card text-bg-danger shadow-sm">
+                <div class="card-body text-center">
+                    <div class="fs-1 fw-bold">@Model.ActiveAlertsCount</div>
+                    <div class="small"><i class="bi bi-exclamation-triangle-fill"></i> Alertas activas</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card text-bg-info shadow-sm">
+                <div class="card-body text-center">
+                    <div class="fs-1 fw-bold">@Model.WeatherRecordsTodayCount</div>
+                    <div class="small"><i class="bi bi-cloud-sun-fill"></i> Registros meteo hoy</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card text-bg-secondary shadow-sm">
+                <div class="card-body text-center">
+                    <div class="fs-6 fw-bold">
+                        @if (Model.LastWeatherUpdate.HasValue)
+                        {
+                            @Model.LastWeatherUpdate.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                        }
+                        else
+                        {
+                            <span>—</span>
+                        }
+                    </div>
+                    <div class="small"><i class="bi bi-clock-fill"></i> Última actualización</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Registros meteorológicos recientes -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-info text-white">
@@ -33,6 +70,8 @@
                                 <th>Tmed (°C)</th>
                                 <th>Prec (mm)</th>
                                 <th>HrMax (%)</th>
+                                <th>Velmedia</th>
+                                <th>Racha</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -46,6 +85,8 @@
                                     <td>@record.Tmed</td>
                                     <td>@record.Prec</td>
                                     <td>@(record.HrMax.HasValue ? record.HrMax.ToString() : "—")</td>
+                                    <td>@(string.IsNullOrEmpty(record.Velmedia) ? "—" : record.Velmedia)</td>
+                                    <td>@(string.IsNullOrEmpty(record.Racha) ? "—" : record.Racha)</td>
                                 </tr>
                             }
                         </tbody>
@@ -89,7 +130,19 @@
                                             <p class="mb-0 text-muted small mt-1">@alert.Message</p>
                                         }
                                     </div>
-                                    <span class="text-muted small text-nowrap ms-3">@alert.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                    <div class="d-flex flex-column align-items-end ms-3 gap-1">
+                                        <span class="text-muted small text-nowrap">@alert.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                        @if (Model.CanEmit)
+                                        {
+                                            <form asp-controller="Backoffice" asp-action="ToggleActive" method="post" class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@alert.Id" />
+                                                <button type="submit" class="btn btn-sm @(alert.IsActive ? "btn-outline-secondary" : "btn-outline-success")">
+                                                    @(alert.IsActive ? "Desactivar" : "Activar")
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
                                 </div>
                             </li>
                         }
@@ -105,7 +158,7 @@
 
         <!-- Formulario para crear alerta -->
         <div class="col-md-5">
-            <div class="card shadow-sm h-100">
+            <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0"><i class="bi bi-plus-circle-fill"></i> Crear Nueva Alerta</h5>
                 </div>
@@ -123,9 +176,19 @@
                             <span asp-validation-for="NewAlert.Message" class="text-danger small"></span>
                         </div>
                         <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-send-fill"></i> Crear Alerta
+                            <i class="bi bi-send-fill"></i> Emitir alerta
                         </button>
                     </form>
+                </div>
+            </div>
+
+            <!-- Bloque de logs/estado -->
+            <div class="card shadow-sm mt-3" id="alert-log-card" style="display:none;">
+                <div class="card-header bg-dark text-white py-2">
+                    <h6 class="mb-0"><i class="bi bi-terminal-fill"></i> Estado de emisión</h6>
+                </div>
+                <div class="card-body p-2">
+                    <ul id="alert-log" class="list-unstyled mb-0 small font-monospace" style="max-height:150px;overflow-y:auto;"></ul>
                 </div>
             </div>
         </div>
@@ -136,5 +199,21 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
         window.realtimeRole = 'Backoffice';
+
+        // Log helper for the status block
+        (function () {
+            window.logAlertStatus = function (msg, cls) {
+                var card = document.getElementById('alert-log-card');
+                var log = document.getElementById('alert-log');
+                if (!card || !log) return;
+                card.style.display = '';
+                var li = document.createElement('li');
+                li.className = cls || 'text-light';
+                li.textContent = new Date().toLocaleTimeString('es-ES') + ' — ' + msg;
+                log.appendChild(li);
+                log.scrollTop = log.scrollHeight;
+            };
+        })();
     </script>
 }
+
