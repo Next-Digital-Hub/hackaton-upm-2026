@@ -1,15 +1,20 @@
 using Hackathon1.Data;
 using Hackathon1.Models;
+using System.Net.Http.Headers;
 
 namespace Hackathon1.Services
 {
     public class WeatherService : IWeatherService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
 
-        public WeatherService(ApplicationDbContext context)
+        public WeatherService(ApplicationDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _context = context;
+            _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
 
         public async Task<WeatherDto> GetForecastAsync(string provincia)
@@ -17,35 +22,44 @@ namespace Hackathon1.Services
             if (string.IsNullOrWhiteSpace(provincia))
                 throw new ArgumentException("La provincia no puede estar vacía.", nameof(provincia));
 
-            var fecha = DateTime.UtcNow.Date;
+            var baseUrl = _configuration["ApiClima:BaseUrl"]
+                ?? throw new InvalidOperationException("La configuración 'ApiClima:BaseUrl' no está definida.");
+            var apiKey = _configuration["ApiClima:ApiKey"]
+                ?? throw new InvalidOperationException("La configuración 'ApiClima:ApiKey' no está definida.");
+
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+
+            var apiUrl = $"{baseUrl}/weather?disaster=false";
+            var apiData = await client.GetFromJsonAsync<WeatherRecord>(apiUrl);
 
             var dto = new WeatherDto
             {
-                Indicativo = "3195",
-                Nombre = provincia,
-                Provincia = provincia,
-                Fecha = fecha,
-                HoraTmax = "15:00",
-                HoraTmin = "07:00",
-                HoraHrMax = "08:00",
-                HoraHrMin = "15:30",
-                Tmax = "28.4",
-                Tmin = "14.2",
-                Tmed = "21.3",
-                Prec = "0.0",
-                HrMax = 85,
-                HrMin = 42,
-                HrMedia = 63,
-                Racha = "35.2",
-                Horaracha = "13:20",
-                Velmedia = "18.5",
-                PresMax = "1018.6",
-                PresMin = "1012.3",
-                HoraPresMax = "09:00",
-                HoraPresMin = "18:00",
-                Altitud = 667,
-                Sol = "9.8",
-                Dir = "SE"
+                Indicativo = apiData?.Indicativo ?? string.Empty,
+                Nombre = apiData?.Nombre ?? provincia,
+                Provincia = apiData?.Provincia ?? provincia,
+                Fecha = apiData?.Fecha ?? DateTime.UtcNow.Date,
+                HoraTmax = apiData?.HoraTmax ?? string.Empty,
+                HoraTmin = apiData?.HoraTmin ?? string.Empty,
+                HoraHrMax = apiData?.HoraHrMax ?? string.Empty,
+                HoraHrMin = apiData?.HoraHrMin ?? string.Empty,
+                Tmax = apiData?.Tmax,
+                Tmin = apiData?.Tmin,
+                Tmed = apiData?.Tmed,
+                Prec = apiData?.Prec,
+                HrMax = apiData?.HrMax,
+                HrMin = apiData?.HrMin,
+                HrMedia = apiData?.HrMedia,
+                Racha = apiData?.Racha,
+                Horaracha = apiData?.Horaracha ?? string.Empty,
+                Velmedia = apiData?.Velmedia,
+                PresMax = apiData?.PresMax,
+                PresMin = apiData?.PresMin,
+                HoraPresMax = apiData?.HoraPresMax ?? string.Empty,
+                HoraPresMin = apiData?.HoraPresMin ?? string.Empty,
+                Altitud = apiData?.Altitud,
+                Sol = apiData?.Sol,
+                Dir = apiData?.Dir ?? string.Empty
             };
 
             var record = new WeatherRecord
