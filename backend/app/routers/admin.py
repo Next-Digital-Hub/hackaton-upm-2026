@@ -176,7 +176,8 @@ async def emergency_broadcast(body: dict, db: Session = Depends(get_db)):
 
     # Broadcast via WebSocket
     connected = manager.connection_count
-    await manager.broadcast(json.dumps({
+    print(f"[WS] Broadcasting emergency to {connected} clients")
+    await manager.broadcast({
         "type": "EMERGENCY_BROADCAST",
         "cause": cause,
         "severity": severity,
@@ -184,7 +185,7 @@ async def emergency_broadcast(body: dict, db: Session = Depends(get_db)):
         "title": title,
         "color": color,
         "timestamp": datetime.utcnow().isoformat(),
-    }))
+    })
 
     # Persist
     record = EmergencyBroadcast(

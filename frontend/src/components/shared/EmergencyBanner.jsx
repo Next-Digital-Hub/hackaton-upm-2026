@@ -1,33 +1,11 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertTriangle, X } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+
 import { useWebSocket } from '../../context/WebSocketContext'
 
 export default function EmergencyBanner() {
   const { emergency, dismissEmergency } = useWebSocket()
-  const audioRef = useRef(null)
-
-  // Play alert sound when emergency arrives
-  useEffect(() => {
-    if (emergency) {
-      // Create oscillator-based beep (no external audio file needed)
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)()
-        const oscillator = ctx.createOscillator()
-        const gainNode = ctx.createGain()
-        oscillator.connect(gainNode)
-        gainNode.connect(ctx.destination)
-        oscillator.frequency.value = 880
-        oscillator.type = 'square'
-        gainNode.gain.setValueAtTime(0.3, ctx.currentTime)
-        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1)
-        oscillator.start(ctx.currentTime)
-        oscillator.stop(ctx.currentTime + 1)
-      } catch {
-        // Audio API unavailable in some environments — silent fail
-      }
-    }
-  }, [emergency])
+  // Audio is handled centrally in WebSocketContext — no duplicate beep here
 
   return (
     <AnimatePresence>
@@ -71,30 +49,41 @@ export default function EmergencyBanner() {
                 </motion.div>
                 <div>
                   <h2 className="text-red-200 font-black text-xl tracking-wide uppercase">
-                    Emergency Broadcast
+                    {emergency.title ?? 'Alerta de Emergencia'}
                   </h2>
                   <p className="text-red-400 text-xs">
                     {emergency.timestamp
-                      ? new Date(emergency.timestamp).toLocaleTimeString()
-                      : 'Just now'}
+                      ? new Date(emergency.timestamp).toLocaleTimeString('es-ES')
+                      : 'Ahora mismo'}
                   </p>
                 </div>
               </div>
               <motion.span
-                className="px-3 py-1 bg-red-500/30 border border-red-500/50 text-red-300 rounded-full text-xs font-bold uppercase tracking-wider"
+                className={`px-3 py-1 border rounded-full text-xs font-bold uppercase tracking-wider
+                  ${emergency.severity === 'rojo'    ? 'bg-red-500/30 border-red-500/50 text-red-300' :
+                    emergency.severity === 'naranja' ? 'bg-orange-500/30 border-orange-500/50 text-orange-300' :
+                    'bg-yellow-500/30 border-yellow-500/50 text-yellow-300'}`}
                 animate={{ opacity: [0.6, 1, 0.6] }}
                 transition={{ duration: 1, repeat: Infinity }}
               >
-                CRITICAL
+                {emergency.severity?.toUpperCase() ?? 'CRÍTICO'}
               </motion.span>
             </div>
 
-            {/* Message */}
-            <div className="px-6 py-5">
-              <pre className="text-slate-100 text-sm leading-relaxed whitespace-pre-wrap font-sans">
-                {emergency.message}
-              </pre>
-            </div>
+            {/* Acciones */}
+            {emergency.actions?.length > 0 && (
+              <div className="px-6 py-5">
+                <p className="text-red-400/70 text-xs uppercase tracking-wider mb-3">Acciones recomendadas</p>
+                <ul className="space-y-2">
+                  {emergency.actions.map((a, i) => (
+                    <li key={i} className="text-slate-100 text-sm flex gap-3 items-start">
+                      <span className="text-red-400/60 font-mono shrink-0">{i + 1}.</span>
+                      <span>{a}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Dismiss */}
             <div className="px-6 pb-5 flex justify-end">
@@ -105,7 +94,7 @@ export default function EmergencyBanner() {
                            transition-all duration-200 text-sm"
               >
                 <X className="w-4 h-4" />
-                Acknowledge &amp; Dismiss
+                Entendido · Cerrar
               </button>
             </div>
           </motion.div>

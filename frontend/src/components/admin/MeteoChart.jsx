@@ -20,7 +20,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       <p className="text-slate-400 mb-2 text-xs">{label}</p>
       {payload.map((p) => (
         <p key={p.dataKey} style={{ color: p.color }} className="font-semibold">
-          {p.name}: {p.value?.toFixed(1)}{p.name === 'Humidity' ? '%' : p.name === 'Wind' ? ' km/h' : '°C'}
+          {p.name}: {p.value?.toFixed(1)}{p.name === 'Humedad' ? '%' : p.name === 'Viento' ? ' km/h' : '°C'}
         </p>
       ))}
     </div>
@@ -40,7 +40,7 @@ export default function MeteoChart({ adminPassword }) {
       const { data: d } = await api.get(`/api/admin/chart-data?admin_password=${adminPassword}&days=${days}`)
       setData(d)
     } catch {
-      setError('Failed to load chart data')
+      setError('Error al cargar los datos del gráfico')
     } finally {
       setLoading(false)
     }
@@ -57,7 +57,7 @@ export default function MeteoChart({ adminPassword }) {
       animate={{ opacity: 1, y: 0 }}
     >
       <div className="flex items-center justify-between mb-5">
-        <h3 className="font-bold text-white">Meteorological Trends</h3>
+        <h3 className="font-bold text-white">Tendencias Meteorológicas</h3>
         <div className="flex gap-2">
           {[3, 7, 14].map((d) => (
             <button
@@ -77,13 +77,13 @@ export default function MeteoChart({ adminPassword }) {
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <LoadingSpinner text="Loading chart data…" />
+          <LoadingSpinner text="Cargando datos del gráfico…" />
         </div>
       ) : error ? (
         <p className="text-red-400 text-sm text-center py-8">{error}</p>
       ) : data.length === 0 ? (
         <p className="text-slate-500 text-sm text-center py-8">
-          No data available for the selected period
+          Sin datos para el período seleccionado
         </p>
       ) : (
         <ResponsiveContainer width="100%" height={300}>
@@ -107,7 +107,7 @@ export default function MeteoChart({ adminPassword }) {
             <Line
               type="monotone"
               dataKey="temperature"
-              name="Temperature"
+              name="Temperatura"
               stroke="#f59e0b"
               strokeWidth={2}
               dot={false}
@@ -116,7 +116,7 @@ export default function MeteoChart({ adminPassword }) {
             <Line
               type="monotone"
               dataKey="humidity"
-              name="Humidity"
+              name="Humedad"
               stroke="#06b6d4"
               strokeWidth={2}
               dot={false}
@@ -125,7 +125,7 @@ export default function MeteoChart({ adminPassword }) {
             <Line
               type="monotone"
               dataKey="wind_speed"
-              name="Wind"
+              name="Viento"
               stroke="#8b5cf6"
               strokeWidth={2}
               dot={false}

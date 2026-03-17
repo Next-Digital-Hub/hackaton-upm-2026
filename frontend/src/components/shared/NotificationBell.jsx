@@ -12,10 +12,10 @@ const SEVERITY_STYLES = {
 
 function timeAgo(iso) {
   const diff = Math.floor((Date.now() - new Date(iso)) / 1000)
-  if (diff < 60) return `${diff}s ago`
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-  return `${Math.floor(diff / 86400)}d ago`
+  if (diff < 60) return `hace ${diff}s`
+  if (diff < 3600) return `hace ${Math.floor(diff / 60)}min`
+  if (diff < 86400) return `hace ${Math.floor(diff / 3600)}h`
+  return `hace ${Math.floor(diff / 86400)}d`
 }
 
 export default function NotificationBell() {
@@ -99,9 +99,9 @@ export default function NotificationBell() {
             <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Bell className="w-4 h-4 text-slate-400" />
-                <span className="text-sm font-semibold text-white">Active Alerts</span>
+                <span className="text-sm font-semibold text-white">Alertas Activas</span>
               </div>
-              <span className="text-xs text-slate-500">{alerts.length} active</span>
+              <span className="text-xs text-slate-500">{alerts.length} activas</span>
             </div>
 
             {/* Alert list */}
@@ -109,7 +109,7 @@ export default function NotificationBell() {
               {alerts.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 py-8 text-slate-500">
                   <Bell className="w-8 h-8 opacity-30" />
-                  <p className="text-sm">No active alerts</p>
+                  <p className="text-sm">Sin alertas activas</p>
                 </div>
               ) : (
                 alerts.map((alert, i) => {
@@ -151,7 +151,7 @@ export default function NotificationBell() {
             {/* Footer */}
             <div className="px-4 py-2.5 border-t border-white/5 bg-black/20">
               <p className="text-[10px] text-slate-600 text-center">
-                Alerts update in real-time via WebSocket
+                Las alertas se actualizan en tiempo real
               </p>
             </div>
           </motion.div>

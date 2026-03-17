@@ -16,7 +16,7 @@ export default function AdminLogin({ onSuccess }) {
       await api.post('/api/admin/login', { password })
       onSuccess(password)
     } catch (err) {
-      setError(err.response?.data?.detail ?? 'Invalid admin password')
+      setError(err.response?.data?.detail ?? 'Contraseña de administrador incorrecta')
     } finally {
       setLoading(false)
     }
@@ -35,19 +35,19 @@ export default function AdminLogin({ onSuccess }) {
             <Shield className="w-7 h-7 text-purple-400" />
           </div>
           <div className="text-center">
-            <h1 className="text-xl font-bold text-white">Admin Panel</h1>
-            <p className="text-slate-400 text-sm">WeatherSelf Control Center</p>
+            <h1 className="text-xl font-bold text-white">Panel de Admin</h1>
+            <p className="text-slate-400 text-sm">Centro de Control WeatherSelf</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-slate-400 mb-1.5">Admin Password</label>
+            <label className="block text-sm text-slate-400 mb-1.5">Contraseña de Admin</label>
             <div className="relative">
               <input
                 type="password"
                 className="input-field pl-10"
-                placeholder="Enter admin password"
+                placeholder="Introduce la contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -81,7 +81,7 @@ export default function AdminLogin({ onSuccess }) {
             ) : (
               <>
                 <Shield className="w-4 h-4" />
-                Access Panel
+                Acceder al Panel
               </>
             )}
           </button>

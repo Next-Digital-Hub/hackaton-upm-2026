@@ -282,7 +282,7 @@ export default function RedButton({ adminPassword }) {
       setResult(data)
       setPhase('result')
     } catch (err) {
-      setErrorMsg(err.response?.data?.detail ?? 'Broadcast failed. Check API connection.')
+      setErrorMsg(err.response?.data?.detail ?? 'Error al emitir. Revisa la conexión con la API.')
       setPhase('error')
     }
   }
@@ -296,7 +296,7 @@ export default function RedButton({ adminPassword }) {
       <div className="flex flex-col items-center gap-6 py-6">
         <div className="text-center">
           <h2 className="text-white font-black text-2xl mb-1 uppercase tracking-wider">
-            Emergency Broadcast
+            Alerta de Emergencia
           </h2>
           <p className="text-slate-400 text-sm max-w-xs mx-auto">
             Selecciona causa y severidad · alerta empujada a todos los usuarios via WebSocket
@@ -348,8 +348,8 @@ export default function RedButton({ adminPassword }) {
           >
             <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
             <AlertTriangle className="w-10 h-10 mb-1 drop-shadow-lg" />
-            <span className="text-sm leading-tight text-center drop-shadow-md">EMERGENCY</span>
-            <span className="text-xs opacity-80">BROADCAST</span>
+            <span className="text-sm leading-tight text-center drop-shadow-md">EMERGENCIA</span>
+            <span className="text-xs opacity-80">ALERTA</span>
           </motion.button>
         </div>
 
@@ -361,7 +361,7 @@ export default function RedButton({ adminPassword }) {
         >
           <div className="w-2 h-2 bg-red-500 rounded-full" />
           <span className="text-red-400 text-xs font-semibold uppercase tracking-wider">
-            System Armed
+            Sistema Activo
           </span>
         </motion.div>
       </div>
@@ -393,9 +393,9 @@ export default function RedButton({ adminPassword }) {
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
             >
-              <p className="text-red-400 font-semibold mb-2">Broadcast Failed</p>
+              <p className="text-red-400 font-semibold mb-2">Error en la Emisión</p>
               <p className="text-slate-300 text-sm mb-4">{errorMsg}</p>
-              <button onClick={handleClose} className="btn-ghost w-full">Close</button>
+              <button onClick={handleClose} className="btn-ghost w-full">Cerrar</button>
             </motion.div>
           </motion.div>
         )}

@@ -55,20 +55,20 @@ export default function HistoryTable({ adminPassword }) {
       animate={{ opacity: 1, y: 0 }}
     >
       <div className="flex items-center justify-between mb-5">
-        <h3 className="font-bold text-white">Historical Weather Data</h3>
+        <h3 className="font-bold text-white">Historial Meteorológico</h3>
         <button
           onClick={handleExportCSV}
           className="btn-ghost flex items-center gap-2 text-sm"
         >
           <Download className="w-4 h-4" />
-          Export CSV
+          Exportar CSV
         </button>
       </div>
 
       {/* Filters */}
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div>
-          <label className="block text-xs text-slate-500 mb-1">From date</label>
+          <label className="block text-xs text-slate-500 mb-1">Desde</label>
           <input
             type="date"
             className="input-field text-sm"
@@ -77,7 +77,7 @@ export default function HistoryTable({ adminPassword }) {
           />
         </div>
         <div>
-          <label className="block text-xs text-slate-500 mb-1">To date</label>
+          <label className="block text-xs text-slate-500 mb-1">Hasta</label>
           <input
             type="date"
             className="input-field text-sm"
@@ -86,11 +86,11 @@ export default function HistoryTable({ adminPassword }) {
           />
         </div>
         <div>
-          <label className="block text-xs text-slate-500 mb-1">User ID</label>
+          <label className="block text-xs text-slate-500 mb-1">ID Usuario</label>
           <input
             type="number"
             className="input-field text-sm"
-            placeholder="All users"
+            placeholder="Todos los usuarios"
             value={filters.userId}
             onChange={(e) => { setFilters((p) => ({ ...p, userId: e.target.value })); setPage(0) }}
           />
@@ -99,7 +99,7 @@ export default function HistoryTable({ adminPassword }) {
 
       {loading ? (
         <div className="flex justify-center py-10">
-          <LoadingSpinner text="Loading records…" />
+          <LoadingSpinner text="Cargando registros…" />
         </div>
       ) : (
         <>
@@ -107,7 +107,7 @@ export default function HistoryTable({ adminPassword }) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-white/5 border-b border-white/5">
-                  {['ID', 'User', 'Date', 'Avatar', 'Temp', 'Humidity', 'Wind', 'Description', 'Type'].map((h) => (
+                  {['ID', 'Usuario', 'Fecha', 'Avatar', 'Temp', 'Humedad', 'Viento', 'Descripción', 'Tipo'].map((h) => (
                     <th key={h} className="text-left px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wider">
                       {h}
                     </th>
@@ -143,7 +143,7 @@ export default function HistoryTable({ adminPassword }) {
                     <td className="px-4 py-3">
                       {r.is_disaster ? (
                         <span className="text-xs bg-red-500/20 text-red-300 border border-red-500/30 px-2 py-0.5 rounded-full font-bold">
-                          EMERGENCY
+                          EMERGENCIA
                         </span>
                       ) : (
                         <span className="text-xs text-slate-500">Normal</span>
@@ -158,7 +158,7 @@ export default function HistoryTable({ adminPassword }) {
           {/* Pagination */}
           <div className="flex items-center justify-between mt-4">
             <p className="text-slate-500 text-xs">
-              Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total} records
+              Mostrando {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} de {total} registros
             </p>
             <div className="flex gap-2">
               <button
@@ -166,14 +166,14 @@ export default function HistoryTable({ adminPassword }) {
                 disabled={page === 0}
                 className="btn-ghost text-xs py-1.5 px-3 disabled:opacity-40"
               >
-                ← Prev
+                ← Anterior
               </button>
               <button
                 onClick={() => setPage((p) => p + 1)}
                 disabled={(page + 1) * PAGE_SIZE >= total}
                 className="btn-ghost text-xs py-1.5 px-3 disabled:opacity-40"
               >
-                Next →
+                Siguiente →
               </button>
             </div>
           </div>

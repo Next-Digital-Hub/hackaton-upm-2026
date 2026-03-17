@@ -22,7 +22,7 @@ function AlertForm({ onSubmit, onCancel, adminPassword }) {
     try {
       await onSubmit(form)
     } catch (err) {
-      setError(err.response?.data?.detail ?? 'Failed to create alert')
+      setError(err.response?.data?.detail ?? 'Error al crear la alerta')
     } finally {
       setLoading(false)
     }
@@ -36,13 +36,13 @@ function AlertForm({ onSubmit, onCancel, adminPassword }) {
       exit={{ opacity: 0, height: 0 }}
     >
       <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
-        <Bell className="w-4 h-4 text-blue-400" /> New Alert
+        <Bell className="w-4 h-4 text-blue-400" /> Nueva Alerta
       </h4>
       <form onSubmit={handleSubmit} className="space-y-3">
         <input
           type="text"
           className="input-field"
-          placeholder="Alert title"
+          placeholder="Título de la alerta"
           value={form.title}
           onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
           required
@@ -50,7 +50,7 @@ function AlertForm({ onSubmit, onCancel, adminPassword }) {
         <textarea
           className="input-field resize-none"
           rows={3}
-          placeholder="Alert message…"
+          placeholder="Mensaje de la alerta…"
           value={form.message}
           onChange={(e) => setForm((p) => ({ ...p, message: e.target.value }))}
           required
@@ -60,9 +60,9 @@ function AlertForm({ onSubmit, onCancel, adminPassword }) {
           value={form.severity}
           onChange={(e) => setForm((p) => ({ ...p, severity: e.target.value }))}
         >
-          <option value="info">ℹ️  Info</option>
-          <option value="warning">⚠️  Warning</option>
-          <option value="critical">🔴 Critical</option>
+          <option value="info">ℹ️  Información</option>
+          <option value="warning">⚠️  Advertencia</option>
+          <option value="critical">🔴 Crítica</option>
         </select>
 
         {error && (
@@ -84,7 +84,7 @@ function AlertForm({ onSubmit, onCancel, adminPassword }) {
                 transition={{ duration: 0.7, repeat: Infinity, ease: 'linear' }}
               />
             ) : (
-              'Create Alert'
+              'Crear Alerta'
             )}
           </button>
           <button type="button" onClick={onCancel} className="btn-ghost px-4">
@@ -129,7 +129,7 @@ export default function AlertManager({ adminPassword }) {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this alert?')) return
+    if (!window.confirm('¿Eliminar esta alerta?')) return
     await api.delete(`/api/alerts/${id}?admin_password=${adminPassword}`)
     fetchAlerts()
   }
@@ -143,14 +143,14 @@ export default function AlertManager({ adminPassword }) {
       <div className="flex items-center justify-between mb-5">
         <h3 className="font-bold text-white flex items-center gap-2">
           <Bell className="w-5 h-5 text-amber-400" />
-          Alert Management
+          Gestión de Alertas
         </h3>
         <button
           onClick={() => setShowForm((p) => !p)}
           className="btn-primary flex items-center gap-2 text-sm py-2"
         >
           <Plus className="w-4 h-4" />
-          New Alert
+          Nueva Alerta
         </button>
       </div>
 
@@ -168,10 +168,10 @@ export default function AlertManager({ adminPassword }) {
 
       {loading ? (
         <div className="flex justify-center py-8">
-          <LoadingSpinner text="Loading alerts…" />
+          <LoadingSpinner text="Cargando alertas…" />
         </div>
       ) : alerts.length === 0 ? (
-        <p className="text-slate-500 text-sm text-center py-4">No alerts yet</p>
+        <p className="text-slate-500 text-sm text-center py-4">Sin alertas aún</p>
       ) : (
         <div className="space-y-2">
           {alerts.map((alert, i) => (
@@ -190,7 +190,7 @@ export default function AlertManager({ adminPassword }) {
                     {alert.severity}
                   </span>
                   {!alert.is_active && (
-                    <span className="text-xs text-slate-500">(inactive)</span>
+                    <span className="text-xs text-slate-500">(inactiva)</span>
                   )}
                 </div>
                 <p className="font-semibold text-sm">{alert.title}</p>
@@ -200,7 +200,7 @@ export default function AlertManager({ adminPassword }) {
                 <button
                   onClick={() => handleToggle(alert)}
                   className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-xs"
-                  title={alert.is_active ? 'Deactivate' : 'Activate'}
+                  title={alert.is_active ? 'Desactivar' : 'Activar'}
                 >
                   {alert.is_active ? '⏸️' : '▶️'}
                 </button>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import CenterPanel from '../components/dashboard/CenterPanel'
 import LeftPanel from '../components/dashboard/LeftPanel'
 import RightPanel from '../components/dashboard/RightPanel'
+import EmergencyBanner from '../components/shared/EmergencyBanner'
 import WeatherBackground from '../components/shared/WeatherBackground'
 import Navbar from '../components/shared/Navbar'
 import { useAuth } from '../context/AuthContext'
@@ -164,6 +165,7 @@ export default function Dashboard() {
           animate-emergency-pulse
         `} />
       )}
+      <EmergencyBanner />
       <WeatherBackground weatherData={bgWeather} />
       <Navbar simulatedMode={simulatedMode} onResetMode={() => setSimulatedMode('auto')} onDeleteAccount={openDeleteModal} />
 

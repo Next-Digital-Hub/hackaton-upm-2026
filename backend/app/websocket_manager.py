@@ -26,6 +26,7 @@ class WebSocketManager:
 
     async def broadcast(self, message: Dict[str, Any]):
         """Broadcast to ALL connected clients. Cleans up dead connections."""
+        print(f"[WS] Broadcasting to {len(self.active_connections)} connections")
         dead = []
         for conn in self.active_connections:
             try:

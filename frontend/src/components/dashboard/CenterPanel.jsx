@@ -7,7 +7,6 @@ import {
   COND_EMOJI, COND_LABEL_ES, GLOW_COLOR, HERO_GRADIENT,
   extractSuggestions, extractWeather, getCondition,
 } from '../../utils/weather'
-import WeekTimeline from './WeekTimeline'
 
 // ─── Shared markdown ──────────────────────────────────────────────────────────
 const MD = {
@@ -25,20 +24,6 @@ const MD = {
   hr: () => <hr className="border-white/10 my-2" />,
 }
 
-// ─── Simulated weather data (frontend display) ────────────────────────────────
-const SIMULATED_WX = {
-  rain:   { temperature: 12, tmin: 8,  humidity: 95, wind_speed: 40, description: 'Lluvia fuerte' },
-  fog:    { temperature: 10, tmin: 7,  humidity: 98, wind_speed: 5,  description: 'Niebla densa'  },
-  desert: { temperature: 42, tmin: 28, humidity: 15, wind_speed: 20, description: 'Despejado extremo' },
-  snow:   { temperature: 1,  tmin: -3, humidity: 88, wind_speed: 15, description: 'Nevada'        },
-}
-
-const SIMULATED_GRADIENT = {
-  rain:   'from-slate-700/80 via-blue-900/60 to-slate-950/0',
-  fog:    'from-gray-600/60 via-gray-800/40 to-slate-950/0',
-  desert: 'from-amber-700/60 via-orange-900/50 to-slate-950/0',
-  snow:   'from-blue-200/20 via-slate-700/60 to-slate-950/0',
-}
 
 // ─── CSS keyframes injected once ─────────────────────────────────────────────
 const SIM_KEYFRAMES = `
@@ -362,16 +347,14 @@ export default function CenterPanel({
       .catch(() => {})
   }, [weatherData?.record_id])
 
-  // Resolve displayed weather (real API data or simulated preview)
-  const simWx       = simulatedMode !== 'auto' ? SIMULATED_WX[simulatedMode] : null
-  const effectiveRaw = weatherData?.weather_data ?? simWx ?? {}
+  // Resolve displayed weather (real API data only)
+  const effectiveRaw = weatherData?.weather_data ?? {}
   const { temp, tempMin, humidity, windSpeed, uvIndex, desc } = extractWeather(effectiveRaw)
 
-  // Condition: if simulated mode override, derive from description
-  const condition = getCondition(desc ?? '')
-  const glow      = GLOW_COLOR[condition]
-  const hasData   = weatherData != null
-  const hasDisplay = hasData || simWx != null
+  const condition  = getCondition(desc ?? '')
+  const glow       = GLOW_COLOR[condition]
+  const hasData    = weatherData != null
+  const hasDisplay = hasData
 
   const { suggestions } = hasData
     ? extractSuggestions(weatherData.llm_response ?? '')
@@ -381,10 +364,7 @@ export default function CenterPanel({
     ? new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
     : null
 
-  // Gradient: simulated mode overrides the condition gradient
-  const gradient = simulatedMode !== 'auto'
-    ? (SIMULATED_GRADIENT[simulatedMode] ?? HERO_GRADIENT[condition])
-    : HERO_GRADIENT[condition]
+  const gradient = HERO_GRADIENT[condition]
 
   return (
     <div className={`relative flex flex-col h-full rounded-2xl border border-white/10 overflow-hidden bg-gradient-to-br ${gradient}`}>
@@ -437,13 +417,6 @@ export default function CenterPanel({
               exit={{ opacity: 0, scale: 0.94 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
             >
-              {/* Simulated mode indicator */}
-              {simulatedMode !== 'auto' && !hasData && (
-                <span className="text-[10px] text-amber-300/60 bg-amber-500/10 border border-amber-500/20 rounded-full px-2.5 py-0.5">
-                  Vista previa — {simulatedMode}
-                </span>
-              )}
-
               {/* Condition icon */}
               <motion.span className="leading-none" style={{ fontSize: 64 }}
                 animate={{ scale: [1, 1.06, 1], y: [0, -3, 0] }}
@@ -528,26 +501,12 @@ export default function CenterPanel({
                 </div>
               )}
 
-              {/* Simulated mode: prompt to fetch real analysis */}
-              {simulatedMode !== 'auto' && !hasData && (
-                <motion.button
-                  onClick={onRefresh}
-                  disabled={loading}
-                  className="text-[11px] text-blue-300/70 hover:text-blue-300 border border-blue-400/20 rounded-xl px-3 py-1.5 transition-colors disabled:opacity-40"
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {loading ? 'Generando análisis…' : '📊 Generar análisis simulado'}
-                </motion.button>
-              )}
             </motion.div>
           )}
         </AnimatePresence>
         </div>{/* end flex-1 centered */}
 
-        {/* ── 7-day timeline — always visible ── */}
-        <div className="shrink-0 w-full pb-4">
-          <WeekTimeline />
-        </div>
+
       </div>
     </div>
   )

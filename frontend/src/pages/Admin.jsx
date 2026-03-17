@@ -11,11 +11,11 @@ import LoadingSpinner from '../components/shared/LoadingSpinner'
 import api from '../services/api'
 
 const TABS = [
-  { id: 'overview',  label: 'Overview',    icon: Activity },
-  { id: 'emergency', label: 'Emergency',   icon: Radio },
-  { id: 'alerts',    label: 'Alerts',      icon: Bell },
-  { id: 'history',   label: 'History',     icon: Database },
-  { id: 'users',     label: 'Users',       icon: Users },
+  { id: 'overview',  label: 'Resumen',     icon: Activity },
+  { id: 'emergency', label: 'Emergencia',  icon: Radio },
+  { id: 'alerts',    label: 'Alertas',     icon: Bell },
+  { id: 'history',   label: 'Historial',   icon: Database },
+  { id: 'users',     label: 'Usuarios',    icon: Users },
 ]
 
 function StatsCard({ label, value, icon: Icon, color }) {
@@ -87,8 +87,8 @@ export default function Admin() {
             <Activity className="w-5 h-5 text-purple-400" />
           </div>
           <div>
-            <h1 className="font-black text-white text-lg">WeatherSelf Admin</h1>
-            <p className="text-slate-500 text-xs">Control Center</p>
+            <h1 className="font-black text-white text-lg">Admin WeatherSelf</h1>
+            <p className="text-slate-500 text-xs">Centro de Control</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -99,10 +99,10 @@ export default function Admin() {
           >
             <div className="w-2 h-2 bg-green-500 rounded-full" />
             <span className="text-green-400 text-xs font-medium">
-              {stats?.connected_ws_clients ?? 0} connected
+              {stats?.connected_ws_clients ?? 0} conectados
             </span>
           </motion.div>
-          <Link to="/" className="btn-ghost text-xs">← Back to app</Link>
+          <Link to="/" className="btn-ghost text-xs">← Volver a la app</Link>
         </div>
       </div>
 
@@ -133,14 +133,14 @@ export default function Admin() {
         {activeTab === 'overview' && (
           <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             {statsLoading ? (
-              <div className="flex justify-center py-16"><LoadingSpinner text="Loading stats…" /></div>
+              <div className="flex justify-center py-16"><LoadingSpinner text="Cargando estadísticas…" /></div>
             ) : stats ? (
               <>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <StatsCard label="Total Users" value={stats.total_users} icon={Users} color="bg-blue-500/20 text-blue-400" />
-                  <StatsCard label="Weather Records" value={stats.total_weather_records} icon={Database} color="bg-emerald-500/20 text-emerald-400" />
-                  <StatsCard label="Active Alerts" value={stats.active_alerts} icon={Bell} color="bg-amber-500/20 text-amber-400" />
-                  <StatsCard label="Emergency Broadcasts" value={stats.emergency_broadcasts} icon={Radio} color="bg-red-500/20 text-red-400" />
+                  <StatsCard label="Usuarios Totales" value={stats.total_users} icon={Users} color="bg-blue-500/20 text-blue-400" />
+                  <StatsCard label="Registros Meteorológicos" value={stats.total_weather_records} icon={Database} color="bg-emerald-500/20 text-emerald-400" />
+                  <StatsCard label="Alertas Activas" value={stats.active_alerts} icon={Bell} color="bg-amber-500/20 text-amber-400" />
+                  <StatsCard label="Alertas de Emergencia" value={stats.emergency_broadcasts} icon={Radio} color="bg-red-500/20 text-red-400" />
                 </div>
                 <MeteoChart adminPassword={adminPassword} />
               </>
@@ -160,9 +160,9 @@ export default function Admin() {
               <div className="flex items-center gap-3">
                 <Radio className="w-5 h-5 text-red-400" />
                 <div>
-                  <h2 className="font-black text-red-200 uppercase tracking-wide">Emergency Broadcast System</h2>
+                  <h2 className="font-black text-red-200 uppercase tracking-wide">Sistema de Alerta de Emergencia</h2>
                   <p className="text-red-400/80 text-xs">
-                    Fetches disaster weather → AI generates alert → broadcasts to all {stats?.connected_ws_clients ?? 0} connected users
+                    Selecciona causa y severidad · alerta emitida a los {stats?.connected_ws_clients ?? 0} usuarios conectados
                   </p>
                 </div>
               </div>
@@ -194,13 +194,13 @@ export default function Admin() {
           >
             <h3 className="font-bold text-white mb-5 flex items-center gap-2">
               <Users className="w-5 h-5 text-blue-400" />
-              Registered Users ({users.length})
+              Usuarios Registrados ({users.length})
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-white/5 border-b border-white/5">
-                    {['ID', 'Username', 'Email', 'Avatar State', 'Registered'].map((h) => (
+                    {['ID', 'Usuario', 'Email', 'Estado', 'Registro'].map((h) => (
                       <th key={h} className="text-left px-4 py-3 text-xs text-slate-400 uppercase tracking-wider font-semibold">
                         {h}
                       </th>

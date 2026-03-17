@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { RotateCcw } from 'lucide-react'
 import AvatarSelector from '../user/AvatarSelector'
+import WeekTimeline from './WeekTimeline'
 
 export default function LeftPanel({ user, profile, onSelect, onReset }) {
   const initial = user?.username?.[0]?.toUpperCase() ?? '?'
@@ -19,6 +20,11 @@ export default function LeftPanel({ user, profile, onSelect, onReset }) {
             <p className="text-white/30 text-xs mt-0.5">Completa el test</p>
           )}
         </div>
+      </div>
+
+      {/* ── 7-day timeline ── */}
+      <div className="shrink-0 px-4 pt-4 pb-3 border-b border-white/8">
+        <WeekTimeline />
       </div>
 
       {/* ── Questionnaire — scrollable ── */}
