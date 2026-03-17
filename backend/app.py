@@ -3,13 +3,10 @@ import os
 sys.path.insert(0, os.path.dirname(__file__))
 
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from config import Config
 
-db = SQLAlchemy()
-jwt = JWTManager()
+from extensions import db, jwt
 
 def create_app():
     app = Flask(__name__)
