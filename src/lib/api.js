@@ -46,45 +46,64 @@ export async function sendPrompt(systemPrompt, userPrompt) {
  * Build a system prompt for the emergency expert AI.
  */
 export function buildSystemPrompt() {
-    return `Eres un asistente de emergencias climáticas. Responde SIEMPRE en español usando markdown simple, corto y limpio.
+    return `Eres un Sistema Experto de Protección Civil y Asistencia Inclusiva. Tu objetivo es generar alertas meteorológicas altamente personalizadas, breves y directas.
 
-Usa EXACTAMENTE esta estructura:
+### TABLA DE UMBRALES DE RIESGO (EVALUACIÓN ESTRICTA):
+Calcula el nivel de riesgo usando EXCLUSIVAMENTE estos parámetros basados en los datos (prec = precipitación acumulada diaria en mm, tmax/tmin = temperatura en ºC, racha = viento en km/h):
+
+- BAJA: prec < 20 mm, Y temperaturas entre 0 y 34ºC, Y racha < 70 km/h (o null).
+- MEDIA: prec entre 20 y 60 mm, O temperaturas entre 34-39ºC o -4-0ºC, O racha entre 70 y 90 km/h.
+- ALTA: prec entre 60 y 100 mm, O temperaturas entre 39-42ºC o -8 a -4ºC, O racha entre 90 y 130 km/h.
+- MUY ALTA: prec > 100 mm, O tmax > 42ºC, O tmin < -8ºC, O racha > 130 km/h.
+*(Nota: El riesgo final será el más alto que se cumpla de cualquiera de las condiciones).*
+
+### REGLAS DE LÓGICA Y COMPORTAMIENTO:
+1. Analiza los datos meteorológicos usando la tabla de umbrales superior.
+2. Regla de Contactos: SI EL RIESGO ES "BAJA" o "MEDIA", ESTÁ ESTRICTAMENTE PROHIBIDO mostrar la sección de "📱 Contactos". Solo muéstrala en "ALTA" o "MUY ALTA".
+3. Personalización obligatoria: Las acciones sugeridas DEBEN estar adaptadas a las "necesidades_especiales" y al "tipo_vivienda" del usuario. No des consejos genéricos si el usuario tiene una limitación física; adapta la instrucción a su realidad.
+
+FORMATO DE SALIDA ESTRICTO (Máximo 100 palabras, sin introducciones ni saludos):
 
 ### 🚨 Prioridad
-**[ALTA/MEDIA/BAJA]**: [una frase breve con el riesgo principal]
+**[BAJA/MEDIA/ALTA/MUY ALTA]**: [Breve justificación con el dato exacto, ej: "Riesgo por lluvia intensa de 25mm" o "Condiciones estables y seguras"].
 
 ### ✅ Qué hacer ahora
-1. [acción inmediata]
-2. [segunda acción]
-3. [tercera acción]
+1. [Acción inmediata adaptada a su necesidad especial y vivienda]
+2. [Acción relacionada con el clima actual]
+3. [Acción de prevención práctica]
 
+[OPCIONAL: SOLO MOSTRAR SI PRIORIDAD ES ALTA O MUY ALTA]
 ### 📱 Contactos
 - **112** Emergencias
 - **1006** Protección Civil
 
-> [una frase final corta para mantenerse atento]
-
-Reglas:
-- máximo 90 palabras
-- sin introducciones ni conclusiones extra
-- sin texto fuera de esa estructura
-- cada punto debe ser muy corto y directo`
+> [Frase final de advertencia o tranquilidad].`
 }
 
 /**
  * Build a personalized user prompt with weather data and profile.
  */
 export function buildUserPrompt(weatherData, profile) {
-    const necesidades = profile?.necesidades_especiales?.length
-        ? profile.necesidades_especiales.join(', ')
-        : null
+    const cleanWeatherData = Object.fromEntries(
+        Object.entries(weatherData).filter(([_, value]) => value !== null)
+    );
 
-    const perfil = [
-        profile?.tipo_vivienda && `Vivienda: ${profile.tipo_vivienda}`,
-        necesidades && `Necesidades: ${necesidades}`,
-    ].filter(Boolean).join(' | ')
+    const userProfile = {
+        ubicacion_usuario: profile?.provincia || "No especificada",
+        tipo_vivienda: profile?.tipo_vivienda || "No especificada",
+        necesidades_especiales: profile?.necesidades_especiales?.length
+            ? profile.necesidades_especiales
+            : ["Ninguna"]
+    };
 
-    return `Datos meteorológicos: ${JSON.stringify(weatherData)}
-${perfil ? `Perfil: ${perfil}` : ''}
-Genera el resumen siguiendo el formato indicado.`
+    return `<perfil_usuario>
+${JSON.stringify(userProfile, null, 2)}
+</perfil_usuario>
+
+<datos_meteorologicos>
+${JSON.stringify(cleanWeatherData, null, 2)}
+</datos_meteorologicos>
+
+Genera el reporte meteorológico siguiendo estrictamente el formato Markdown indicado en tus instrucciones. 
+Regla vital: NO incluyas ninguna etiqueta XML en tu respuesta final. Comienza directamente con el título de Prioridad.`;
 }
