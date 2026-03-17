@@ -35,9 +35,13 @@ namespace Hackathon1.Controllers
                 string.IsNullOrWhiteSpace(user.Provincia) ? "Madrid" : user.Provincia);
 
             var recommendations = new List<string>();
-            if (forecast.Prec > 30)
+            forecast.Prec.Replace(',', '.');
+            forecast.Tmax.Replace(",", ".");
+            decimal prec = Decimal.Parse(forecast.Prec);
+            decimal tmax = Decimal.Parse(forecast.Tmax);
+            if (prec > 30)
                 recommendations.Add("Evita desplazamientos largos");
-            if (forecast.Tmax < 5)
+            if (tmax < 5)
                 recommendations.Add("Abrígate y revisa calefacción");
 
             var vm = new CitizenDashboardViewModel
