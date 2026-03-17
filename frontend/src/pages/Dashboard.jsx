@@ -24,6 +24,26 @@ const slideVariants = {
   exit:   (d) => ({ x: d > 0 ? '-40%' : '40%', opacity: 0 }),
 }
 
+const ALERT_LEVEL_WEIGHT = { amarillo: 1, naranja: 2, rojo: 3 }
+
+function toPulseLevel(severity) {
+  const s = String(severity ?? '').toLowerCase().trim()
+  if (s === 'rojo' || s === 'critical' || s === 'emergencia') return 'rojo'
+  if (s === 'naranja' || s === 'warning' || s === 'importante') return 'naranja'
+  if (s === 'amarillo' || s === 'info' || s === 'precaucion' || s === 'precaución') return 'amarillo'
+  return null
+}
+
+function getHighestAlertLevel(alerts) {
+  let highest = null
+  for (const alert of alerts ?? []) {
+    const level = toPulseLevel(alert?.severity)
+    if (!level) continue
+    if (!highest || ALERT_LEVEL_WEIGHT[level] > ALERT_LEVEL_WEIGHT[highest]) highest = level
+  }
+  return highest
+}
+
 function ResizeHandle({ onDelta }) {
   const dragging = useRef(false)
   const lastX    = useRef(0)
@@ -60,7 +80,7 @@ const MODE_BG_DESC = {
 
 export default function Dashboard() {
   const { user, updateAvatar, deleteAccount, loading: authLoading } = useAuth()
-  const { emergency, dismissEmergency } = useWebSocket()
+  const { emergency, dismissEmergency, notifications, emergencyClearedAt } = useWebSocket()
 
   const [avatarState,     setAvatarState]     = useState(user?.avatar_state ?? 'energized')
   const [profile,         setProfile]         = useState(null)
@@ -75,12 +95,14 @@ export default function Dashboard() {
   const [tabDir,          setTabDir]          = useState(1)
   const [leftW,           setLeftW]           = useState(280)
   const [rightW,          setRightW]          = useState(310)
+  const [activeAlertLevel, setActiveAlertLevel] = useState(null)
 
   useEffect(() => { setForecastDone(false) }, [simulatedMode])
 
   const handleAvatarSelect = async (profileObj) => {
     const isProfile = typeof profileObj !== 'string'
     const state     = isProfile ? profileObj.prompt_key : profileObj
+    //Formulario para determinar el estado del
     setAvatarState(state)
     if (isProfile) {
       setProfile(profileObj)
@@ -129,6 +151,39 @@ export default function Dashboard() {
     }
   }, [avatarState, simulatedMode, loading])
 
+  const refreshActiveAlerts = useCallback(async () => {
+    try {
+      const { data } = await api.get('/api/alerts/')
+      setActiveAlertLevel(getHighestAlertLevel(data))
+    } catch {
+      // Keep current visual state if alerts endpoint temporarily fails.
+    }
+  }, [])
+
+  useEffect(() => {
+    refreshActiveAlerts()
+    const timer = setInterval(refreshActiveAlerts, 20_000)
+    return () => clearInterval(timer)
+  }, [refreshActiveAlerts])
+
+  useEffect(() => {
+    if (!emergencyClearedAt) return
+    setActiveAlertLevel(null)
+    refreshActiveAlerts()
+  }, [emergencyClearedAt, refreshActiveAlerts])
+
+  useEffect(() => {
+    const latest = notifications?.[0]
+    if (!latest || latest.type !== 'ALERT_NOTIFICATION') return
+    const incomingLevel = toPulseLevel(latest.severity)
+    if (!incomingLevel) return
+
+    setActiveAlertLevel((prev) => {
+      if (!prev) return incomingLevel
+      return ALERT_LEVEL_WEIGHT[incomingLevel] > ALERT_LEVEL_WEIGHT[prev] ? incomingLevel : prev
+    })
+  }, [notifications])
+
   const openDeleteModal  = () => { setDeleteError(''); setShowDeleteModal(true) }
   const closeDeleteModal = () => { if (!authLoading) setShowDeleteModal(false) }
   const confirmDelete    = async () => {
@@ -151,17 +206,17 @@ export default function Dashboard() {
   const leftProps   = { user, profile, onSelect: handleAvatarSelect, onReset: handleReset }
   const centerProps = { weatherData, loading, onRefresh: fetchWeather, forecastDone, simulatedMode, onModeChange: setSimulatedMode }
   const rightProps  = { weatherData, avatarState, autoSend, simulatedMode, emergency, onDismissEmergency: dismissEmergency }
+  const pulseLevel = toPulseLevel(emergency?.severity) ?? activeAlertLevel
+  const pulseBorderClass = pulseLevel === 'rojo' ? 'border-red-500' : pulseLevel === 'naranja' ? 'border-orange-400' : 'border-yellow-400'
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      {/* Emergency screen border pulse */}
-      {emergency && (
+      {/* Borde de alerta por severidad */}
+      {pulseLevel && (
         <div className={`
           fixed inset-0 pointer-events-none z-50
           border-4
-          ${emergency.severity === 'rojo'    ? 'border-red-500'    :
-            emergency.severity === 'naranja' ? 'border-orange-400' :
-            'border-yellow-400'}
+          ${pulseBorderClass}
           animate-emergency-pulse
         `} />
       )}

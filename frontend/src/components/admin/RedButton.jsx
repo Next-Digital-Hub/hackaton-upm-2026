@@ -264,6 +264,8 @@ export default function RedButton({ adminPassword }) {
   const [result, setResult] = useState(null)
   const [errorMsg, setErrorMsg] = useState('')
   const [clicked, setClicked] = useState(false)
+  const [stopLoading, setStopLoading] = useState(false)
+  const [stopMessage, setStopMessage] = useState('')
 
   const handleButtonClick = () => {
     setClicked(true)
@@ -273,6 +275,7 @@ export default function RedButton({ adminPassword }) {
 
   const handleConfirm = async ({ cause, severity, actions, title, color }) => {
     setPhase('loading')
+    setStopMessage('')
     try {
       const { data } = await api.post('/api/admin/emergency-broadcast', {
         password: adminPassword,
@@ -287,6 +290,26 @@ export default function RedButton({ adminPassword }) {
     } catch (err) {
       setErrorMsg(err.response?.data?.detail ?? 'Error al emitir. Revisa la conexión con la API.')
       setPhase('error')
+    }
+  }
+
+  const handleStopAlert = async () => {
+    if (stopLoading || phase === 'loading') return
+    setStopLoading(true)
+    setStopMessage('')
+
+    try {
+      const { data } = await api.post('/api/admin/emergency-stop', {
+        password: adminPassword,
+      })
+      setStopMessage(`${data.message} Alertas desactivadas: ${data.cleared_alerts ?? 0}.`)
+      setPhase('idle')
+      setResult(null)
+    } catch (err) {
+      setErrorMsg(err.response?.data?.detail ?? 'Error al detener la alerta activa.')
+      setPhase('error')
+    } finally {
+      setStopLoading(false)
     }
   }
 
@@ -367,6 +390,20 @@ export default function RedButton({ adminPassword }) {
             Sistema Activo
           </span>
         </motion.div>
+
+        <button
+          onClick={handleStopAlert}
+          disabled={stopLoading || phase === 'loading'}
+          className="px-5 py-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-500/25 border border-amber-400/40 text-amber-200 text-sm font-bold tracking-wide uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {stopLoading ? 'Deteniendo alerta...' : 'Detener alerta activa'}
+        </button>
+
+        {stopMessage && (
+          <p className="text-emerald-300 text-sm bg-emerald-500/10 border border-emerald-500/25 rounded-lg px-4 py-2">
+            {stopMessage}
+          </p>
+        )}
       </div>
 
       {/* ─── MODALS ─── */}

@@ -4,7 +4,7 @@ import { useAuth } from './AuthContext'
 const WebSocketContext = createContext(null)
 
 // Message types that should NOT be treated as user notifications
-const SYSTEM_TYPES = new Set(['CONNECTED', 'PONG', 'EMERGENCY_BROADCAST'])
+const SYSTEM_TYPES = new Set(['CONNECTED', 'PONG', 'EMERGENCY_BROADCAST', 'EMERGENCY_CLEAR'])
 
 function playAlert() {
   try {
@@ -26,6 +26,7 @@ function playAlert() {
 export function WebSocketProvider({ children }) {
   const { user } = useAuth()
   const [emergency, setEmergency] = useState(null)
+  const [emergencyClearedAt, setEmergencyClearedAt] = useState(null)
   const [connected, setConnected] = useState(false)
   // Non-emergency real-time notifications (e.g. ALERT_NOTIFICATION from admin)
   const [notifications, setNotifications] = useState([])
@@ -63,6 +64,12 @@ export function WebSocketProvider({ children }) {
         if (msg.type === 'EMERGENCY_BROADCAST') {
           setEmergency(msg)
           playAlert()
+          return
+        }
+
+        if (msg.type === 'EMERGENCY_CLEAR') {
+          setEmergency(null)
+          setEmergencyClearedAt(msg.timestamp ?? new Date().toISOString())
           return
         }
 
@@ -115,7 +122,7 @@ export function WebSocketProvider({ children }) {
 
   return (
     <WebSocketContext.Provider
-      value={{ emergency, connected, dismissEmergency, notifications, unreadCount, clearNotifications }}
+      value={{ emergency, emergencyClearedAt, connected, dismissEmergency, notifications, unreadCount, clearNotifications }}
     >
       {children}
     </WebSocketContext.Provider>

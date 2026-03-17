@@ -250,6 +250,34 @@ async def emergency_broadcast(body: dict, db: Session = Depends(get_db)):
         "broadcast_id": record.id,
         "alert_id": alert.id,
     }
+
+
+@router.post("/emergency-stop")
+async def emergency_stop(body: dict, db: Session = Depends(get_db)):
+    """Stops current emergency state and deactivates emergency alerts."""
+    _require_admin(body.get("password", ""))
+
+    cleared_alerts = (
+        db.query(Alert)
+        .filter(Alert.created_by == "admin-emergency", Alert.is_active == True)
+        .update({"is_active": False}, synchronize_session=False)
+    )
+    db.commit()
+
+    timestamp = datetime.utcnow().isoformat()
+    await manager.broadcast({
+        "type": "EMERGENCY_CLEAR",
+        "message": "La alerta de emergencia ha sido detenida por el panel de administración.",
+        "timestamp": timestamp,
+    })
+
+    logger.warning("Emergency alert stopped by admin | cleared_alerts=%s", cleared_alerts)
+
+    return {
+        "status": "stopped",
+        "message": "Alerta de emergencia detenida.",
+        "cleared_alerts": cleared_alerts,
+    }
 # ─── BROADCAST HISTORY ────────────────────────────────────────────────────────
 
 @router.get("/broadcasts", response_model=List[EmergencyBroadcastOut])

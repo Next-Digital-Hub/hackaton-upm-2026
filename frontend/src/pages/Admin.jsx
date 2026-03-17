@@ -162,7 +162,7 @@ export default function Admin() {
                 <div>
                   <h2 className="font-black text-red-200 uppercase tracking-wide">Sistema de Alerta de Emergencia</h2>
                   <p className="text-red-400/80 text-xs">
-                    Selecciona causa y severidad · alerta emitida a los {stats?.connected_ws_clients ?? 0} usuarios conectados
+                    Selecciona causa, severidad o detén la alerta activa · {stats?.connected_ws_clients ?? 0} usuarios conectados en tiempo real
                   </p>
                 </div>
               </div>
