@@ -4,7 +4,7 @@ import { Shield, LogOut, User, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 
 export default function Header() {
-    const { user, profile, signOut } = useAuth()
+    const { user, profile, signOut, isProfileComplete } = useAuth()
     const navigate = useNavigate()
     const [menuOpen, setMenuOpen] = useState(false)
 
@@ -33,13 +33,15 @@ export default function Header() {
                 <nav className={`header-nav ${menuOpen ? 'open' : ''}`}>
                     {user ? (
                         <>
-                            <Link
-                                to={profile?.role === 'admin' ? '/admin' : '/dashboard'}
-                                className="nav-link"
-                                onClick={() => setMenuOpen(false)}
-                            >
-                                Panel
-                            </Link>
+                            {isProfileComplete() && (
+                                <Link
+                                    to={profile?.role === 'admin' ? '/admin' : '/dashboard'}
+                                    className="nav-link"
+                                    onClick={() => setMenuOpen(false)}
+                                >
+                                    Panel
+                                </Link>
+                            )}
                             <div className="header-user">
                                 <User size={18} />
                                 <span className="user-name">

@@ -19,7 +19,7 @@ export default function LoginPage() {
         try {
             await signIn(email, password)
             toast.success('¡Bienvenido de vuelta!')
-            navigate(selectedRole === 'admin' ? '/admin' : '/dashboard')
+            navigate('/')
         } catch (err) {
             toast.error(err.message || 'Error al iniciar sesión')
         } finally {

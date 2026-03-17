@@ -44,6 +44,7 @@ export function AuthProvider({ children }) {
                 // Listen for auth changes
                 const { data } = supabase.auth.onAuthStateChange(
                     async (_event, session) => {
+                        setLoading(true) // Ensure children wait during auth transitions
                         setUser(session?.user ?? null)
                         if (session?.user) {
                             await fetchProfile(session.user.id)
@@ -56,6 +57,7 @@ export function AuthProvider({ children }) {
                 subscription = data?.subscription
             } catch (err) {
                 console.warn('Auth listener error:', err.message)
+                setLoading(false)
             }
         }
 
@@ -79,12 +81,21 @@ export function AuthProvider({ children }) {
 
     /** Sign in with email + password */
     async function signIn(email, password) {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        })
-        if (error) throw error
-        return data
+        setLoading(true)
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            })
+            if (error) throw error
+            if (data?.user) {
+                setUser(data.user)
+                await fetchProfile(data.user.id)
+            }
+            return data
+        } finally {
+            setLoading(false)
+        }
     }
 
     /** Sign in with Google OAuth */
@@ -92,7 +103,7 @@ export function AuthProvider({ children }) {
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: window.location.origin + '/complete-profile',
+                redirectTo: window.location.origin,
             },
         })
         if (error) throw error
@@ -128,7 +139,7 @@ export function AuthProvider({ children }) {
     /** Check if profile is complete (has required fields filled) */
     function isProfileComplete() {
         if (!profile) return false
-        return !!(profile.provincia && profile.tipo_vivienda && profile.full_name)
+        return !!(profile.provincia && profile.tipo_vivienda)
     }
 
     const value = {
