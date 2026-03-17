@@ -6,6 +6,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.client.RestClient;
 
 @Configuration
 @EnableWebSecurity
@@ -22,5 +23,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**")
                         .permitAll().anyRequest().authenticated());
         return http.build();
+    }
+
+    @Bean
+    public RestClient.Builder restClientBuilder() {
+        return RestClient.builder();
     }
 }
