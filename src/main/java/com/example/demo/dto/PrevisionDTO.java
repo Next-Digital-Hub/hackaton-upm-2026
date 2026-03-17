@@ -38,4 +38,43 @@ public record PrevisionDTO(
         @JsonProperty("horaracha") String horaRachaVientoMaxima,
         @JsonProperty("prec") String precipitacion,
         @JsonProperty("sol") String horasSol
-) {}
+) {
+
+    @Override
+    public String toString() {
+        return """
+                ### Datos Meteorológicos (%s)
+                - **Estación**: %s (%s) en %s
+                - **Altitud**: %s m
+                
+                #### Temperaturas
+                - **Máxima**: %s°C (a las %s)
+                - **Mínima**: %s°C (a las %s)
+                - **Media**: %s°C
+                
+                #### Humedad y Precipitación
+                - **Humedad Media**: %s%%
+                - **Humedad Máx/Mín**: %s%% / %s%%
+                - **Precipitación acumulada**: %s mm
+                
+                #### Viento y Presión
+                - **Velocidad media**: %s km/h
+                - **Racha máxima**: %s km/h (Dirección: %s)
+                - **Presión Máx/Mín**: %s / %s hPa
+                """.formatted(
+                fecha,
+                nombreEstacion, indicativoEstacion, provincia,
+                altitudMetros,
+                temperaturaMaxima, horaTemperaturaMaxima,
+                temperaturaMinima, horaTemperaturaMinima,
+                temperaturaMedia,
+                humedadRelativaMedia,
+                humedadRelativaMaxima, humedadRelativaMinima,
+                precipitacion,
+                velocidadMediaViento,
+                rachaVientoMaxima, direccionViento,
+                presionMaxima, presionMinima
+        );
+    }
+
+}

@@ -14,4 +14,21 @@ public record UserRegitrationDTO(
         Rol rol
 ) {
 
+    @Override
+    public String toString() {
+        return """
+                - **Nombre**: %s
+                - **Provincia**: %s
+                - **Tipo de Vivienda**: %s
+                - **Necesidades Especiales**: %s
+                - **Rol en el sistema**: %s
+                """.formatted(
+                nombre,
+                provincia,
+                tipoVivienda,
+                tipoNecesidades,
+                rol
+        );
+    }
+
 }
