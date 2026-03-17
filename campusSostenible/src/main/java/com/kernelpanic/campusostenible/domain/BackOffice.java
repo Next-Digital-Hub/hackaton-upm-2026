@@ -1,4 +1,4 @@
-package dev.sergio.user_service.domain;
+package com.kernelpanic.campusostenible.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,7 +10,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Citizen {
+public class BackOffice {
 
     @Id
     @Column(nullable = false, unique = true)

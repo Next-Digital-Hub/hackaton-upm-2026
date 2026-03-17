@@ -1,4 +1,4 @@
-package com.kernelpanic.campusSostenible;
+package com.kernelpanic.campusostenible;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

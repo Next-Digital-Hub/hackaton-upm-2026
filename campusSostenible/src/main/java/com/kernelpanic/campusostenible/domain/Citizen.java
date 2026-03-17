@@ -1,4 +1,4 @@
-package dev.sergio.user_service.domain;
+package com.kernelpanic.campusostenible.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
