@@ -23,8 +23,6 @@ import { CondicionesRow } from "../components/CondicionesRow";
 
 // TODO: el admin podrá seleccionar provincia
 const PROVINCIA = "VALENCIA";
-// TODO: obtener idAdmin del sistema de autenticación cuando exista register/login
-const ID_ADMIN = "admin-temp-001";
 
 const emptyForm = {
   tipo: "" as string,
@@ -48,7 +46,7 @@ export function AdminPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const cargarAlertas = useCallback(() => {
-    getAlertasByAdmin(ID_ADMIN)
+    getAlertasByAdmin()
       .then(setAlertas)
       .catch(() => setAlertas([]));
   }, []);
@@ -57,7 +55,7 @@ export function AdminPage() {
     setLoading(true);
     Promise.all([
       getCondicionesByProvincia(PROVINCIA).catch(() => []),
-      getAlertasByAdmin(ID_ADMIN).catch(() => []),
+      getAlertasByAdmin().catch(() => []),
       getTiposAlerta().catch(() => []),
       getNivelesAlerta().catch(() => []),
     ])
@@ -80,7 +78,6 @@ export function AdminPage() {
     try {
       const nueva: Partial<Alerta> = {
         isActive: true,
-        idAdmin: ID_ADMIN,
       };
       if (form.tipo) nueva.tipo = form.tipo;
       if (form.nivel) nueva.nivel = form.nivel;

@@ -7,7 +7,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 const LIBROS = `${BASE_URL}/api/libros`;
 const CLIMA = `${BASE_URL}/api/clima`;
 const ALERTAS = `${BASE_URL}/api/alertas`;
-const USUARIOS = `${BASE_URL}/api/usuarios`;
+const AUTH = `${BASE_URL}/api/auth`;
 const ENUMS = `${BASE_URL}/api/enums`;
 
 // --- Enums (cargados dinámicamente desde el backend) ---
@@ -55,9 +55,9 @@ export async function getNivelesAlerta(): Promise<string[]> {
 // --- Registro de usuarios ---
 
 // Registra un ciudadano con sus datos personales y formulario de condiciones
-// POST /api/usuarios/register/ciudadano — body: RegisterDTO (con userForm)
+// POST /api/auth/registerCiudadano — body: RegisterDTO (con userForm)
 export async function registerCiudadano(dto: RegisterDTO): Promise<void> {
-  const res = await fetch(`${USUARIOS}/register/ciudadano`, {
+  const res = await fetch(`${AUTH}/registerCiudadano`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(dto),
@@ -66,9 +66,9 @@ export async function registerCiudadano(dto: RegisterDTO): Promise<void> {
 }
 
 // Registra un administrador (solo nombre y contraseña)
-// POST /api/usuarios/register/admin — body: { nombre, password, rol: "ADMINISTRADOR" }
+// POST /api/auth/registerAdmin — body: { nombre, password }
 export async function registerAdmin(dto: RegisterDTO): Promise<void> {
-  const res = await fetch(`${USUARIOS}/register/admin`, {
+  const res = await fetch(`${AUTH}/registerAdmin`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(dto),
@@ -86,26 +86,34 @@ export async function getCondicionesByProvincia(provincia: string): Promise<Cond
 
 // --- Alertas ---
 
+// Helper para obtener el header de autorización
+function authHeader(): Record<string, string> {
+  const token = localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export async function getAlertasByProvincia(provincia: string): Promise<Alerta[]> {
   const res = await fetch(`${ALERTAS}?provincia=${encodeURIComponent(provincia)}`);
   if (!res.ok) throw new Error("Error al cargar alertas");
   return res.json();
 }
 
-// Obtiene todas las alertas creadas por un admin concreto
-// GET /api/alertas/admin/{idAdmin}
-export async function getAlertasByAdmin(idAdmin: string): Promise<Alerta[]> {
-  const res = await fetch(`${ALERTAS}/admin/${encodeURIComponent(idAdmin)}`);
+// Obtiene las alertas creadas por el admin autenticado
+// GET /api/alertas/mis-alertas (requiere Authorization header)
+export async function getAlertasByAdmin(): Promise<Alerta[]> {
+  const res = await fetch(`${ALERTAS}/mis-alertas`, {
+    headers: { ...authHeader() },
+  });
   if (!res.ok) throw new Error("Error al cargar alertas del admin");
   return res.json();
 }
 
 // Crea una nueva alerta manual emitida por un admin
-// POST /api/alertas  — body: Partial<Alerta> (campos opcionales) + isActive=true + idAdmin
+// POST /api/alertas (requiere Authorization header)
 export async function crearAlerta(alerta: Partial<Alerta>): Promise<Alerta> {
   const res = await fetch(ALERTAS, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeader() },
     body: JSON.stringify(alerta),
   });
   if (!res.ok) throw new Error("Error al crear alerta");
@@ -113,23 +121,32 @@ export async function crearAlerta(alerta: Partial<Alerta>): Promise<Alerta> {
 }
 
 // Desactiva una alerta (isActive=false)
-// POST /api/alertas/{id}/apagar
+// POST /api/alertas/apagar-alerta/{id} (requiere Authorization header)
 export async function apagarAlerta(id: string): Promise<void> {
-  const res = await fetch(`${ALERTAS}/${encodeURIComponent(id)}/apagar`, { method: "POST" });
+  const res = await fetch(`${ALERTAS}/apagar-alerta/${encodeURIComponent(id)}`, {
+    method: "POST",
+    headers: { ...authHeader() },
+  });
   if (!res.ok) throw new Error("Error al apagar alerta");
 }
 
 // Reactiva una alerta (isActive=true)
-// POST /api/alertas/{id}/encender
+// POST /api/alertas/encender-alerta/{id} (requiere Authorization header)
 export async function encenderAlerta(id: string): Promise<void> {
-  const res = await fetch(`${ALERTAS}/${encodeURIComponent(id)}/encender`, { method: "POST" });
+  const res = await fetch(`${ALERTAS}/encender-alerta/${encodeURIComponent(id)}`, {
+    method: "POST",
+    headers: { ...authHeader() },
+  });
   if (!res.ok) throw new Error("Error al encender alerta");
 }
 
 // Elimina una alerta permanentemente
-// DELETE /api/alertas/{id}
+// DELETE /api/alertas/{id} — TODO: implementar endpoint en backend
 export async function eliminarAlerta(id: string): Promise<void> {
-  const res = await fetch(`${ALERTAS}/${encodeURIComponent(id)}`, { method: "DELETE" });
+  const res = await fetch(`${ALERTAS}/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    headers: { ...authHeader() },
+  });
   if (!res.ok) throw new Error("Error al eliminar alerta");
 }
 
