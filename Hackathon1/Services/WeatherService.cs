@@ -27,11 +27,10 @@ namespace Hackathon1.Services
 
             var record = new WeatherRecord
             {
-                Timestamp = dto.Timestamp,
-                TemperatureCelsius = dto.Temperatura,
-                Humidity = dto.Humedad,
-                Location = provincia,
-                Description = dto.Descripcion
+                Indicativo = string.Empty,
+                Nombre = provincia,
+                Provincia = provincia,
+                Fecha = dto.Timestamp
             };
 
             _context.WeatherRecords.Add(record);
