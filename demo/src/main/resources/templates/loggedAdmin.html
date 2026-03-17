@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPM-Arts | Admin</title>
+    <style>
+        :root { --upm-blue: #004481; --bg: #f0f2f5; --card: #ffffff; --text: #1c1e21; --border: #dee2e6; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+        header { background: var(--upm-blue); color: white; padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
+        .card { background: var(--card); border-radius: 12px; padding: 20px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .btn { background: var(--upm-blue); color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 10px; }
+        .item { border-left: 4px solid var(--upm-blue); padding: 10px; background: #f8f9fa; margin-bottom: 10px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+<header>
+    <div><strong>UPM-Arts</strong> | Administración</div>
+    <button onclick="window.location.href='index.html'" style="background:white; color:var(--upm-blue); border:none; padding:5px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">Cerrar Sesión</button>
+</header>
+<div class="container">
+    <aside>
+        <div class="card">
+            <h3>Gestión General</h3>
+            <button class="btn">Dar de alta Instructor [cite: 44]</button>
+            <button class="btn" style="background:#555">Crear Asociación [cite: 65]</button>
+        </div>
+    </aside>
+    <main>
+        <div class="card">
+            <h3>Inventario de Equipamiento </h3>
+            <div class="item">🎹 Piano de cola (SN: 2024-X1) - Aula Música [cite: 54]</div>
+            <div class="item">📽️ Proyector 4K (SN: 2025-P2) - Auditorio [cite: 54]</div>
+            <button class="btn" style="width:auto; padding:10px 20px;">+ Añadir Recurso</button>
+        </div>
+    </main>
+</div>
+</body>
+</html>
