@@ -1,22 +1,27 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.CitizenDTO;
-import com.example.demo.dto.PrevisionDTO;
+import com.example.demo.dto.PredictionDTO;
 import com.example.demo.model.Ciudadano;
 import com.example.demo.model.User;
-import com.example.demo.service.ApiPrevisionClient;
+import com.example.demo.service.ApiPredictionClient;
+import com.example.demo.dto.CitizenDTO;
 import com.example.demo.service.ApiLlmClient;
+import com.example.demo.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
 @RequestMapping("/dashboard")
 public class CitizenController {
 
-    private final ApiPrevisionClient apiPrevisionClient;
+    private final UserService userService;
+    private final ApiPredictionClient apiPredictionClient;
     private final ApiLlmClient apiLlmClient;
     // Más adelante inyectaremos aquí servicios de base de datos como AlertService o HistorialService
 
@@ -24,52 +29,54 @@ public class CitizenController {
             "Dame una recomendación de seguridad basada en la siguiente predicción y contexto personal";
 
     // Inyección de dependencias por constructor
-    public CitizenController(ApiPrevisionClient apiPrevisionClient, ApiLlmClient apiLlmClient) {
-        this.apiPrevisionClient = apiPrevisionClient;
+    public CitizenController(UserService userService, ApiPredictionClient apiPredictionClient, ApiLlmClient apiLlmClient) {
+        this.userService = userService;
+        this.apiPredictionClient = apiPredictionClient;
         this.apiLlmClient = apiLlmClient;
     }
 
-    /**
-     * Endpoint para alimentar el div#infoprevision de dashboard.html
-     */
-    @GetMapping("/prevision")
-    public ResponseEntity<PrevisionDTO> obtenerPrevisionActual() {
-        // 1. Llamamos a la API externa mediante nuestro servicio
-        PrevisionDTO previsionActual = apiPrevisionClient.getPrevision();
+    @GetMapping("/user")
+    public ResponseEntity<User> getCitizenByUsername(String name){
+        Optional<User> user = this.userService.findByUsername(name);
+        return ResponseEntity.of(user);
+    }
 
-        // 2. Usamos ResponseEntity para manejar casos donde la API externa falle
-        if (previsionActual != null) {
-            return ResponseEntity.ok(previsionActual); // Devuelve HTTP 200 y el JSON del prevision
+    /**
+     * Endpoint para alimentar el div#infoprediction de dashboard.html
+     */
+    @GetMapping("/prediction")
+    public ResponseEntity<PredictionDTO> getActualPrediction() {
+        PredictionDTO currectPrediction = apiPredictionClient.getPrediction();
+        if (currectPrediction != null) {
+            return ResponseEntity.ok(currectPrediction);
         } else {
-            return ResponseEntity.noContent().build(); // Devuelve HTTP 204 si no hay datos
+            return ResponseEntity.noContent().build();
         }
     }
 
     /**
      * Endpoint para alimentar el div#panelIA de dashboard.html
      */
-    @GetMapping("/recomendacion")
-    public ResponseEntity<Map<String, String>> obtenerRecomendacionIA() {
-        // 1. Definimos los prompts. En una versión final, aquí sacarías los datos
-        // del usuario (si vive en sótano, necesidades) de la BBDD para personalizar el userPrompt.
+    @PostMapping("/recommendation")
+    public ResponseEntity<Map<String, String>> getLlmPoweredRecommendation(String username, PredictionDTO prediction) {
+        Optional<User> citizen = userService.findByUsername(username);
+        if(citizen.isEmpty()) return ResponseEntity.notFound().build();
+        CitizenDTO currentCitizen = this.convertToDTO(citizen.get());
+
         String systemPrompt = "Eres un asistente meteorológico experto en protección civil. Sé breve y directo.";
-        String userPrompt = new UserPromptVO(SECURITY_SUGGESTIONS_PROMPT).toString();
 
-        // 2. Llamamos al LLM
-        String respuestaLlm = apiLlmClient.generateRecommendation(systemPrompt, userPrompt);
+        UserPromptVO userPromptVO = new UserPromptVO(SECURITY_SUGGESTIONS_PROMPT, currentCitizen.toString(), prediction.toString());
 
-        // 3. Empaquetamos la respuesta de texto plano en un formato JSON { "mensaje": "..." }
-        // para que tu JavaScript (fetch) pueda leerlo fácilmente con response.json()
-        Map<String, String> respuestaJson = Map.of("mensaje", respuestaLlm);
+        String respuestaLlm = apiLlmClient.generateRecommendation(systemPrompt, userPromptVO.toString());
 
-        return ResponseEntity.ok(respuestaJson);
+        return ResponseEntity.ok(Map.of("response", respuestaLlm));
     }
 
     /**
      * Endpoint para alimentar la lista de alertas activas
      */
-    @GetMapping("/alertas")
-    public ResponseEntity<List<String>> obtenerAlertasActivas() {
+    @GetMapping("/alerts")
+    public ResponseEntity<List<String>> getActiveAlerts() {
         // TODO: Llamar a tu AlertService para obtener las alertas de H2 creadas por el Backoffice
         // Por ahora devolvemos datos mockeados para que el frontend pueda ir trabajando
         List<String> alertasMock = List.of(
@@ -82,11 +89,11 @@ public class CitizenController {
     /**
      * Endpoint para alimentar el historial de consultas del ciudadano
      */
-    @GetMapping("/historial")
-    public ResponseEntity<List<String>> obtenerHistorialConsultas() {
+    @GetMapping("/history")
+    public ResponseEntity<List<String>> getHistory() {
         // TODO: Consultar la base de datos para extraer el registro de este usuario
         List<String> historialMock = List.of(
-                "Consulta de prevision - 17/03/2026 10:00",
+                "Consulta de prediction - 17/03/2026 10:00",
                 "Consulta de recomendación IA - 16/03/2026 18:30"
         );
         return ResponseEntity.ok(historialMock);
