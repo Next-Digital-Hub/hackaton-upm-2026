@@ -98,6 +98,21 @@
   color: var(--text-primary);
 }
 
+.user-name-link {
+  text-decoration: none;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.user-name-link:hover {
+  background: var(--primary-50);
+}
+
+.user-name-link:hover .user-name {
+  color: var(--primary);
+}
+
 .role-badge {
   font-size: 0.7rem;
   font-weight: 700;
