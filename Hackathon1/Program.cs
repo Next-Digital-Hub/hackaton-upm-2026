@@ -25,6 +25,12 @@ builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<IAlertEmitter, AlertEmitter>();
 builder.Services.AddScoped<IAlertRecommendationService, AlertRecommendationService>();
 builder.Services.AddScoped<IAlertGuidanceService, AlertGuidanceService>();
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Google:ClientId"];
+        options.ClientSecret = builder.Configuration["Google:ClientSecret"];
+    });
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

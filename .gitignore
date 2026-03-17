@@ -20,7 +20,7 @@ Migrations/
 
 # User-specific files
 *.rsuser
-
+appsettings.*
 # NuGet
 *.nupkg
 *.snupkg
