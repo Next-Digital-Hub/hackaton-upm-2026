@@ -165,9 +165,13 @@ export default function Chat() {
           <div className="bg-primary text-secondary w-full h-full grid grid-flow-rows p-3 gap-4">
           <div className="bg-neutral-900 text-secondary w-full h-full grid grid-flow-rows p-3 gap-4">
           <div>
-          <Field>
-          
-          </Field>
+            <Field className = "w-full sticky top-0 z-index bg-neutral-500 p-4 rounded-lg ">
+              <FieldLabel>Emergencias Climaticas</FieldLabel>
+              <FieldDescription className = "text-color-zinc-500 justify-self-center  p-2">
+                  Olas de calor
+                  Tormenta Electrica
+              </FieldDescription>
+            </Field>
           </div>
           <div className="flex flex-col gap-4 p-4 "> 
           {messages
