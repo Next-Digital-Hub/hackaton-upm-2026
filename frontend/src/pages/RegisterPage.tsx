@@ -20,6 +20,7 @@ import {
   registerCiudadano,
   registerAdmin,
 } from "../config/api";
+import logo from "../assets/logo.png";
 
 interface RegisterPageProps {
   onRegistered: (token: string, nombre: string, rol: string) => void;
@@ -115,6 +116,9 @@ export function RegisterPage({ onRegistered, onGoToLogin }: RegisterPageProps) {
   if (!rol) {
     return (
       <Container maxWidth="xs" sx={{ py: 6 }}>
+        <Box display="flex" justifyContent="center" mb={3}>
+          <Box component="img" src={logo} alt="ClimAlert Logo" sx={{ height: 80 }} />
+        </Box>
         <Typography variant="h4" gutterBottom textAlign="center">
           Registro
         </Typography>
@@ -141,9 +145,12 @@ export function RegisterPage({ onRegistered, onGoToLogin }: RegisterPageProps) {
   // Paso 2: formulario
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Registro — {rol.replace(/_/g, " ")}
-      </Typography>
+      <Box display="flex" alignItems="center" gap={2} mb={2}>
+        <Box component="img" src={logo} alt="ClimAlert Logo" sx={{ height: 50 }} />
+        <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
+          Registro — {rol.replace(/_/g, " ")}
+        </Typography>
+      </Box>
 
       <Button size="small" sx={{ mb: 2 }} onClick={() => setRol(null)}>
         ← Cambiar rol

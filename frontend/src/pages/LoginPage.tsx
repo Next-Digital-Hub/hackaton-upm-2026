@@ -6,6 +6,7 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
 import { login } from "../config/api";
+import logo from "../assets/logo.png";
 
 interface LoginPageProps {
   onLogin: (token: string, nombre: string, rol: string) => void;
@@ -37,6 +38,9 @@ export function LoginPage({ onLogin, onGoToRegister }: LoginPageProps) {
 
   return (
     <Container maxWidth="xs" sx={{ py: 8 }}>
+      <Box display="flex" justifyContent="center" mb={3}>
+        <Box component="img" src={logo} alt="ClimAlert Logo" sx={{ height: 100 }} />
+      </Box>
       <Typography variant="h4" gutterBottom textAlign="center">
         Iniciar sesión
       </Typography>
