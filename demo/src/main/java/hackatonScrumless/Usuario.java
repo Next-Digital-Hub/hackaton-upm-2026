@@ -12,9 +12,9 @@ public class Usuario {
     }
 
     // Constructor con parámetros
-    public Usuario(String nic, String contrasena, TipoDeVivienda vivienda,
+    public Usuario(String nik, String contrasena, TipoDeVivienda vivienda,
                    NecesidadesEspeciales necesidadesEspeciales, String provincia) {
-        this.nic = nic;
+        this.nik = nik;
         this.contrasena = contrasena;
         this.vivienda = vivienda;
         this.necesidadesEspeciales = necesidadesEspeciales;
@@ -23,12 +23,12 @@ public class Usuario {
 
     // --- GETTERS Y SETTERS ---
 
-    public String getNic() {
-        return nic;
+    public String getNik() {
+        return nik;
     }
 
-    public void setNic(String nic) {
-        this.nic = nic;
+    public void setNic(String nik) {
+        this.nik = nik;
     }
 
     public String getContrasena() {
