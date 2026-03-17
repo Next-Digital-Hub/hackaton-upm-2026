@@ -1,7 +1,7 @@
 package hackatonScrumless;
 
 public class Usuario {
-    private String nic;
+    private String nik;
     private String contrasena; // Evito la 'ñ' por compatibilidad de encoding, pero puedes usar contraseña
     private TipoDeVivienda vivienda;
     private NecesidadesEspeciales necesidadesEspeciales;
