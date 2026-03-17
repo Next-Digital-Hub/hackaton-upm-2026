@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Recomendaciones — ClimAlert{% endblock %}
+{% block content %}
+<div class="page-h">
+    <h1>🛡️ Recomendaciones</h1>
+    <p class="sub">Clima actual y consejos personalizados para {{ current_user.provincia }}</p>
+</div>
+
+{% if error %}
+<div class="card"><div class="flash flash-danger">{{ error }}</div></div>
+{% else %}
+
+{# ── Banner de nivel de alerta ── #}
+{% if data.weather.nivel_alerta %}
+<div class="alert-ban ban-{{ data.weather.nivel_alerta }} mb2">
+    <span>{% if data.weather.nivel_alerta=='ROJO' %}🔴{% elif data.weather.nivel_alerta=='AMARILLO' %}🟡{% else %}🟢{% endif %}</span>
+    <div><h3>Nivel de alerta: {{ data.weather.nivel_alerta|upper }}</h3></div>
+</div>
+{% endif %}
+
+{# ── Datos meteorológicos completos ── #}
+{% if data.weather %}
+<div class="card mb2">
+    <h3 class="mb2">🌦️ Condiciones actuales</h3>
+    {% if data.weather.estacion %}
+    <p class="ts tm mb2">Estación: {{ data.weather.estacion }} · {{ data.weather.fecha }}</p>
+    {% endif %}
+    <div class="wg">
+        {% if data.weather.temperatura_media is not none %}
+        <div class="wi"><div class="wi-l">Temperatura media</div><div class="wi-v">{{ data.weather.temperatura_media }}°C</div></div>
+        {% endif %}
+        {% if data.weather.temperatura_maxima is not none %}
+        <div class="wi"><div class="wi-l">Máxima / Mínima</div><div class="wi-v">{{ data.weather.temperatura_maxima }}°C / {{ data.weather.temperatura_minima }}°C</div></div>
+        {% endif %}
+        {% if data.weather.precipitacion_mm is not none %}
+        <div class="wi"><div class="wi-l">Precipitación</div><div class="wi-v">{{ data.weather.precipitacion_mm }} mm</div></div>
+        {% endif %}
+        {% if data.weather.humedad_media is not none %}
+        <div class="wi"><div class="wi-l">Humedad media</div><div class="wi-v">{{ data.weather.humedad_media }}%</div></div>
+        {% endif %}
+        {% if data.weather.humedad_maxima is not none %}
+        <div class="wi"><div class="wi-l">Humedad máx / mín</div><div class="wi-v">{{ data.weather.humedad_maxima }}% / {{ data.weather.humedad_minima }}%</div></div>
+        {% endif %}
+        {% if data.weather.velocidad_viento is not none %}
+        <div class="wi"><div class="wi-l">Velocidad viento</div><div class="wi-v">{{ data.weather.velocidad_viento }} km/h</div></div>
+        {% endif %}
+        {% if data.weather.racha_maxima is not none %}
+        <div class="wi"><div class="wi-l">Racha máxima</div><div class="wi-v">{{ data.weather.racha_maxima }} km/h</div></div>
+        {% endif %}
+        {% if data.weather.presion_maxima is not none %}
+        <div class="wi"><div class="wi-l">Presión atmosférica</div><div class="wi-v">{{ data.weather.presion_maxima }} / {{ data.weather.presion_minima }} hPa</div></div>
+        {% endif %}
+        {% if data.weather.horas_sol is not none %}
+        <div class="wi"><div class="wi-l">Horas de sol</div><div class="wi-v">{{ data.weather.horas_sol }} h</div></div>
+        {% endif %}
+
+        {% if data.weather.nivel_alerta %}
+        <div class="wi"><div class="wi-l">Nivel de alerta</div><div class="wi-v"><span class="nv nv-{{ data.weather.nivel_alerta|lower }}">{{ data.weather.nivel_alerta }}</span></div></div>
+        {% endif %}
+
+    </div>
+</div>
+{% endif %}
+
+{# ── Recomendaciones personalizadas ── #}
+{% if data.recomendacion %}
+<div class="card">
+    <h3 class="mb2">🤖 Instrucciones personalizadas</h3>
+    <div class="reco">
+        <ol class="reco-list">
+            {% for paso in data.recomendacion.instrucciones %}
+            <li>{{ paso }}</li>
+            {% endfor %}
+        </ol>
+    </div>
+    <p class="ts tm mt2">Tu perfil: {{ current_user.tipo_vivienda }} en {{ current_user.provincia }}{% if current_user.necesidades_especiales %} · {{ current_user.necesidades_especiales }}{% endif %}</p>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}

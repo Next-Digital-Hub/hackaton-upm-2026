@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ClimAlert Valencia{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+{% if current_user %}
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="{{ url_for('index') }}" class="brand">⚡ ClimAlert <b>VLC</b></a>
+        <button class="nav-toggle" onclick="this.nextElementSibling.classList.toggle('open')"><span></span><span></span><span></span></button>
+        <div class="nav-links">
+            {% if is_admin %}
+            <a href="{{ url_for('bo_dashboard') }}" class="nav-a {{ 'on' if request.endpoint=='bo_dashboard' }}">Panel</a>
+            <a href="{{ url_for('bo_weather') }}" class="nav-a {{ 'on' if request.endpoint=='bo_weather' }}">Clima</a>
+            <a href="{{ url_for('bo_historial') }}" class="nav-a {{ 'on' if request.endpoint=='bo_historial' }}">Historial</a>
+            {% else %}
+            <a href="{{ url_for('citizen_dashboard') }}" class="nav-a {{ 'on' if request.endpoint=='citizen_dashboard' }}">Inicio</a>
+            <a href="{{ url_for('citizen_recommendations') }}" class="nav-a {{ 'on' if request.endpoint=='citizen_recommendations' }}">Recomendaciones</a>
+            <a href="{{ url_for('citizen_historial') }}" class="nav-a {{ 'on' if request.endpoint=='citizen_historial' }}">Historial</a>
+            {% endif %}
+            <a href="{{ url_for('perfil') }}" class="nav-a {{ 'on' if request.endpoint=='perfil' }}">Perfil</a>
+            <div class="nav-sep"></div>
+            <!-- 🔔 Campana -->
+            <div class="notif-wrap" id="notifWrap">
+                <button class="notif-bell" onclick="toggleNotif()">🔔<span class="notif-dot hidden" id="notifDot"></span></button>
+                <div class="notif-panel" id="notifPanel">
+                    <div class="notif-head"><b>Alertas</b> <span id="notifCount">0</span></div>
+                    <div id="notifList"><div class="notif-empty">Sin alertas</div></div>
+                </div>
+            </div>
+            <span class="nav-user">{{ current_user.nombre }} <small class="nav-badge">{{ 'Admin' if is_admin else 'Ciudadano' }}</small></span>
+            <a href="{{ url_for('logout') }}" class="nav-a nav-out">Salir</a>
+        </div>
+    </div>
+</nav>
+<div id="toastContainer" class="toast-container"></div>
+{% endif %}
+
+<main class="main">
+    {% with msgs = get_flashed_messages(with_categories=true) %}{% if msgs %}
+    <div class="flashes">{% for cat, msg in msgs %}
+        <div class="flash flash-{{ cat }}" onclick="this.remove()">{{ msg }}</div>
+    {% endfor %}</div>
+    {% endif %}{% endwith %}
+
+    <!-- Banners de alerta -->
+    <div id="alertBanners">
+    {% for a in alertas_activas %}
+    <div class="alert-ban ban-{{ a.nivel }}" data-id="{{ a.id }}">
+        <span>{% if a.nivel=='rojo' %}🔴{% elif a.nivel=='amarillo' %}🟡{% else %}🟢{% endif %}</span>
+        <div><h3>{{ a.titulo }}</h3><p>{{ a.mensaje }}</p><small>{{ a.provincia or 'Toda la comunidad' }}</small></div>
+    </div>
+    {% endfor %}
+    </div>
+
+    {% block content %}{% endblock %}
+</main>
+
+{% if current_user %}
+<footer class="foot">ClimAlert Valencia — UPM 2026 · Emergencias: <b>112</b> · Bomberos: <b>085</b></footer>
+{% endif %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
