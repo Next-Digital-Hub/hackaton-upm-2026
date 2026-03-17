@@ -8,17 +8,23 @@ services:
       - ./mysql_data:/var/lib/mysql
     networks:
       - hackathon-network
+    restart: unless-stopped
     
   backend:
     build:
       context: ../
       dockerfile: docker/Dockerfile.backend
 
+    volumes:
+      - ../backend:/app
+
     environment:
       - DATABASE_URL=sqlite:///yks.db
 
     networks:
       - hackathon-network
+
+    restart: unless-stopped
 
   frontend:
     build:
@@ -28,10 +34,15 @@ services:
       - "3000:3000"
     environment:
       - BACKEND_URL=http://backend:5000
+
+    volumes:
+      - ../frontend:/app
     networks:
       - hackathon-network
     depends_on:
       - backend
+
+    restart: unless-stopped
 
 networks:
   hackathon-network:

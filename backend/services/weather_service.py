@@ -1,6 +1,7 @@
 import requests
 from dotenv import load_dotenv
 import os
+from services.llm_service import ask_llm
 
 load_dotenv()
 
@@ -25,7 +26,6 @@ def get_weather(disaster: bool = False) -> dict:
 
 
 def _normalize_weather(raw: dict) -> dict:
-    from llm_service import ask_llm
 
-    normalized = ask_llm(function="analyze", data=raw)
+    normalized = ask_llm(function="analyze", weather_data=raw)
     return normalized

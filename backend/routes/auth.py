@@ -65,7 +65,7 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-    token = create_access_token(identity={"id": user.id, "rol": user.rol})
+    token = create_access_token(identity=f'{str(user.id)}|{user.rol}')
     return jsonify({"message": "Usuario registrado correctamente", "token": token, "user": user.to_dict()}), 201
 
 
@@ -81,7 +81,7 @@ def login():
     if not user or not user.check_password(data["password"]):
         return jsonify({"error": "Credenciales incorrectas"}), 401
 
-    token = create_access_token(identity={"id": user.id, "rol": user.rol})
+    token = create_access_token(identity=f'{str(user.id)}|{user.rol}')
     return jsonify({"token": token, "user": user.to_dict()}), 200
 
 
@@ -89,7 +89,7 @@ def login():
 @jwt_required()
 def me():
     identity = get_jwt_identity()
-    user = User.query.get(identity["id"])
+    user = User.query.get(int(identity.split("|")[0]))
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
     return jsonify(user.to_dict()), 200
@@ -99,7 +99,7 @@ def me():
 @jwt_required()
 def update_profile():
     identity = get_jwt_identity()
-    user = User.query.get(identity["id"])
+    user = User.query.get(int(identity.split("|")[0]))
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
 
