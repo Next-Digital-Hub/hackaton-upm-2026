@@ -125,12 +125,15 @@ export function AdminPage() {
     }
   };
 
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
   const handleGenerar = async () => {
     setGenerando(true);
     setError(null);
+    setSuccessMsg(null);
     try {
-      const nuevas = await generarAlertas();
-      setAlertas((prev) => [...nuevas, ...prev]);
+      await generarAlertas();
+      setSuccessMsg("Generación de alertas iniciada. Las alertas aparecerán en unos segundos.");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Error al generar alertas");
     } finally {
@@ -162,6 +165,12 @@ export function AdminPage() {
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
           {error}
+        </Alert>
+      )}
+
+      {successMsg && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMsg(null)}>
+          {successMsg}
         </Alert>
       )}
 

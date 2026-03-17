@@ -10,13 +10,28 @@ const ALERTAS = `${BASE_URL}/api/alertas`;
 const AUTH = `${BASE_URL}/api/auth`;
 const ENUMS = `${BASE_URL}/api/enums`;
 
+/**
+ * Lanza un error con el mensaje del body JSON si la respuesta no es ok.
+ * Si el body tiene un campo "message", lo usa; si no, usa el fallback.
+ */
+async function throwIfError(res: Response, fallback: string): Promise<void> {
+  if (res.ok) return;
+  let msg = fallback;
+  try {
+    const body = await res.json();
+    if (typeof body === "string") msg = body;
+    else if (body?.message) msg = body.message;
+  } catch { /* body no es JSON, usamos fallback */ }
+  throw new Error(msg);
+}
+
 // --- Enums (cargados dinámicamente desde el backend) ---
 
 // Devuelve los valores del enum RolUsuario: ["CIUDADANO", "ADMINISTRADOR"]
 // GET /api/enums/roles
 export async function getRoles(): Promise<string[]> {
   const res = await fetch(`${ENUMS}/roles`);
-  if (!res.ok) throw new Error("Error al cargar roles");
+  await throwIfError(res, "Error al cargar roles");
   return res.json();
 }
 
@@ -24,7 +39,7 @@ export async function getRoles(): Promise<string[]> {
 // GET /api/enums/tipos-vivienda
 export async function getTiposVivienda(): Promise<string[]> {
   const res = await fetch(`${ENUMS}/tipos-vivienda`);
-  if (!res.ok) throw new Error("Error al cargar tipos de vivienda");
+  await throwIfError(res, "Error al cargar tipos de vivienda");
   return res.json();
 }
 
@@ -32,7 +47,7 @@ export async function getTiposVivienda(): Promise<string[]> {
 // GET /api/enums/necesidades-especiales
 export async function getNecesidadesEspeciales(): Promise<string[]> {
   const res = await fetch(`${ENUMS}/necesidades-especiales`);
-  if (!res.ok) throw new Error("Error al cargar necesidades especiales");
+  await throwIfError(res, "Error al cargar necesidades especiales");
   return res.json();
 }
 
@@ -40,7 +55,7 @@ export async function getNecesidadesEspeciales(): Promise<string[]> {
 // GET /api/enums/tipos-alerta
 export async function getTiposAlerta(): Promise<string[]> {
   const res = await fetch(`${ENUMS}/tipos-alerta`);
-  if (!res.ok) throw new Error("Error al cargar tipos de alerta");
+  await throwIfError(res, "Error al cargar tipos de alerta");
   return res.json();
 }
 
@@ -48,7 +63,7 @@ export async function getTiposAlerta(): Promise<string[]> {
 // GET /api/enums/niveles-alerta
 export async function getNivelesAlerta(): Promise<string[]> {
   const res = await fetch(`${ENUMS}/niveles-alerta`);
-  if (!res.ok) throw new Error("Error al cargar niveles de alerta");
+  await throwIfError(res, "Error al cargar niveles de alerta");
   return res.json();
 }
 
@@ -71,7 +86,7 @@ export async function registerCiudadano(dto: RegisterDTO): Promise<{ token: stri
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(dto),
   });
-  if (!res.ok) throw new Error("Error al registrar ciudadano");
+  await throwIfError(res, "Error al registrar ciudadano");
   return res.json();
 }
 
@@ -84,7 +99,7 @@ export async function registerAdmin(dto: RegisterDTO): Promise<{ token: string; 
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(dto),
   });
-  if (!res.ok) throw new Error("Error al registrar administrador");
+  await throwIfError(res, "Error al registrar administrador");
   return res.json();
 }
 
@@ -99,7 +114,7 @@ export async function login(nombre: string, password: string): Promise<{ token: 
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ nombre, password }),
   });
-  if (!res.ok) throw new Error("Credenciales inválidas");
+  await throwIfError(res, "Credenciales inválidas");
   return res.json();
 }
 
@@ -107,7 +122,7 @@ export async function login(nombre: string, password: string): Promise<{ token: 
 
 export async function getCondiciones(): Promise<CondicionClimatica | null> {
   const res = await fetch(CLIMA);
-  if (!res.ok) throw new Error("Error al cargar condiciones climáticas");
+  await throwIfError(res, "Error al cargar condiciones climáticas");
   return res.json();
 }
 
@@ -121,7 +136,7 @@ function authHeader(): Record<string, string> {
 
 export async function getAlertasByProvincia(provincia: string): Promise<Alerta[]> {
   const res = await fetch(`${ALERTAS}/provincia/${encodeURIComponent(provincia)}`);
-  if (!res.ok) throw new Error("Error al cargar alertas");
+  await throwIfError(res, "Error al cargar alertas");
   return res.json();
 }
 
@@ -131,7 +146,7 @@ export async function getMisAlertasCiudadano(): Promise<Alerta[]> {
   const res = await fetch(`${ALERTAS}/mis-alertas-ciudadano`, {
     headers: { ...authHeader() },
   });
-  if (!res.ok) throw new Error("Error al cargar tus alertas");
+  await throwIfError(res, "Error al cargar tus alertas");
   return res.json();
 }
 
@@ -141,7 +156,7 @@ export async function getAlertasByAdmin(): Promise<Alerta[]> {
   const res = await fetch(`${ALERTAS}/mis-alertas`, {
     headers: { ...authHeader() },
   });
-  if (!res.ok) throw new Error("Error al cargar alertas del admin");
+  await throwIfError(res, "Error al cargar alertas del admin");
   return res.json();
 }
 
@@ -153,7 +168,7 @@ export async function crearAlerta(alerta: Partial<Alerta>): Promise<Alerta> {
     headers: { "Content-Type": "application/json", ...authHeader() },
     body: JSON.stringify(alerta),
   });
-  if (!res.ok) throw new Error("Error al crear alerta");
+  await throwIfError(res, "Error al crear alerta");
   return res.json();
 }
 
@@ -164,7 +179,7 @@ export async function apagarAlerta(id: string): Promise<void> {
     method: "POST",
     headers: { ...authHeader() },
   });
-  if (!res.ok) throw new Error("Error al apagar alerta");
+  await throwIfError(res, "Error al apagar alerta");
 }
 
 // Reactiva una alerta (isActive=true)
@@ -174,7 +189,7 @@ export async function encenderAlerta(id: string): Promise<void> {
     method: "POST",
     headers: { ...authHeader() },
   });
-  if (!res.ok) throw new Error("Error al encender alerta");
+  await throwIfError(res, "Error al encender alerta");
 }
 
 // Elimina una alerta permanentemente
@@ -184,31 +199,31 @@ export async function eliminarAlerta(id: string): Promise<void> {
     method: "DELETE",
     headers: { ...authHeader() },
   });
-  if (!res.ok) throw new Error("Error al eliminar alerta");
+  await throwIfError(res, "Error al eliminar alerta");
 }
 
-// Lanza la generación automática de alertas basada en condiciones climáticas
+// Lanza la generación automática de alertas en segundo plano
 // POST /api/alertas/generar (requiere Authorization header de admin)
-export async function generarAlertas(): Promise<Alerta[]> {
+// Devuelve 202 Accepted — la generación ocurre en background
+export async function generarAlertas(): Promise<void> {
   const res = await fetch(`${ALERTAS}/generar`, {
     method: "POST",
     headers: { ...authHeader() },
   });
-  if (!res.ok) throw new Error("Error al generar alertas");
-  return res.json();
+  if (!res.ok) await throwIfError(res, "Error al generar alertas");
 }
 
 // --- Libros (legacy) ---
 
 export async function getLibros(): Promise<Libro[]> {
   const res = await fetch(LIBROS);
-  if (!res.ok) throw new Error("Error al cargar libros");
+  await throwIfError(res, "Error al cargar libros");
   return res.json();
 }
 
 export async function getLibro(id: string): Promise<Libro> {
   const res = await fetch(`${LIBROS}/${id}`);
-  if (!res.ok) throw new Error("Error al cargar libro");
+  await throwIfError(res, "Error al cargar libro");
   return res.json();
 }
 
@@ -218,7 +233,7 @@ export async function createLibro(libro: LibroInput): Promise<Libro> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(libro),
   });
-  if (!res.ok) throw new Error("Error al crear libro");
+  await throwIfError(res, "Error al crear libro");
   return res.json();
 }
 
@@ -228,11 +243,11 @@ export async function updateLibro(id: string, libro: LibroInput): Promise<Libro>
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(libro),
   });
-  if (!res.ok) throw new Error("Error al actualizar libro");
+  await throwIfError(res, "Error al actualizar libro");
   return res.json();
 }
 
 export async function deleteLibro(id: string): Promise<void> {
   const res = await fetch(`${LIBROS}/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Error al eliminar libro");
+  await throwIfError(res, "Error al eliminar libro");
 }

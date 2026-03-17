@@ -94,8 +94,16 @@ public class AlertaController {
             if (!etsisi.albertoynico.backend.model.RolUsuario.ADMINISTRADOR.name().equals(usuario.getRol())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Acceso denegado: Se requiere rol ADMINISTRADOR");
             }
-            List<Alerta> alertas = alertaManager.generarAlertas();
-            return ResponseEntity.ok(alertas);
+            // Lanzar generación en background
+            java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try {
+                    alertaManager.generarAlertas();
+                } catch (Exception ex) {
+                    org.slf4j.LoggerFactory.getLogger(AlertaController.class)
+                            .error("Error en generación asíncrona de alertas", ex);
+                }
+            });
+            return ResponseEntity.accepted().body("Generación de alertas iniciada en segundo plano");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }

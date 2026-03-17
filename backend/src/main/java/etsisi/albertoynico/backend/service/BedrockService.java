@@ -1,6 +1,8 @@
 package etsisi.albertoynico.backend.service;
 
 import etsisi.albertoynico.backend.manager.LLMCallManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient;
@@ -17,6 +19,8 @@ import java.util.List;
 
 @Service
 public class BedrockService {
+
+    private static final Logger log = LoggerFactory.getLogger(BedrockService.class);
 
     private final BedrockRuntimeClient client;
     private final String modelId;
@@ -58,7 +62,7 @@ public class BedrockService {
                                         .findFirst()
                                         .orElse("");
                 } catch (Exception e) {
-                        // best effort
+                        log.error("Error llamando a Bedrock (single prompt): {}", e.getMessage(), e);
                 }
 
                 // Creamos y guardamos el objeto LLMCall
@@ -97,7 +101,7 @@ public class BedrockService {
                                         .findFirst()
                                         .orElse("");
                 } catch (Exception e) {
-                        // best effort
+                        log.error("Error llamando a Bedrock (system+user): {}", e.getMessage(), e);
                 }
 
                 // Creamos y guardamos el objeto LLMCall
