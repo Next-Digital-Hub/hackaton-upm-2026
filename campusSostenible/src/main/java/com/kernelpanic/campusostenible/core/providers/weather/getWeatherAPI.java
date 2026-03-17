@@ -3,6 +3,7 @@ package com.kernelpanic.campusostenible.core.providers.weather;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.kernelpanic.campusostenible.core.providers.MeteoData;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -14,7 +15,6 @@ import com.kernelpanic.campusostenible.core.domain.WeatherData;
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
 public class getWeatherAPI {
 
     private final RestTemplate restTemplate;
@@ -27,7 +27,7 @@ public class getWeatherAPI {
         this.objectMapper = new ObjectMapper();
     }
 
-    public List<MeteoData> fetchWeather() {
+    public static List<MeteoData> fetchWeather() {
         String url = "http://ec2-54-171-51-31.eu-west-1.compute.amazonaws.com/weather?disaster=false";
 
         HttpHeaders headers = new HttpHeaders();
@@ -45,15 +45,15 @@ public class getWeatherAPI {
 
             if (response.getBody() != null) {
                 JsonNode root = objectMapper.readTree(response.getBody());
-                List<WeatherData> result = new ArrayList<>();
+                List<MeteoData> result = new ArrayList<>();
 
                 if (root.isArray()) {
                     for (JsonNode node : root) {
-                        WeatherData data = objectMapper.treeToValue(node, WeatherData.class);
+                        MeteoData data = objectMapper.treeToValue(node, MeteoData.class);
                         result.add(data);
                     }
                 } else if (root.isObject()) {
-                    WeatherData data = objectMapper.treeToValue(root, WeatherData.class);
+                    MeteoData data = objectMapper.treeToValue(root, MeteoData.class);
                     result.add(data);
                 }
 
