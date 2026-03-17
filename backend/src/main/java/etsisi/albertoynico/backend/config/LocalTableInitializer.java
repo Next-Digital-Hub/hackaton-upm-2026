@@ -10,21 +10,23 @@ import software.amazon.awssdk.services.dynamodb.model.*;
 import java.util.List;
 
 /**
- * Crea las tablas de DynamoDB Local automáticamente al arrancar con perfil "local".
+ * Crea las tablas de DynamoDB Local automáticamente al arrancar con perfil
+ * "local".
  * Añade aquí las tablas nuevas que vayas creando en la hackathon.
  */
 @Configuration
 @Profile("local")
 public class LocalTableInitializer {
 
-    private record TableDef(String name, String partitionKey) {}
+    private record TableDef(String name, String partitionKey) {
+    }
 
     /** Lista de tablas a crear. Añade aquí las nuevas entidades. */
     private static final List<TableDef> TABLES = List.of(
-        new TableDef("hackathon-libros", "id"),
-        new TableDef("hackathon-usuarios", "id"),
-        new TableDef("hackathon-condiciones-usuario", "id")
-    );
+            new TableDef("hackathon-libros", "id"),
+            new TableDef("hackathon-usuarios", "id"),
+            new TableDef("hackathon-condiciones-usuario", "id"),
+            new TableDef("hackathon-alertas", "id"));
 
     @Bean
     CommandLineRunner initDynamoTables(DynamoDbClient client) {
@@ -36,17 +38,17 @@ public class LocalTableInitializer {
                     continue;
                 }
                 client.createTable(CreateTableRequest.builder()
-                    .tableName(table.name())
-                    .keySchema(KeySchemaElement.builder()
-                        .attributeName(table.partitionKey())
-                        .keyType(KeyType.HASH)
-                        .build())
-                    .attributeDefinitions(AttributeDefinition.builder()
-                        .attributeName(table.partitionKey())
-                        .attributeType(ScalarAttributeType.S)
-                        .build())
-                    .billingMode(BillingMode.PAY_PER_REQUEST)
-                    .build());
+                        .tableName(table.name())
+                        .keySchema(KeySchemaElement.builder()
+                                .attributeName(table.partitionKey())
+                                .keyType(KeyType.HASH)
+                                .build())
+                        .attributeDefinitions(AttributeDefinition.builder()
+                                .attributeName(table.partitionKey())
+                                .attributeType(ScalarAttributeType.S)
+                                .build())
+                        .billingMode(BillingMode.PAY_PER_REQUEST)
+                        .build());
                 System.out.println("Tabla creada: " + table.name());
             }
         };

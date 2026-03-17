@@ -53,6 +53,14 @@ export class BackendStack extends cdk.Stack {
     });
     condicionesUsuarioTable.grantReadWriteData(instanceRole);
 
+    const alertasTable = new dynamodb.Table(this, "AlertasTable", {
+      tableName: "hackathon-alertas",
+      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+    alertasTable.grantReadWriteData(instanceRole);
+
     // --- App Runner ---
     const backendService = new apprunner.CfnService(this, "BackendService", {
       serviceName: "hackathon-backend",

@@ -22,6 +22,8 @@ public class Alerta {
     private String umbralSuperado;
     private String descripcion;
     private List<String> recomendaciones;
+    private boolean isActive;
+    private String adminId;           // opcional – ID del admin que creó la alerta
 
     @DynamoDbPartitionKey
     public String getId() {
