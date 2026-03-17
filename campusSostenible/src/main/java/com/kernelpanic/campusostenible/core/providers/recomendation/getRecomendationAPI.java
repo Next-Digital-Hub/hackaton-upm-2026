@@ -41,7 +41,6 @@ public class getRecomendationAPI {
             "- Humedad: %d%%\n" +
             "- Viento: %.1f km/h con dirección %s\n" +
             "- Probabilidad de lluvia: %d%%\n\n" +
-            "Mensaje de alerta oficial: %s\n\n" +
             "Por favor, detalla medidas de seguridad específicas para su hogar y su salud.",
             citizen.getProvince(),
             citizen.getVillageType(),
@@ -53,8 +52,7 @@ public class getRecomendationAPI {
             weatherData.getHumidity(),
             weatherData.getWindSpeed(),
             weatherData.getWindDirection(),
-            weatherData.getRainProbability(),
-            weatherData.getMessage()
+            weatherData.getRainProbability()
         );
 
         HttpHeaders headers = new HttpHeaders();
@@ -93,7 +91,7 @@ public class getRecomendationAPI {
                 + citizen.getProvince() + ", con tipo de vivienda: " + citizen.getVillageType()
                 + ". Y con necesidades especiales : " + citizen.getSpecialNeeds()
                 + "\n Para una alerta de la provincia de " + alert.getProvince() + " y que comenta lo siguiente: "
-                + alert.getMessage();
+                + alert.getSafetyRecommendation();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

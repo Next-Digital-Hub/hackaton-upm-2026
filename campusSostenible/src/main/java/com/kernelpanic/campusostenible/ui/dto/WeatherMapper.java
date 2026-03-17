@@ -57,8 +57,7 @@ public class WeatherMapper {
                 .riskLabel(alert.getAlertLevel().getRiskLabel())
                 .title("Alertas por clima extremos")
                 .safetyRecommendation(alert.getSafetyRecommendation())
-                .startDate(alert.getStartDate().format(DATE_FMT))
-                .endDate(alert.getEndDate().format(DATE_FMT))
+                .date(alert.getDate().format(DATE_FMT))
                 .build();
     }
 }

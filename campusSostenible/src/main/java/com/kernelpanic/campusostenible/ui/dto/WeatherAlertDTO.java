@@ -1,4 +1,5 @@
 package com.kernelpanic.campusostenible.ui.dto;
+import java.time.LocalDate;
 
 import lombok.*;
 
@@ -16,6 +17,5 @@ public class WeatherAlertDTO {
     private String title;
     private String safetyRecommendation;
 
-    private String startDate;
-    private String endDate;
+    private LocalDate date;
 }
