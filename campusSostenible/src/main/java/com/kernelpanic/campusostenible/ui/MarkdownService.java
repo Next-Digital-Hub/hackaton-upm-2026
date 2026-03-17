@@ -1,4 +1,4 @@
-package com.kernelpanic.campusostenible.core.services;
+package com.kernelpanic.campusostenible.ui;
 
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
