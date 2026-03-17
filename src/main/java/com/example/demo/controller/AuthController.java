@@ -1,7 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.LoginDTO;
-import com.example.demo.dto.UserRegitrationDTO;
+import com.example.demo.dto.CitizenDTO;
 import com.example.demo.model.Rol;
 import com.example.demo.model.User;
 import com.example.demo.service.UserService;
@@ -24,7 +24,7 @@ public class AuthController {
     private BCryptPasswordEncoder passwordEncoder;
 
     @PostMapping("/registrar")
-    public String registrar(UserRegitrationDTO dto){
+    public String registrar(CitizenDTO dto){
         try {
             userService.registrarCiudadano(dto);
             return "redirect:/dashboard";

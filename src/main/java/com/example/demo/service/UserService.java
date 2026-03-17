@@ -4,7 +4,7 @@ import com.example.demo.model.Ciudadano;
 import com.example.demo.model.TipoNecesidades;
 import com.example.demo.model.User;
 import com.example.demo.model.Rol;
-import com.example.demo.dto.UserRegitrationDTO;
+import com.example.demo.dto.CitizenDTO;
 import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,7 +21,7 @@ public class UserService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-    public void registrarCiudadano(UserRegitrationDTO dto){
+    public void registrarCiudadano(CitizenDTO dto){
         if (userRepository.existsByUsername(dto.username())){
             throw new RuntimeException("Error: El username de usuario "+dto.username().trim()+" ya existe.");
         }
