@@ -23,6 +23,12 @@ public class AlertaManager extends AbstractManager<Alerta> {
         return super.newId();
     }
 
+    public List<Alerta> findByAdminId(String adminId) {
+        return table.scan().items().stream()
+                .filter(a -> adminId.equals(a.getAdminId()))
+                .toList();
+    }
+
     /**
      * Genera alertas a partir de las condiciones climáticas actuales.
      * Evalúa umbrales para temperatura, lluvia, viento, presión y humedad.

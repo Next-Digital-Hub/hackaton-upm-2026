@@ -15,4 +15,10 @@ public class CondicionUsuarioManager extends AbstractManager<CondicionUsuario> {
     public String newId() {
         return super.newId();
     }
+
+    public java.util.Optional<CondicionUsuario> findByUsuarioId(String usuarioId) {
+        return table.scan().items().stream()
+                .filter(c -> usuarioId.equals(c.getUsuarioId()))
+                .findFirst();
+    }
 }

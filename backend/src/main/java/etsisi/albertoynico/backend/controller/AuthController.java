@@ -96,4 +96,30 @@ public class AuthController {
                 "usuario", usuario
         );
     }
+    @GetMapping("/get-user")
+    public Map<String, Object> getUser(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Token inválido o ausente");
+        }
+
+        String token = authHeader.substring(7);
+        String usuarioId = jwtService.getUsuarioId(token);
+
+        Usuario usuario = usuarioManager.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (etsisi.albertoynico.backend.model.RolUsuario.CIUDADANO.name().equals(usuario.getRol())) {
+            CondicionUsuario condicion = condicionUsuarioManager.findByUsuarioId(usuarioId)
+                    .orElse(null);
+            
+            if (condicion != null) {
+                return Map.of(
+                        "usuario", usuario,
+                        "condicionUsuario", condicion
+                );
+            }
+        }
+
+        return Map.of("usuario", usuario);
+    }
 }
