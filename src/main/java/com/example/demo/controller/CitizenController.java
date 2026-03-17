@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/dashboard")
+@RequestMapping("/api/citizen-dashboard")
 public class CitizenController {
 
     private final UserService userService;
