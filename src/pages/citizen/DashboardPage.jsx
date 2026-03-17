@@ -1,0 +1,451 @@
+import { useState, useEffect } from "react";
+import WeatherDataViewer from "../../components/WeatherDataViewer";
+import { useAuth } from "../../contexts/AuthContext";
+import { supabase } from "../../lib/supabase";
+import {
+	fetchWeather,
+	WEATHER_DISASTER_MODE,
+	sendPrompt,
+	buildSystemPrompt,
+	buildUserPrompt,
+} from "../../lib/api";
+import {
+	CloudRain,
+	AlertTriangle,
+	Brain,
+	History,
+	RefreshCw,
+	Thermometer,
+	Wind,
+	Droplets,
+	MapPin,
+	ChevronDown,
+	ChevronUp,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import ReactMarkdown from "react-markdown";
+
+function getWindValue(weatherData) {
+	const candidates = [
+		weatherData?.velmedia,
+		weatherData?.vmax,
+		weatherData?.windSpeed,
+		weatherData?.viento,
+	];
+
+	return candidates.find(
+		(value) => value !== undefined && value !== null && value !== "",
+	);
+}
+
+function buildWeatherAlert(weatherData) {
+	if (!weatherData) return null;
+
+	const precipitation = Number(weatherData.prec);
+	const wind = Number(getWindValue(weatherData));
+
+	if (Number.isFinite(precipitation) && precipitation >= 100) {
+		return {
+			severity: "critical",
+			title: "Alerta meteorologica por lluvia intensa",
+			description: `La API esta devolviendo ${precipitation} mm de precipitacion. Evita desplazamientos y revisa zonas inundables.`,
+		};
+	}
+
+	if (Number.isFinite(wind) && wind >= 70) {
+		return {
+			severity: "critical",
+			title: "Alerta meteorologica por viento fuerte",
+			description: `La API esta devolviendo ${wind} km/h de viento. Evita exteriores y asegura objetos en balcones o terrazas.`,
+		};
+	}
+
+	if (Number.isFinite(precipitation) && precipitation >= 30) {
+		return {
+			severity: "warning",
+			title: "Aviso por precipitacion elevada",
+			description: `La API esta devolviendo ${precipitation} mm de precipitacion. Mantente atento a posibles incidencias.`,
+		};
+	}
+
+	if (Number.isFinite(wind) && wind >= 40) {
+		return {
+			severity: "warning",
+			title: "Aviso por viento",
+			description: `La API esta devolviendo ${wind} km/h de viento. Toma precauciones en exteriores.`,
+		};
+	}
+
+	return null;
+}
+
+export default function DashboardPage() {
+	const { user, profile } = useAuth();
+
+	const [weather, setWeather] = useState(null);
+	const [weatherLoading, setWeatherLoading] = useState(false);
+	const [recommendation, setRecommendation] = useState(null);
+	const [recLoading, setRecLoading] = useState(false);
+	const [alerts, setAlerts] = useState([]);
+	const [activeTab, setActiveTab] = useState("weather");
+	const [weatherHistory, setWeatherHistory] = useState([]);
+	const [llmHistory, setLlmHistory] = useState([]);
+	const [expandedRec, setExpandedRec] = useState(null);
+	const [weatherAlert, setWeatherAlert] = useState(null);
+
+	useEffect(() => {
+		if (!user) return;
+
+		loadActiveAlerts();
+		loadHistory();
+		handleFetchWeather();
+
+		const channel = supabase
+			.channel("alerts-realtime")
+			.on(
+				"postgres_changes",
+				{ event: "INSERT", schema: "public", table: "alerts" },
+				(payload) => {
+					const newAlert = payload.new;
+					setAlerts((prev) => [newAlert, ...prev]);
+
+					toast(`🚨 Nueva alerta: ${newAlert.title}`, {
+						duration: 8000,
+						style: {
+							background:
+								newAlert.severity === "critical" ? "#dc2626" : "#f59e0b",
+							color: "#fff",
+							fontWeight: "600",
+						},
+					});
+				},
+			)
+			.subscribe();
+
+		return () => {
+			supabase.removeChannel(channel);
+		};
+	}, [user]);
+
+	async function loadActiveAlerts() {
+		const { data } = await supabase
+			.from("alerts")
+			.select("*")
+			.eq("active", true)
+			.order("created_at", { ascending: false });
+
+		setAlerts(data || []);
+	}
+
+	async function loadHistory() {
+		const [wRes, lRes] = await Promise.all([
+			supabase
+				.from("weather_logs")
+				.select("*")
+				.order("created_at", { ascending: false })
+				.limit(20),
+			supabase
+				.from("llm_queries")
+				.select("*")
+				.order("created_at", { ascending: false })
+				.limit(20),
+		]);
+
+		setWeatherHistory(wRes.data || []);
+		setLlmHistory(lRes.data || []);
+	}
+
+	async function handleFetchWeather() {
+		setWeatherLoading(true);
+		try {
+			const data = await fetchWeather(WEATHER_DISASTER_MODE);
+			setWeather(data);
+			setWeatherAlert(buildWeatherAlert(data));
+
+			const createdAt = new Date().toISOString();
+			await supabase.from("weather_logs").insert({
+				user_id: user.id,
+				weather_data: data,
+				disaster: WEATHER_DISASTER_MODE,
+			});
+			setWeatherHistory((prev) => [
+				{
+					id: `weather-${createdAt}`,
+					created_at: createdAt,
+					weather_data: data,
+					disaster: WEATHER_DISASTER_MODE,
+				},
+				...prev.slice(0, 19),
+			]);
+
+			await handleGetRecommendation(data);
+		} catch (err) {
+			setWeatherAlert(null);
+			toast.error("Error al obtener datos meteorologicos");
+			console.error(err);
+		} finally {
+			setWeatherLoading(false);
+		}
+	}
+
+	async function handleGetRecommendation(weatherData) {
+		if (!weatherData) return;
+
+		setRecLoading(true);
+		try {
+			const systemPrompt = buildSystemPrompt();
+			const userPrompt = buildUserPrompt(weatherData, profile);
+			const response = await sendPrompt(systemPrompt, userPrompt);
+
+			const responseText =
+				typeof response === "string" ? response : (
+					response?.response || response?.message || JSON.stringify(response)
+				);
+
+			setRecommendation(responseText);
+
+			const createdAt = new Date().toISOString();
+			await supabase.from("llm_queries").insert({
+				user_id: user.id,
+				system_prompt: systemPrompt,
+				user_prompt: userPrompt,
+				response: responseText,
+			});
+			setLlmHistory((prev) => [
+				{
+					id: `llm-${createdAt}`,
+					created_at: createdAt,
+					response: responseText,
+				},
+				...prev.slice(0, 19),
+			]);
+		} catch (err) {
+			toast.error("Error al generar recomendacion");
+			console.error(err);
+		} finally {
+			setRecLoading(false);
+		}
+	}
+
+	const severityClass = (s) =>
+		s === "critical" ? "severity-critical"
+		: s === "warning" ? "severity-warning"
+		: "severity-info";
+
+	const visibleAlerts = weatherAlert ? [weatherAlert, ...alerts] : alerts;
+	const windValue = getWindValue(weather);
+
+	return (
+		<div className="dashboard">
+			<div className="dashboard-header">
+				<div>
+					<h1>Panel de Ciudadano</h1>
+					<p className="dashboard-subtitle">
+						<MapPin size={16} /> {profile?.provincia || "Sin provincia"} ·{" "}
+						{profile?.tipo_vivienda || "Sin vivienda"}
+					</p>
+				</div>
+			</div>
+
+			{visibleAlerts.length > 0 && (
+				<div className="alerts-section">
+					{visibleAlerts.map((alert, index) => (
+						<div
+							key={alert.id || `weather-alert-${index}`}
+							className={`alert-banner ${severityClass(alert.severity)}`}
+						>
+							<AlertTriangle size={22} />
+							<div className="alert-banner-content">
+								<strong>{alert.title}</strong>
+								<p>{alert.description}</p>
+							</div>
+							<span className="alert-badge">
+								{alert.severity?.toUpperCase()}
+							</span>
+						</div>
+					))}
+				</div>
+			)}
+
+			<section className="dashboard-card">
+				<div className="card-header">
+					<h2>
+						<CloudRain size={22} /> Prevision Meteorologica
+					</h2>
+					{weatherLoading && (
+						<span className="dashboard-subtitle">
+							<RefreshCw size={16} className="spinning" /> Cargando datos...
+						</span>
+					)}
+				</div>
+
+				{weather ?
+					<div className="weather-display">
+						<div className="weather-grid">
+							{weather.tmed !== undefined && (
+								<div className="weather-stat">
+									<Thermometer size={24} />
+									<div>
+										<span className="stat-value">{weather.tmed}°C</span>
+										<span className="stat-label">Temperatura Med.</span>
+									</div>
+								</div>
+							)}
+							{weather.hrMedia !== undefined && (
+								<div className="weather-stat">
+									<Droplets size={24} />
+									<div>
+										<span className="stat-value">{weather.hrMedia}%</span>
+										<span className="stat-label">Humedad</span>
+									</div>
+								</div>
+							)}
+							{windValue !== undefined &&
+								windValue !== null &&
+								windValue !== "" && (
+									<div className="weather-stat">
+										<Wind size={24} />
+										<div>
+											<span className="stat-value">{windValue} km/h</span>
+											<span className="stat-label">Viento</span>
+										</div>
+									</div>
+								)}
+							{weather.prec !== undefined && weather.prec !== null && (
+								<div className="weather-stat">
+									<CloudRain size={24} />
+									<div>
+										<span className="stat-value">{weather.prec} mm</span>
+										<span className="stat-label">Precipitacion</span>
+									</div>
+								</div>
+							)}
+						</div>
+						<details className="weather-raw">
+							<summary>Ver datos completos</summary>
+							<div style={{ padding: "8px 0" }}>
+								<WeatherDataViewer data={weather} />
+							</div>
+						</details>
+					</div>
+				: weatherLoading ?
+					<p className="empty-state">Cargando la prevision meteorologica...</p>
+				:	<p className="empty-state">
+						No se han podido cargar los datos meteorologicos.
+					</p>
+				}
+			</section>
+
+			<section className="dashboard-card recommendation-card">
+				<div className="card-header">
+					<h2>
+						<Brain size={22} /> Recomendacion IA
+					</h2>
+					{recLoading && (
+						<span className="dashboard-subtitle">
+							<RefreshCw size={16} className="spinning" /> Analizando...
+						</span>
+					)}
+				</div>
+
+				{recommendation ?
+					<div className="recommendation-content">
+						<div className="recommendation-text recommendation-markdown">
+							<ReactMarkdown>{recommendation}</ReactMarkdown>
+						</div>
+					</div>
+				:	<p className="empty-state">
+						{recLoading ?
+							"Generando recomendacion con IA..."
+						:	"Sin datos disponibles."}
+					</p>
+				}
+			</section>
+
+			<section className="dashboard-card">
+				<div className="card-header">
+					<h2>
+						<History size={22} /> Historial
+					</h2>
+				</div>
+
+				<div className="history-tabs">
+					<button
+						className={`tab ${activeTab === "weather" ? "active" : ""}`}
+						onClick={() => setActiveTab("weather")}
+					>
+						Meteorologia
+					</button>
+					<button
+						className={`tab ${activeTab === "llm" ? "active" : ""}`}
+						onClick={() => setActiveTab("llm")}
+					>
+						Consultas IA
+					</button>
+				</div>
+
+				<div className="history-content">
+					{activeTab === "weather" && (
+						<div className="history-list">
+							{weatherHistory.length === 0 ?
+								<p className="empty-state">Sin registros meteorologicos</p>
+							:	weatherHistory.map((w) => (
+									<div key={w.id} className="history-item">
+										<span className="history-date">
+											{new Date(w.created_at).toLocaleString("es-ES")}
+										</span>
+										<span
+											className={`history-badge ${w.disaster ? "badge-danger" : "badge-normal"}`}
+										>
+											{w.disaster ? "Desastre" : "Normal"}
+										</span>
+										<details>
+											<summary>Ver datos</summary>
+											<div style={{ padding: "8px 0" }}>
+												<WeatherDataViewer data={w.weather_data} />
+											</div>
+										</details>
+									</div>
+								))
+							}
+						</div>
+					)}
+
+					{activeTab === "llm" && (
+						<div className="history-list">
+							{llmHistory.length === 0 ?
+								<p className="empty-state">Sin consultas al LLM</p>
+							:	llmHistory.map((q, i) => (
+									<div key={q.id} className="history-item">
+										<div
+											className="history-item-header"
+											onClick={() =>
+												setExpandedRec(expandedRec === i ? null : i)
+											}
+											style={{ cursor: "pointer" }}
+										>
+											<span className="history-date">
+												{new Date(q.created_at).toLocaleString("es-ES")}
+											</span>
+											{expandedRec === i ?
+												<ChevronUp size={16} />
+											:	<ChevronDown size={16} />}
+										</div>
+										{expandedRec === i && (
+											<div className="history-detail">
+												<div className="history-detail-section">
+													<strong>Respuesta:</strong>
+													<p style={{ whiteSpace: "pre-wrap" }}>{q.response}</p>
+												</div>
+											</div>
+										)}
+									</div>
+								))
+							}
+						</div>
+					)}
+				</div>
+			</section>
+		</div>
+	);
+}
