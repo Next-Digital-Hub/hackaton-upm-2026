@@ -32,8 +32,10 @@ export async function POST(request: NextRequest) {
     
     const emergencyData = await emergencyRes.json();
     
-    const systemPrompt = `${SYSTEM_PROMPT}. Estos son los datos del usuario en json: ${body.userData}`;
-    const userPrompt = `Ayuda con estos datos de una emergencia de acuerdo con mis necesidades. ${emergencyData}`;
+    console.log(emergencyData);
+    
+    const systemPrompt = `${SYSTEM_PROMPT}. Estos son los datos del usuario en json: ${body.userData}. Da respuestas cortas SIN MARKDOWN y con EMOJIS`;
+    const userPrompt = `Ayuda con estos datos de una emergencia de acuerdo con mis necesidades. ${JSON.stringify(emergencyData)}`;
     const res = await fetch(`${process.env.API_URL}/prompt`, 
                             {
                               method: "POST",

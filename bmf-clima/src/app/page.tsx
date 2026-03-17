@@ -46,7 +46,7 @@ function LogDialog({ onLogIn }: { onLogIn: (data: UserData) => void }) {
           </DialogDescription>
           </DialogHeader>
           
-          <Tabs defaultValue="overview" className="">
+          <Tabs defaultValue="signup" className="">
           <TabsList>
           <TabsTrigger value="login">Log In</TabsTrigger>
           <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -74,7 +74,8 @@ type Emergency = {
 };
 
 export default function Chat() {
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loadingMessage, setLoadingMessage] = useState<boolean>(false);
+  const [loadingEmergency, setLoadingEmergency] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [open, setOpen] = useState<boolean>(false);
@@ -92,7 +93,7 @@ export default function Chat() {
   
   async function requestDisaster(isDisaster: boolean) {
     try { 
-      setLoading(true);
+      setLoadingEmergency(true);
       const params = new URLSearchParams();
       params.append("disaster", isDisaster.toString());
       
@@ -104,6 +105,7 @@ export default function Chat() {
                                 body: JSON.stringify(userData),
                               });
       const json = await res.json();
+      console.log("REQUEST ", json);
       setEmergency({
                      content: json.response,
                    });
@@ -111,7 +113,7 @@ export default function Chat() {
       console.log("error", e);
       setError("Error while fetching");
     } finally {
-      setLoading(false);
+      setLoadingEmergency(false);
     }
   }
   
@@ -121,7 +123,7 @@ export default function Chat() {
                            content: message,
                          }]);
     try { 
-      setLoading(true);
+      setLoadingMessage(true);
       const params = new URLSearchParams();
       params.append("message", message);
       
@@ -149,7 +151,7 @@ export default function Chat() {
       console.log("error", e);
       setError("Error while fetching");
     } finally {
-      setLoading(false);
+      setLoadingMessage(false);
     }
   }
   
@@ -181,20 +183,20 @@ export default function Chat() {
           <LogDialog onLogIn={onLogIn} />
           <div className="bg-neutral-900 text-secondary w-full h-full flex flex-col justify-between p-3 gap-4">
           
-          <div className="flex flex-col gap-4 p-4 "> 
-          <div className="bg-red-800 text-secondary rounded-md p-2 h-min flex flex-row gap-2">
+          
+          <div className="bg-red-800 text-secondary rounded-md p-2 h-min flex flex-col gap-2 align-center">
+          <div className="flex flex-row gap-2"> 
           <div className="text-xl font-bold">Emergency</div>
-          {(emergency && emergency.content) ? 
-              <div className="">{emergency.content}</div>
-              : 
-            <Button onClick={() => requestDisaster(true)}>Most Recent</Button>}
+          <Button onClick={() => requestDisaster(true)}>Most Recent</Button>
           </div>
+          {loadingEmergency && <Spinner />}
+          {emergency && emergency.content && <div className="font-bold">{emergency.content}</div>}
+          </div>
+          
           
           {messages
               .map((chatMessage, i) => (
                                         <div key={`${chatMessage.role}-${chatMessage.content}-${i}`} className={`flex w-full ${chatMessage.role === "user" ? "justify-end" : "justify-start"}`}>
-                                        
-                                        {/* La burbuja: "w-fit" hace que el fondo solo ocupe el texto */}
                                         <div className={` max-w-[80%] w-fit p-3 rounded-lg ${chatMessage.role === "user" ? "bg-zinc-600 text-right" : "bg-zinc-700 text-left"}`}>
                                         <div className="text-xs font-bold text-blue-500 uppercase mb-1">
                                         {chatMessage.role}</div>
@@ -202,13 +204,22 @@ export default function Chat() {
                                         </div>
                                         </div>
                                         ))}
+          
+          {loadingMessage && 
+              <div className={"flex w-full justify-start"}>
+              <div className={" max-w-[80%] w-fit p-3 rounded-lg bg-zinc-700 text-left"}>
+              <div className="text-white">Loading
+              <Spinner />
+              </div>
+              </div>
+              </div>
+          }
           </div>
           
           <form onSubmit={handleSubmit} ref={formRef} className="flex flex-row bg-none rounded-md p-2">
           <Input className="rounded-lg bg-zinc-700 text-secondary" name="inputText" onChange={(e) => setInputText(e.target.value)} value={inputText}/>
           <Button type="submit" variant="secondary">Send</Button>
           </form>
-          </div>
           </Dialog>
           );
 }
