@@ -251,6 +251,7 @@ def citizen_recommendations():
 
     error = error_recomendations #or error_clima
     data = data if code_recomendations == 200 else None
+    print(f'Nivel_alerta: {data.get("nivel_alerta") if data else "N/A"}')  # Debug del nivel de alerta
     #data_clima = data.get('weather') if code_recomendations == 200 else None
     return render_template("ciudadano/recomendaciones.html", data=data, error=error)
 
