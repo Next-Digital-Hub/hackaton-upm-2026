@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoGuard - Backoffice Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-slate-100 min-h-screen font-sans">
+
+<nav class="bg-slate-900 text-white p-4 shadow-lg w-full">
+    <div class="flex justify-between items-center px-6 md:px-10">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl">⛈️</span>
+            <h1 class="text-xl font-black tracking-tighter uppercase">GEOGUARD <span class="text-blue-400">ADMIN</span></h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-[10px] md:text-xs bg-slate-700 px-3 py-1 rounded-full text-slate-300 font-medium">
+                Conectado: API AWS Bedrock
+            </span>
+            <button onclick="location.href='index.html'" class="text-sm font-bold hover:text-red-400 transition-colors">
+                Cerrar Sesión
+            </button>
+        </div>
+    </div>
+</nav>
+
+<main class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <div class="lg:col-span-1 space-y-6">
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+            <h2 class="text-xs font-bold text-slate-400 uppercase mb-4 tracking-widest">Panel de Control</h2>
+
+            <div class="p-4 bg-orange-50 border border-orange-100 rounded-2xl mb-6">
+                <p class="text-2xl font-black text-orange-900" id="status-recomendacion">⚠️ RECOMENDABLE ALERTAR</p>
+            </div>
+
+            <button onclick="emitirAlertaGeneral()" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-red-200 transition-all transform hover:scale-[1.02] active:scale-95">
+                EMITIR ALERTA 📢
+            </button>
+            <p class="text-[10px] text-gray-400 mt-3 text-center uppercase font-bold">Se enviará a todos los ciudadanos registrados</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+            <h3 class="font-bold text-slate-800 mb-4">Histórico Consultas LLM</h3>
+            <div class="space-y-3 max-h-64 overflow-y-auto pr-2" id="historial-llm">
+                <div class="text-xs p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <p class="font-bold text-blue-600 mb-1">Usuario: @paco_dev</p>
+                    <p class="italic text-gray-500">"¿Qué hago si mi sótano se inunda?"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 text-lg">Registro Meteorológico (API Externa)</h3>
+                <button class="text-xs font-bold text-blue-600 hover:underline">Actualizar datos</button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-slate-400 text-[10px] uppercase font-bold">
+                    <tr>
+                        <th class="px-6 py-4">Fecha</th>
+                        <th class="px-6 py-4">Hora</th>
+                        <th class="px-6 py-4">Provincia</th>
+                        <th class="px-6 py-4">Precipitación</th>
+                        <th class="px-6 py-4">Viento</th>
+                        <th class="px-6 py-4">Riesgo</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm" id="tabla-meteo">
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-6 py-4 text-gray-500">17/03</td>
+                        <td class="px-6 py-4 text-gray-500">11:00</td>
+                        <td class="px-6 py-4 font-bold">Valencia</td>
+                        <td class="px-6 py-4">850mm</td>
+                        <td class="px-6 py-4">45km/h</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 bg-red-100 text-red-600 rounded-full text-[10px] font-black uppercase">Extremo</span>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-6 py-4 text-gray-500">17/03 10:45</td>
+                        <td class="px-6 py-4 text-gray-500">10:45</td>
+                        <td class="px-6 py-4 font-bold">Madrid</td>
+                        <td class="px-6 py-4">120mm</td>
+                        <td class="px-6 py-4">12km/h</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 bg-yellow-100 text-yellow-600 rounded-full text-[10px] font-black uppercase">Moderado</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    function emitirAlertaGeneral() {
+        Swal.fire({
+            title: '¿Confirmar Envío?',
+            text: "Se notificará a todos los ciudadanos de forma inmediata.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'SÍ, EMITIR AHORA',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire('¡Enviado!', 'La alerta masiva ha sido procesada.', 'success');
+            }
+        })
+    }
+</script>
+</body>
+</html>
