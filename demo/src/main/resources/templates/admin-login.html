@@ -46,16 +46,15 @@
 
 <div id="auth-screen">
     <div class="auth-card">
-        <h2 style="color:var(--upm-blue); margin-top:0;">Inicio de sesión Ciudadano</h2>
+        <h2 style="color:var(--upm-blue); margin-top:0;">Inicio de sesión Administrador</h2>
         <div id="login-form">
-            <form action="/loginCiudadano" method="post">
+            <form action="/loginAdmin" method="post">
                 <input type="text" name="nik" placeholder="Usuario">
                 <input type="password" name="contrasena" placeholder="Contraseña">
                 <button type="submit">Entrar</button>
 
             </form>
-            <button onclick="window.location.href='/registro-ciudadano'">Registrarse como ciudadano</button>
-            <button onclick="window.location.href='/admin-login'">Log In Administrador</button>
+            <button onclick="window.location.href='/'">Log In Ciudadano</button>
 
         </div>
     </div>

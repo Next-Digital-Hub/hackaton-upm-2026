@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel ciudadano</title>
+    <style>
+        :root {
+            --upm-blue: #0055A4;
+            --upm-light: #f4f7fb;
+            --upm-dark: #003366;
+            --card-bg: #ffffff;
+            --border-soft: #d9e2f2;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--upm-light);
+            color: #222;
+        }
+
+        .page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--upm-blue);
+            color: white;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        header .user-name {
+            font-weight: 600;
+        }
+
+        main {
+            flex: 1;
+            padding: 24px 32px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1.2fr;
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 16px 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            border: 1px solid var(--border-soft);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .card h2 {
+            margin: 0 0 12px 0;
+            color: var(--upm-dark);
+            font-size: 1.1rem;
+        }
+
+        .chat-window,
+        .weather-window {
+            flex: 1;
+            border-radius: 8px;
+            border: 1px solid var(--border-soft);
+            padding: 10px;
+            background: #fafbff;
+            overflow-y: auto;
+            font-size: 0.9rem;
+        }
+
+        .chat-input,
+        .weather-inputs {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input textarea {
+            flex: 1;
+            resize: vertical;
+            min-height: 60px;
+            max-height: 140px;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-soft);
+            font-family: inherit;
+        }
+
+        .weather-inputs input {
+            flex: 1;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-soft);
+        }
+
+        button {
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: none;
+            background: var(--upm-blue);
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background: var(--upm-dark);
+        }
+
+        .message {
+            margin-bottom: 8px;
+            padding: 6px 8px;
+            border-radius: 6px;
+        }
+
+        .message.user {
+            background: #e3f0ff;
+            align-self: flex-end;
+        }
+
+        .message.system {
+            background: #f1f3f8;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header>
+        <h1>Panel ciudadano</h1>
+        <div class="user-name">
+            Usuario: <span id="nombre-usuario">[[${nik}]]</span>
+        </div>
+    </header>
+
+    <main>
+        <div class="grid">
+            <!-- Chat de consulta -->
+            <section class="card">
+                <h2>Consulta al asistente</h2>
+                <div id="chat-window" class="chat-window">
+                    <!-- Ejemplo de mensajes -->
+                    <div class="message system">
+                        Bienvenido, puedes hacer tu consulta sobre meteorología o seguridad.
+                    </div>
+                </div>
+
+                <div class="chat-input">
+                    <textarea id="chat-input-text" placeholder="Escribe tu consulta..."></textarea>
+                    <button id="chat-send-btn">Enviar</button>
+                </div>
+            </section>
+
+            <!-- Consulta del tiempo -->
+            <section class="card">
+                <h2>Consulta del tiempo</h2>
+                <div id="weather-window" class="weather-window">
+                    <p>Introduce una ubicación para consultar la previsión.</p>
+                </div>
+
+                <div class="weather-inputs">
+                    <input type="text" id="weather-location" placeholder="Ciudad o código postal">
+                    <button id="weather-btn">Consultar</button>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<script>
+    // Aquí luego enganchas tus llamadas a /prompt y /weather
+
+    const chatWindow = document.getElementById("chat-window");
+    const chatInput = document.getElementById("chat-input-text");
+    const chatBtn = document.getElementById("chat-send-btn");
+
+    chatBtn.addEventListener("click", () => {
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        // Pintar mensaje del usuario
+        const msg = document.createElement("div");
+        msg.className = "message user";
+        msg.textContent = text;
+        chatWindow.appendChild(msg);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        chatInput.value = "";
+
+        // Aquí llamarías a tu endpoint /api/prompt
+        // fetch("/api/prompt", {...})
+    });
+
+    const weatherBtn = document.getElementById("weather-btn");
+    const weatherWindow = document.getElementById("weather-window");
+    const weatherLocation = document.getElementById("weather-location");
+
+    weatherBtn.addEventListener("click", () => {
+        const loc = weatherLocation.value.trim();
+        if (!loc) return;
+
+        weatherWindow.innerHTML = `<p>Consultando el tiempo para <strong>${loc}</strong>...</p>`;
+
+        // Aquí llamarías a tu endpoint de tiempo
+        // fetch("/api/weather?location=" + encodeURIComponent(loc))
+    });
+</script>
+</body>
+</html>

@@ -18,23 +18,44 @@ public class HomeController {
 	public String home() {
 		return "index";
 	}
+	@GetMapping("/admin-login")
+	public String adminLogin() {
+		return "admin-login"; // carga admin-login.html
+	}
+
 
 	@PostMapping("/loginCiudadano")
-	public Ciudadano login(@RequestParam String nik,
+	public String login(@RequestParam String nik,
 						   @RequestParam String contrasena,
 						   Model model) {
+		boolean existeUsuario = false;
 
-		// Aquí ya tienes los datos del HTML
 		System.out.println("Usuario: " + nik);
 		System.out.println("Contraseña: " + contrasena);
 
+		if (nik.equals("user") && contrasena.equals("user123")) {
+			return "loggedUser";
+		}
 
-		// Los pasas a la vista si quieres
-		model.addAttribute("nik", nik);
-		model.addAttribute("contrasena", contrasena);
+		return "index";
+	}
 
-		// De momento volvemos al mismo index
-		return new Ciudadano(nik, );
+
+	@PostMapping("/loginAdmin")
+	public String loginAdmin(@RequestParam String nik,
+						 @RequestParam String contrasena,
+						 Model model) {
+		boolean existeAdmin = false;
+
+		System.out.println("UsuarioAdmin: " + nik);
+		System.out.println("Contraseña: " + contrasena);
+
+		if (nik.equals("admin") && contrasena.equals("admin123")) {
+			return "loggedAdmin";
+		}else{
+			return "admin-login";
+		}
+
 	}
 }
 
