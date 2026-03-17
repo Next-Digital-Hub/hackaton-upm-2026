@@ -1,5 +1,6 @@
 using Hackathon1.Data;
 using Hackathon1.Models;
+using Hackathon1.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
