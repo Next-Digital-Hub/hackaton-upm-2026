@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Recomendaciones — ClimAlert{% endblock %}
+{% block content %}
+<div class="page-h"><h1>🤖 Recomendaciones Personalizadas</h1><p class="sub">Basadas en el clima actual y tu perfil</p></div>
+
+{% if error %}
+<div class="card"><div class="flash flash-danger">{{ error }}</div></div>
+{% else %}
+
+{% if data.nivel_alerta %}
+<div class="alert-ban ban-{{ data.nivel_alerta }} mb2">
+    <span>{% if data.nivel_alerta=='rojo' %}🔴{% elif data.nivel_alerta=='amarillo' %}🟡{% else %}🟢{% endif %}</span>
+    <div><h3>Nivel de alerta: {{ data.nivel_alerta|upper }}</h3></div>
+</div>
+{% endif %}
+
+{% if data.weather %}
+<div class="card mb2">
+    <h3 class="mb2">🌦️ Clima actual en {{ current_user.provincia }}</h3>
+    <div class="wg">
+        {% if data.weather.temperatura is defined %}<div class="wi"><div class="wi-l">Temperatura</div><div class="wi-v">{{ data.weather.temperatura }}°C</div></div>{% endif %}
+        {% if data.weather.precipitacion is defined %}<div class="wi"><div class="wi-l">Precipitación</div><div class="wi-v">{{ data.weather.precipitacion }} mm</div></div>{% endif %}
+        {% if data.weather.viento_kmh is defined %}<div class="wi"><div class="wi-l">Viento</div><div class="wi-v">{{ data.weather.viento_kmh }} km/h</div></div>{% endif %}
+        {% if data.weather.descripcion %}<div class="wi"><div class="wi-l">Condición</div><div class="wi-v" style="font-size:1rem">{{ data.weather.descripcion }}</div></div>{% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% if data.recomendacion %}
+<div class="card">
+    <h3 class="mb2">🛡️ Instrucciones para ti</h3>
+    <div class="reco">
+        <div class="reco-text">{{ data.recomendacion }}</div>
+    </div>
+    <p class="ts tm mt2">Tu perfil: {{ current_user.tipo_vivienda }} en {{ current_user.provincia }}{% if current_user.necesidades_especiales %} · {{ current_user.necesidades_especiales }}{% endif %}</p>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}
