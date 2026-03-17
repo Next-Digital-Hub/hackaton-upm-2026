@@ -3,8 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { collection, addDoc } from "firebase/firestore";
+
 import { provincias } from "./provincias";
 import { TipoVivienda, Usuario } from "@/lib/models/Usuario";
+import { db } from "@/lib/firebase";
 
 const tiposVivienda = Object.values(TipoVivienda);
 
@@ -12,7 +15,7 @@ export default function RegistroPage() {
   const [tipoUsuario, setTipoUsuario] = useState("Cliente");
   const [mensaje, setMensaje] = useState("");
 
-  const handleRegistro = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleRegistro = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const form = event.currentTarget;
@@ -55,10 +58,25 @@ export default function RegistroPage() {
       necesidadesEspeciales,
     );
 
-    console.log("Usuario creado:", nuevoUsuario);
-    setMensaje(`Cuenta creada correctamente para ${nuevoUsuario.getNombre()}.`);
-    form.reset();
-    setTipoUsuario("Cliente");
+    try {
+      await addDoc(collection(db, "usuarios"), {
+        nombre: nuevoUsuario.getNombre(),
+        apellidos: nuevoUsuario.getApellidos(),
+        correo: nuevoUsuario.getCorreo(),
+        telefono: nuevoUsuario.getTelefono(),
+        provincia: nuevoUsuario.getProvincia(),
+        tipoVivienda: nuevoUsuario.getTipoVivienda(),
+        necesidadesEspeciales: nuevoUsuario.getNecesidadesEspeciales(),
+        tipoUsuario,
+        creadoEn: new Date().toISOString(),
+      });
+      setMensaje(`Cuenta creada correctamente para ${nuevoUsuario.getNombre()}.`);
+      form.reset();
+      setTipoUsuario("Cliente");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setMensaje(`Error al guardar en la base de datos: ${msg}`);
+    }
   };
 
   return (
