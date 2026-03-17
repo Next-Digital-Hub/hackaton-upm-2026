@@ -2,6 +2,8 @@ package com.kernelpanic.campusostenible.ui.backoffice;
 
 import com.kernelpanic.campusostenible.core.domain.*;
 import com.kernelpanic.campusostenible.core.providers.MeteoData;
+import com.kernelpanic.campusostenible.core.providers.recomendation.RecomendationProvider;
+import com.kernelpanic.campusostenible.core.services.alert.AlertService;
 import com.kernelpanic.campusostenible.core.services.weather.WeatherService;
 
 import org.springframework.stereotype.Controller;
@@ -10,15 +12,18 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/admin/weather")
 public class AdminWeatherController {
 
     private final WeatherService weatherService;
+    private final RecomendationProvider recomendationProvider;
 
-    public AdminWeatherController(WeatherService weatherService) {
+    public AdminWeatherController(WeatherService weatherService, RecomendationProvider recomendationProvider) {
         this.weatherService = weatherService;
+        this.recomendationProvider = recomendationProvider;
     }
 
     @GetMapping
@@ -28,6 +33,8 @@ public class AdminWeatherController {
 
         LocalDate selectedDate = (date != null) ? LocalDate.parse(date) : LocalDate.now();
         List<MeteoData> allData = weatherService.getAllMeteoData(selectedDate);
+
+        Optional<SystemAlert> systemAlert = recomendationProvider.recomendAlert(null);
 
         // Advice logic moved to frontend; providing a simple message here
         String advice = allData.isEmpty() ? "No hay datos meteorológicos disponibles para esta fecha." 
