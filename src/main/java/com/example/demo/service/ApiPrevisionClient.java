@@ -6,11 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 @Service
-public class ApiClient {
+public class ApiPrevisionClient {
     private final RestClient restClient;
 
     // Spring inyecta el RestClient.Builder y también busca el valor de hackaton.api.jwt
-    public ApiClient(
+    public ApiPrevisionClient(
             RestClient.Builder restBuilder,
             @Value("${hackaton.api.jwt}") String token) {
 
@@ -20,7 +20,7 @@ public class ApiClient {
                 .build();
     }
 
-    public PrevisionDTO getAlert() {
+    public PrevisionDTO getPrevision() {
         return this.restClient.get()
                 .uri("/alertas-meteorologicas")
                 .retrieve()
