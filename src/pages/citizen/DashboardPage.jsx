@@ -4,7 +4,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabase";
 import {
 	fetchWeather,
-	WEATHER_DISASTER_MODE,
 	sendPrompt,
 	buildSystemPrompt,
 	buildUserPrompt,
@@ -18,7 +17,6 @@ import {
 	Thermometer,
 	Wind,
 	Droplets,
-	Eye,
 	MapPin,
 	ChevronDown,
 	ChevronUp,
@@ -34,10 +32,9 @@ function getWindValue(weatherData) {
 		weatherData?.viento,
 	];
 
-	const windValue = candidates.find(
+	return candidates.find(
 		(value) => value !== undefined && value !== null && value !== "",
 	);
-	return windValue;
 }
 
 function buildWeatherAlert(weatherData) {
@@ -49,24 +46,24 @@ function buildWeatherAlert(weatherData) {
 	if (Number.isFinite(precipitation) && precipitation >= 100) {
 		return {
 			severity: "critical",
-			title: "Alerta meteorológica por lluvia intensa",
-			description: `La API está devolviendo ${precipitation} mm de precipitación. Evita desplazamientos y revisa zonas inundables.`,
+			title: "Alerta meteorologica por lluvia intensa",
+			description: `La API esta devolviendo ${precipitation} mm de precipitacion. Evita desplazamientos y revisa zonas inundables.`,
 		};
 	}
 
 	if (Number.isFinite(wind) && wind >= 70) {
 		return {
 			severity: "critical",
-			title: "Alerta meteorológica por viento fuerte",
-			description: `La API está devolviendo ${wind} km/h de viento. Evita exteriores y asegura objetos en balcones o terrazas.`,
+			title: "Alerta meteorologica por viento fuerte",
+			description: `La API esta devolviendo ${wind} km/h de viento. Evita exteriores y asegura objetos en balcones o terrazas.`,
 		};
 	}
 
 	if (Number.isFinite(precipitation) && precipitation >= 30) {
 		return {
 			severity: "warning",
-			title: "Aviso por precipitación elevada",
-			description: `La API está devolviendo ${precipitation} mm de precipitación. Mantente atento a posibles incidencias.`,
+			title: "Aviso por precipitacion elevada",
+			description: `La API esta devolviendo ${precipitation} mm de precipitacion. Mantente atento a posibles incidencias.`,
 		};
 	}
 
@@ -74,7 +71,7 @@ function buildWeatherAlert(weatherData) {
 		return {
 			severity: "warning",
 			title: "Aviso por viento",
-			description: `La API está devolviendo ${wind} km/h de viento. Toma precauciones en exteriores.`,
+			description: `La API esta devolviendo ${wind} km/h de viento. Toma precauciones en exteriores.`,
 		};
 	}
 
@@ -92,17 +89,16 @@ export default function DashboardPage() {
 	const [activeTab, setActiveTab] = useState("weather");
 	const [weatherHistory, setWeatherHistory] = useState([]);
 	const [llmHistory, setLlmHistory] = useState([]);
-	const [alertHistory, setAlertHistory] = useState([]);
 	const [expandedRec, setExpandedRec] = useState(null);
 	const [weatherAlert, setWeatherAlert] = useState(null);
 
-	// Fetch active alerts on mount + subscribe to realtime
 	useEffect(() => {
+		if (!user) return;
+
 		loadActiveAlerts();
 		loadHistory();
 		handleFetchWeather();
 
-		// Realtime subscription for new alerts
 		const channel = supabase
 			.channel("alerts-realtime")
 			.on(
@@ -111,6 +107,7 @@ export default function DashboardPage() {
 				(payload) => {
 					const newAlert = payload.new;
 					setAlerts((prev) => [newAlert, ...prev]);
+
 					toast(`🚨 Nueva alerta: ${newAlert.title}`, {
 						duration: 8000,
 						style: {
@@ -127,7 +124,7 @@ export default function DashboardPage() {
 		return () => {
 			supabase.removeChannel(channel);
 		};
-	}, []);
+	}, [user]);
 
 	async function loadActiveAlerts() {
 		const { data } = await supabase
@@ -135,11 +132,12 @@ export default function DashboardPage() {
 			.select("*")
 			.eq("active", true)
 			.order("created_at", { ascending: false });
+
 		setAlerts(data || []);
 	}
 
 	async function loadHistory() {
-		const [wRes, lRes, aRes] = await Promise.all([
+		const [wRes, lRes] = await Promise.all([
 			supabase
 				.from("weather_logs")
 				.select("*")
@@ -150,21 +148,16 @@ export default function DashboardPage() {
 				.select("*")
 				.order("created_at", { ascending: false })
 				.limit(20),
-			supabase
-				.from("alerts")
-				.select("*")
-				.order("created_at", { ascending: false })
-				.limit(20),
 		]);
+
 		setWeatherHistory(wRes.data || []);
 		setLlmHistory(lRes.data || []);
-		setAlertHistory(aRes.data || []);
 	}
 
 	async function handleFetchWeather() {
 		setWeatherLoading(true);
 		try {
-			const data = await fetchWeather(WEATHER_DISASTER_MODE);
+			const data = await fetchWeather(true);
 			setWeather(data);
 			setWeatherAlert(buildWeatherAlert(data));
 
@@ -172,14 +165,14 @@ export default function DashboardPage() {
 			await supabase.from("weather_logs").insert({
 				user_id: user.id,
 				weather_data: data,
-				disaster: WEATHER_DISASTER_MODE,
+				disaster: false,
 			});
 			setWeatherHistory((prev) => [
 				{
 					id: `weather-${createdAt}`,
 					created_at: createdAt,
 					weather_data: data,
-					disaster: WEATHER_DISASTER_MODE,
+					disaster: false,
 				},
 				...prev.slice(0, 19),
 			]);
@@ -187,7 +180,7 @@ export default function DashboardPage() {
 			await handleGetRecommendation(data);
 		} catch (err) {
 			setWeatherAlert(null);
-			toast.error("Error al obtener datos meteorológicos");
+			toast.error("Error al obtener datos meteorologicos");
 			console.error(err);
 		} finally {
 			setWeatherLoading(false);
@@ -204,9 +197,9 @@ export default function DashboardPage() {
 			const response = await sendPrompt(systemPrompt, userPrompt);
 
 			const responseText =
-				typeof response === "string" ? response : (
-					response?.response || response?.message || JSON.stringify(response)
-				);
+				typeof response === "string"
+					? response
+					: response?.response || response?.message || JSON.stringify(response);
 
 			setRecommendation(responseText);
 
@@ -226,7 +219,7 @@ export default function DashboardPage() {
 				...prev.slice(0, 19),
 			]);
 		} catch (err) {
-			toast.error("Error al generar recomendación");
+			toast.error("Error al generar recomendacion");
 			console.error(err);
 		} finally {
 			setRecLoading(false);
@@ -234,9 +227,11 @@ export default function DashboardPage() {
 	}
 
 	const severityClass = (s) =>
-		s === "critical" ? "severity-critical"
-		: s === "warning" ? "severity-warning"
-		: "severity-info";
+		s === "critical"
+			? "severity-critical"
+			: s === "warning"
+				? "severity-warning"
+				: "severity-info";
 
 	const visibleAlerts = weatherAlert ? [weatherAlert, ...alerts] : alerts;
 	const windValue = getWindValue(weather);
@@ -247,13 +242,12 @@ export default function DashboardPage() {
 				<div>
 					<h1>Panel de Ciudadano</h1>
 					<p className="dashboard-subtitle">
-						<MapPin size={16} /> {profile?.provincia || "Sin provincia"} ·{" "}
+						<MapPin size={16} /> {profile?.provincia || "Sin provincia"} · {" "}
 						{profile?.tipo_vivienda || "Sin vivienda"}
 					</p>
 				</div>
 			</div>
 
-			{/* Active Alerts Banner */}
 			{visibleAlerts.length > 0 && (
 				<div className="alerts-section">
 					{visibleAlerts.map((alert, index) => (
@@ -266,19 +260,16 @@ export default function DashboardPage() {
 								<strong>{alert.title}</strong>
 								<p>{alert.description}</p>
 							</div>
-							<span className="alert-badge">
-								{alert.severity?.toUpperCase()}
-							</span>
+							<span className="alert-badge">{alert.severity?.toUpperCase()}</span>
 						</div>
 					))}
 				</div>
 			)}
 
-			{/* Weather Section */}
 			<section className="dashboard-card">
 				<div className="card-header">
 					<h2>
-						<CloudRain size={22} /> Previsión Meteorológica
+						<CloudRain size={22} /> Prevision Meteorologica
 					</h2>
 					{weatherLoading && (
 						<span className="dashboard-subtitle">
@@ -287,7 +278,7 @@ export default function DashboardPage() {
 					)}
 				</div>
 
-				{weather ?
+				{weather ? (
 					<div className="weather-display">
 						<div className="weather-grid">
 							{weather.tmed !== undefined && (
@@ -308,28 +299,25 @@ export default function DashboardPage() {
 									</div>
 								</div>
 							)}
-							{windValue !== undefined &&
-								windValue !== null &&
-								windValue !== "" && (
-									<div className="weather-stat">
-										<Wind size={24} />
-										<div>
-											<span className="stat-value">{windValue} km/h</span>
-											<span className="stat-label">Viento</span>
-										</div>
+							{windValue !== undefined && windValue !== null && windValue !== "" && (
+								<div className="weather-stat">
+									<Wind size={24} />
+									<div>
+										<span className="stat-value">{windValue} km/h</span>
+										<span className="stat-label">Viento</span>
 									</div>
-								)}
+								</div>
+							)}
 							{weather.prec !== undefined && weather.prec !== null && (
 								<div className="weather-stat">
 									<CloudRain size={24} />
 									<div>
 										<span className="stat-value">{weather.prec} mm</span>
-										<span className="stat-label">Precipitación</span>
+										<span className="stat-label">Precipitacion</span>
 									</div>
 								</div>
 							)}
 						</div>
-						{/* Show full JSON for any extra fields */}
 						<details className="weather-raw">
 							<summary>Ver datos completos</summary>
 							<div style={{ padding: "8px 0" }}>
@@ -337,19 +325,17 @@ export default function DashboardPage() {
 							</div>
 						</details>
 					</div>
-				: weatherLoading ?
-					<p className="empty-state">Cargando la previsión meteorológica...</p>
-				:	<p className="empty-state">
-						No se han podido cargar los datos meteorológicos.
-					</p>
-				}
+				) : weatherLoading ? (
+					<p className="empty-state">Cargando la prevision meteorologica...</p>
+				) : (
+					<p className="empty-state">No se han podido cargar los datos meteorologicos.</p>
+				)}
 			</section>
 
-			{/* AI Recommendation Section */}
 			<section className="dashboard-card recommendation-card">
 				<div className="card-header">
 					<h2>
-						<Brain size={22} /> Recomendación IA
+						<Brain size={22} /> Recomendacion IA
 					</h2>
 					{recLoading && (
 						<span className="dashboard-subtitle">
@@ -358,21 +344,19 @@ export default function DashboardPage() {
 					)}
 				</div>
 
-				{recommendation ?
+				{recommendation ? (
 					<div className="recommendation-content">
 						<div className="recommendation-text recommendation-markdown">
 							<ReactMarkdown>{recommendation}</ReactMarkdown>
 						</div>
 					</div>
-				:	<p className="empty-state">
-						{recLoading ?
-							"Generando recomendación con IA..."
-						:	"Sin datos disponibles."}
+				) : (
+					<p className="empty-state">
+						{recLoading ? "Generando recomendacion con IA..." : "Sin datos disponibles."}
 					</p>
-				}
+				)}
 			</section>
 
-			{/* History Section */}
 			<section className="dashboard-card">
 				<div className="card-header">
 					<h2>
@@ -385,7 +369,7 @@ export default function DashboardPage() {
 						className={`tab ${activeTab === "weather" ? "active" : ""}`}
 						onClick={() => setActiveTab("weather")}
 					>
-						Meteorología
+						Meteorologia
 					</button>
 					<button
 						className={`tab ${activeTab === "llm" ? "active" : ""}`}
@@ -393,27 +377,20 @@ export default function DashboardPage() {
 					>
 						Consultas IA
 					</button>
-					<button
-						className={`tab ${activeTab === "alerts" ? "active" : ""}`}
-						onClick={() => setActiveTab("alerts")}
-					>
-						Alertas
-					</button>
 				</div>
 
 				<div className="history-content">
 					{activeTab === "weather" && (
 						<div className="history-list">
-							{weatherHistory.length === 0 ?
-								<p className="empty-state">Sin registros meteorológicos</p>
-							:	weatherHistory.map((w) => (
+							{weatherHistory.length === 0 ? (
+								<p className="empty-state">Sin registros meteorologicos</p>
+							) : (
+								weatherHistory.map((w) => (
 									<div key={w.id} className="history-item">
 										<span className="history-date">
 											{new Date(w.created_at).toLocaleString("es-ES")}
 										</span>
-										<span
-											className={`history-badge ${w.disaster ? "badge-danger" : "badge-normal"}`}
-										>
+										<span className={`history-badge ${w.disaster ? "badge-danger" : "badge-normal"}`}>
 											{w.disaster ? "Desastre" : "Normal"}
 										</span>
 										<details>
@@ -424,29 +401,26 @@ export default function DashboardPage() {
 										</details>
 									</div>
 								))
-							}
+							)}
 						</div>
 					)}
 
 					{activeTab === "llm" && (
 						<div className="history-list">
-							{llmHistory.length === 0 ?
+							{llmHistory.length === 0 ? (
 								<p className="empty-state">Sin consultas al LLM</p>
-							:	llmHistory.map((q, i) => (
+							) : (
+								llmHistory.map((q, i) => (
 									<div key={q.id} className="history-item">
 										<div
 											className="history-item-header"
-											onClick={() =>
-												setExpandedRec(expandedRec === i ? null : i)
-											}
+											onClick={() => setExpandedRec(expandedRec === i ? null : i)}
 											style={{ cursor: "pointer" }}
 										>
 											<span className="history-date">
 												{new Date(q.created_at).toLocaleString("es-ES")}
 											</span>
-											{expandedRec === i ?
-												<ChevronUp size={16} />
-											:	<ChevronDown size={16} />}
+											{expandedRec === i ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
 										</div>
 										{expandedRec === i && (
 											<div className="history-detail">
@@ -458,34 +432,10 @@ export default function DashboardPage() {
 										)}
 									</div>
 								))
-							}
+							)}
 						</div>
 					)}
 
-					{activeTab === "alerts" && (
-						<div className="history-list">
-							{alertHistory.length === 0 ?
-								<p className="empty-state">Sin alertas registradas</p>
-							:	alertHistory.map((a) => (
-									<div
-										key={a.id}
-										className={`history-item ${severityClass(a.severity)}`}
-									>
-										<span className="history-date">
-											{new Date(a.created_at).toLocaleString("es-ES")}
-										</span>
-										<strong>{a.title}</strong>
-										<p>{a.description}</p>
-										<span
-											className={`alert-badge ${severityClass(a.severity)}`}
-										>
-											{a.severity?.toUpperCase()}
-										</span>
-									</div>
-								))
-							}
-						</div>
-					)}
 				</div>
 			</section>
 		</div>
