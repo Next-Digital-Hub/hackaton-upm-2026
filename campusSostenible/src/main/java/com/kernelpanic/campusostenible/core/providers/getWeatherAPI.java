@@ -1,8 +1,8 @@
-package com.kernelpanic.campusostenible;
+package com.kernelpanic.campusostenible.core.providers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kernelpanic.campusostenible.domain.MeteoData;
+
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -19,7 +19,8 @@ public class getWeatherAPI {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    // Puedes inyectar el RestTemplate y ObjectMapper via constructor si los tienes como @Bean en tu config
+    // Puedes inyectar el RestTemplate y ObjectMapper via constructor si los tienes
+    // como @Bean en tu config
     public getWeatherAPI() {
         this.restTemplate = new RestTemplate();
         this.objectMapper = new ObjectMapper();
@@ -39,24 +40,22 @@ public class getWeatherAPI {
                     url,
                     HttpMethod.GET,
                     entity,
-                    String.class
-            );
+                    String.class);
 
             if (response.getBody() != null) {
                 JsonNode root = objectMapper.readTree(response.getBody());
                 List<WeatherData> result = new ArrayList<>();
-                
+
                 if (root.isArray()) {
                     for (JsonNode node : root) {
                         WeatherData data = objectMapper.treeToValue(node, WeatherData.class);
                         result.add(data);
                     }
-                } 
-                else if (root.isObject()) {
+                } else if (root.isObject()) {
                     WeatherData data = objectMapper.treeToValue(root, WeatherData.class);
                     result.add(data);
                 }
-                
+
                 return result;
             }
         } catch (Exception e) {

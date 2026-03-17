@@ -1,4 +1,4 @@
-package com.kernelpanic.campusostenible.dto;
+package com.kernelpanic.campusostenible.ui.dto;
 
 import lombok.*;
 

@@ -1,7 +1,9 @@
-package com.kernelpanic.campusostenible.controller;
+package com.kernelpanic.campusostenible.ui.backoffice;
 
-import com.kernelpanic.campusostenible.domain.*;
-import com.kernelpanic.campusostenible.service.WeatherService;
+import com.kernelpanic.campusostenible.core.domain.*;
+import com.kernelpanic.campusostenible.core.providers.MeteoData;
+import com.kernelpanic.campusostenible.core.services.WeatherService;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -23,13 +25,15 @@ public class AdminWeatherController {
     public String adminPanel(
             @RequestParam(required = false) String date,
             Model model) {
-        
+
         LocalDate selectedDate = (date != null) ? LocalDate.parse(date) : LocalDate.now();
         List<MeteoData> allData = weatherService.getAllMeteoData(selectedDate);
-        
-        // Find the "most interesting" data or just use the first one for the advice demo
+
+        // Find the "most interesting" data or just use the first one for the advice
+        // demo
         MeteoData latestData = allData.isEmpty() ? null : allData.get(0);
-        String advice = latestData != null ? weatherService.getAlertAdvice(latestData) : "No hay datos meteorológicos disponibles para esta fecha.";
+        String advice = latestData != null ? weatherService.getAlertAdvice(latestData)
+                : "No hay datos meteorológicos disponibles para esta fecha.";
 
         model.addAttribute("meteoDataList", allData);
         model.addAttribute("advice", advice);
@@ -39,7 +43,7 @@ public class AdminWeatherController {
         model.addAttribute("nextDate", selectedDate.plusDays(1));
         model.addAttribute("isPast", selectedDate.isBefore(LocalDate.now()));
         model.addAttribute("isToday", selectedDate.isEqual(LocalDate.now()));
-        
+
         return "admin-weather";
     }
 

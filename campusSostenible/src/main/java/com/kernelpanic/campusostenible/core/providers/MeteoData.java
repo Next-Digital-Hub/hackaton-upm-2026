@@ -1,4 +1,4 @@
-package com.kernelpanic.campusostenible.domain;
+package com.kernelpanic.campusostenible.core.providers;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

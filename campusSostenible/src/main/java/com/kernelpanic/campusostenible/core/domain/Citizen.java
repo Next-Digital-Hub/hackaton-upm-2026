@@ -1,16 +1,16 @@
-package com.kernelpanic.campusostenible.domain;
+package com.kernelpanic.campusostenible.core.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "back_office")
+@Table(name = "citizens")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BackOffice {
+public class Citizen {
 
     @Id
     @Column(nullable = false, unique = true)
@@ -21,4 +21,13 @@ public class BackOffice {
 
     @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
+    private String province;
+
+    @Column(nullable = false)
+    private String villageType;
+
+    @Column(nullable = false)
+    private String specialNeeds;
 }

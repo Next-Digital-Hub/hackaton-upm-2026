@@ -1,4 +1,4 @@
-package com.kernelpanic.campusostenible.domain;
+package com.kernelpanic.campusostenible.core.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,7 +10,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Alert{
+public class Alert {
     @Id
     @Column(nullable = false, unique = true)
     @GeneratedValue(strategy = GenerationType.IDENTITY)

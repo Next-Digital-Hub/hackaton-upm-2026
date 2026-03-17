@@ -1,4 +1,4 @@
-package com.kernelpanic.campusostenible.domain;
+package com.kernelpanic.campusostenible.core.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

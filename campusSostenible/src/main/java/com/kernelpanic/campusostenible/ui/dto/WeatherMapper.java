@@ -1,17 +1,18 @@
-package com.kernelpanic.campusostenible.dto;
-
-import com.kernelpanic.campusostenible.domain.*;
+package com.kernelpanic.campusostenible.ui.dto;
 
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.Locale;
+
+import com.kernelpanic.campusostenible.core.domain.*;
 
 public class WeatherMapper {
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final Locale ES = Locale.of("es", "ES");
 
-    private WeatherMapper() {}
+    private WeatherMapper() {
+    }
 
     public static WeatherDataDTO toDTO(WeatherData data) {
         String bgClass = switch (data.getWeatherCondition()) {

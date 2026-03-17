@@ -1,9 +1,11 @@
-package com.kernelpanic.campusostenible.service;
+package com.kernelpanic.campusostenible.core.services.weather;
 
-import com.kernelpanic.campusostenible.domain.*;
-import com.kernelpanic.campusostenible.dto.WeatherRecommendationDTO;
+import com.kernelpanic.campusostenible.core.domain.*;
+import com.kernelpanic.campusostenible.core.providers.MeteoData;
 import com.kernelpanic.campusostenible.repositories.MeteoDataRepository;
 import com.kernelpanic.campusostenible.repositories.WeatherAlertRepository;
+import com.kernelpanic.campusostenible.ui.dto.WeatherRecommendationDTO;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -17,9 +19,9 @@ public class WeatherService {
     private final WeatherAlertRepository weatherAlertRepository;
     private final MeteoDataRepository meteoDataRepository;
 
-    public WeatherService(MarkdownService markdownService, 
-                          WeatherAlertRepository weatherAlertRepository,
-                          MeteoDataRepository meteoDataRepository) {
+    public WeatherService(MarkdownService markdownService,
+            WeatherAlertRepository weatherAlertRepository,
+            MeteoDataRepository meteoDataRepository) {
         this.markdownService = markdownService;
         this.weatherAlertRepository = weatherAlertRepository;
         this.meteoDataRepository = meteoDataRepository;
@@ -39,28 +41,34 @@ public class WeatherService {
 
     public String getAlertAdvice(MeteoData data) {
         StringBuilder advice = new StringBuilder();
-        
+
         try {
             double tmax = data.getTmax() != null ? Double.parseDouble(data.getTmax().replace(",", ".")) : 0;
             double prec = data.getPrec() != null ? Double.parseDouble(data.getPrec().replace(",", ".")) : 0;
             double racha = data.getRacha() != null ? Double.parseDouble(data.getRacha().replace(",", ".")) : 0;
 
             if (tmax > 40) {
-                advice.append("⚠️ **Aviso de Calor Extremo:** Temperatura máxima superior a 40°C detectada. Se recomienda emitir alerta roja.\n");
+                advice.append(
+                        "⚠️ **Aviso de Calor Extremo:** Temperatura máxima superior a 40°C detectada. Se recomienda emitir alerta roja.\n");
             } else if (tmax > 36) {
-                advice.append("⚠️ **Aviso de Ola de Calor:** Temperatura máxima superior a 36°C detectada. Se recomienda emitir alerta naranja/amarilla.\n");
+                advice.append(
+                        "⚠️ **Aviso de Ola de Calor:** Temperatura máxima superior a 36°C detectada. Se recomienda emitir alerta naranja/amarilla.\n");
             }
 
             if (prec > 50) {
-                advice.append("🌊 **Aviso de Inundación:** Precipitación superior a 50mm detectada. Se recomienda emitir alerta roja.\n");
+                advice.append(
+                        "🌊 **Aviso de Inundación:** Precipitación superior a 50mm detectada. Se recomienda emitir alerta roja.\n");
             } else if (prec > 20) {
-                advice.append("🌧️ **Aviso de Lluvias Intensas:** Precipitación superior a 20mm detectada. Se recomienda emitir alerta naranja.\n");
+                advice.append(
+                        "🌧️ **Aviso de Lluvias Intensas:** Precipitación superior a 20mm detectada. Se recomienda emitir alerta naranja.\n");
             }
 
             if (racha > 100) {
-                advice.append("💨 **Aviso de Viento Huracanado:** Rachas superiores a 100km/h detectadas. Se recomienda emitir alerta roja.\n");
+                advice.append(
+                        "💨 **Aviso de Viento Huracanado:** Rachas superiores a 100km/h detectadas. Se recomienda emitir alerta roja.\n");
             } else if (racha > 70) {
-                advice.append("💨 **Aviso de Viento Fuerte:** Rachas superiores a 70km/h detectadas. Se recomienda emitir alerta naranja.\n");
+                advice.append(
+                        "💨 **Aviso de Viento Fuerte:** Rachas superiores a 70km/h detectadas. Se recomienda emitir alerta naranja.\n");
             }
         } catch (NumberFormatException e) {
             return "❌ Error al procesar datos para aviso automático.";
@@ -75,9 +83,10 @@ public class WeatherService {
 
     public WeatherRecommendationDTO getDailyRecommendations(WeatherData data) {
         StringBuilder markdown = new StringBuilder();
-        
+
         markdown.append("## 📋 Informe de precauciones y recomendaciones\n\n");
-        markdown.append("Este informe se ha generado automáticamente en base a las condiciones meteorológicas actuales para la provincia de **")
+        markdown.append(
+                "Este informe se ha generado automáticamente en base a las condiciones meteorológicas actuales para la provincia de **")
                 .append(data.getProvince()).append("**.\n\n---\n\n");
 
         // Temperature-based
@@ -95,7 +104,8 @@ public class WeatherService {
             markdown.append("- Use ropa *ligera y transpirable*\n");
             markdown.append("- Tome descansos frecuentes si trabaja al aire libre\n\n---\n\n");
         } else if (data.getTemperatureMin() <= 0) {
-            markdown.append("### 🧣 Temperaturas bajo cero previsto (Min: ").append(data.getTemperatureMin()).append("°C)\n\n");
+            markdown.append("### 🧣 Temperaturas bajo cero previsto (Min: ").append(data.getTemperatureMin())
+                    .append("°C)\n\n");
             markdown.append("Se esperan **heladas**. Protéjase:\n\n");
             markdown.append("- Vista **varias capas** de ropa\n");
             markdown.append("- Proteja extremidades: *guantes, gorro y bufanda*\n");
@@ -126,7 +136,8 @@ public class WeatherService {
         // Rain-based
         if (data.getRainProbability() >= 70) {
             markdown.append("### ☂️ Alta probabilidad de lluvia\n\n");
-            markdown.append("**Alta probabilidad de lluvia** (").append(data.getRainProbability()).append("%). No olvide:\n\n");
+            markdown.append("**Alta probabilidad de lluvia** (").append(data.getRainProbability())
+                    .append("%). No olvide:\n\n");
             markdown.append("- Llevar **paraguas** y calzado **impermeable**\n");
             markdown.append("- Precaución al conducir: *charcos y reducción de visibilidad*\n");
             markdown.append("- Evite zonas con riesgo de acumulación de agua\n\n---\n\n");
@@ -135,7 +146,8 @@ public class WeatherService {
         // Wind-based
         if (data.getWindSpeed() >= 50) {
             markdown.append("### 💨 Viento muy fuerte\n\n");
-            markdown.append("Rachas de viento **intensas** previstas (").append(data.getWindSpeed()).append(" km/h):\n\n");
+            markdown.append("Rachas de viento **intensas** previstas (").append(data.getWindSpeed())
+                    .append(" km/h):\n\n");
             markdown.append("- **Asegure objetos** en balcones y terrazas\n");
             markdown.append("- Evite zonas arboladas y estructuras inestables\n");
             markdown.append("- Precaución al conducir, especialmente en *puentes y zonas expuestas*\n");
@@ -171,13 +183,14 @@ public class WeatherService {
                 markdown.append("- Aproveche para *pasear, hacer ejercicio* o disfrutar de los parques\n");
                 markdown.append("- No olvide la **protección solar**\n\n---\n\n");
             }
-            default -> {}
+            default -> {
+            }
         }
 
         // Always add a general sustainability tip
         markdown.append("### ♻️ Consejo sostenible del día\n\n");
         markdown.append(getSustainabilityTip(data));
-        
+
         String renderedHtml = markdownService.toHtml(markdown.toString());
 
         return WeatherRecommendationDTO.builder()
@@ -187,12 +200,18 @@ public class WeatherService {
 
     private String getSustainabilityTip(WeatherData data) {
         return switch (data.getWeatherCondition()) {
-            case SUNNY -> "Hoy es un gran día para **secar la ropa al sol** en lugar de usar la secadora. ¡Ahorrarás energía y tu ropa lo agradecerá! ☀️";
-            case RAINY -> "Aprovecha el **agua de lluvia** con un sistema de recogida para regar tus plantas. *Cada gota cuenta* para un campus más sostenible. 💧";
-            case CLOUDY, PARTLY_CLOUDY -> "Con temperaturas moderadas, considera ir **andando o en bici**. Reducirás tu *huella de carbono* y mejorarás tu salud. 🚲";
-            case STORMY -> "Desconecta los aparatos electrónicos que no uses. Además de seguridad, **ahorrarás energía** en modo *standby*. 🔌";
-            case SNOWY -> "Mantén tu calefacción entre **19-21°C**. Cada grado de más supone un *7% extra* de consumo energético. 🌡️";
-            case FOGGY -> "Con poca visibilidad, usa **transporte público** si es posible. Es más *seguro* y más *sostenible* que el coche particular. 🚌";
+            case SUNNY ->
+                "Hoy es un gran día para **secar la ropa al sol** en lugar de usar la secadora. ¡Ahorrarás energía y tu ropa lo agradecerá! ☀️";
+            case RAINY ->
+                "Aprovecha el **agua de lluvia** con un sistema de recogida para regar tus plantas. *Cada gota cuenta* para un campus más sostenible. 💧";
+            case CLOUDY, PARTLY_CLOUDY ->
+                "Con temperaturas moderadas, considera ir **andando o en bici**. Reducirás tu *huella de carbono* y mejorarás tu salud. 🚲";
+            case STORMY ->
+                "Desconecta los aparatos electrónicos que no uses. Además de seguridad, **ahorrarás energía** en modo *standby*. 🔌";
+            case SNOWY ->
+                "Mantén tu calefacción entre **19-21°C**. Cada grado de más supone un *7% extra* de consumo energético. 🌡️";
+            case FOGGY ->
+                "Con poca visibilidad, usa **transporte público** si es posible. Es más *seguro* y más *sostenible* que el coche particular. 🚌";
         };
     }
 
@@ -206,10 +225,9 @@ public class WeatherService {
             "Málaga", "Murcia", "Navarra", "Ourense", "Palencia",
             "Pontevedra", "La Rioja", "Salamanca", "Santa Cruz de Tenerife",
             "Segovia", "Sevilla", "Soria", "Tarragona", "Teruel",
-            "Toledo", "Valencia", "Valladolid", "Vizcaya", "Zamora", "Zaragoza"
-    );
+            "Toledo", "Valencia", "Valladolid", "Vizcaya", "Zamora", "Zaragoza");
 
-    private static final String[] WIND_DIRECTIONS = {"N", "NE", "E", "SE", "S", "SO", "O", "NO"};
+    private static final String[] WIND_DIRECTIONS = { "N", "NE", "E", "SE", "S", "SO", "O", "NO" };
 
     public List<String> getProvinces() {
         return PROVINCES;
@@ -249,7 +267,8 @@ public class WeatherService {
         List<WeatherAlert> alerts = new ArrayList<>();
 
         // Fetch manual alerts from DB that coincide with the date AND PROVINCE
-        List<WeatherAlert> manualAlerts = weatherAlertRepository.findByStartDateLessThanEqualAndEndDateGreaterThanEqual(date, date)
+        List<WeatherAlert> manualAlerts = weatherAlertRepository
+                .findByStartDateLessThanEqualAndEndDateGreaterThanEqual(date, date)
                 .stream()
                 .filter(a -> a.getProvince() == null || a.getProvince().equalsIgnoreCase(province))
                 .collect(Collectors.toList());
@@ -263,7 +282,8 @@ public class WeatherService {
             alerts.add(WeatherAlert.builder()
                     .alertLevel(level)
                     .province(province)
-                    .safetyRecommendation(buildAlertDescription(type, province) + " " + buildSafetyRecommendation(type, level))
+                    .safetyRecommendation(
+                            buildAlertDescription(type, province) + " " + buildSafetyRecommendation(type, level))
                     .startDate(date)
                     .endDate(date.plusDays(1 + rng.nextInt(2)))
                     .build());
@@ -271,7 +291,6 @@ public class WeatherService {
 
         return alerts;
     }
-
 
     private Random seededRandom(String province, LocalDate date) {
         long seed = (province + date.toString()).hashCode();
@@ -290,30 +309,44 @@ public class WeatherService {
 
     private AlertLevel pickAlertLevel(Random rng) {
         int r = rng.nextInt(100);
-        if (r < 50) return AlertLevel.YELLOW;
-        if (r < 80) return AlertLevel.ORANGE;
+        if (r < 50)
+            return AlertLevel.YELLOW;
+        if (r < 80)
+            return AlertLevel.ORANGE;
         return AlertLevel.RED;
     }
 
     private String buildAlertDescription(AlertType type, String province) {
         return switch (type) {
-            case HEAT -> "Se esperan temperaturas extremadamente altas en la provincia de " + province + ". Las temperaturas podrían superar los 40°C.";
-            case COLD -> "Se prevé un descenso brusco de temperaturas en " + province + ". Las temperaturas podrían descender por debajo de -5°C.";
-            case WIND -> "Se esperan rachas de viento muy fuertes en " + province + " que podrían superar los 100 km/h.";
-            case RAIN -> "Se prevén lluvias intensas y persistentes en " + province + ". Posibilidad de inundaciones en zonas bajas.";
-            case SNOW -> "Se esperan nevadas copiosas en " + province + ". Acumulaciones significativas en zonas elevadas.";
-            case STORM -> "Se prevén tormentas intensas con aparato eléctrico en " + province + ". Posibilidad de granizo.";
+            case HEAT -> "Se esperan temperaturas extremadamente altas en la provincia de " + province
+                    + ". Las temperaturas podrían superar los 40°C.";
+            case COLD -> "Se prevé un descenso brusco de temperaturas en " + province
+                    + ". Las temperaturas podrían descender por debajo de -5°C.";
+            case WIND ->
+                "Se esperan rachas de viento muy fuertes en " + province + " que podrían superar los 100 km/h.";
+            case RAIN -> "Se prevén lluvias intensas y persistentes en " + province
+                    + ". Posibilidad de inundaciones en zonas bajas.";
+            case SNOW ->
+                "Se esperan nevadas copiosas en " + province + ". Acumulaciones significativas en zonas elevadas.";
+            case STORM ->
+                "Se prevén tormentas intensas con aparato eléctrico en " + province + ". Posibilidad de granizo.";
         };
     }
 
     private String buildSafetyRecommendation(AlertType type, AlertLevel level) {
         String base = switch (type) {
-            case HEAT -> "Manténgase hidratado, evite la exposición al sol entre las 12h y las 17h. Use protección solar y ropa ligera. Preste especial atención a personas mayores y niños.";
-            case COLD -> "Protéjase del frío con ropa adecuada por capas. Evite desplazamientos innecesarios. Mantenga la calefacción a temperatura estable.";
-            case WIND -> "Asegure objetos en terrazas y balcones. Evite pasear por zonas arboladas o con estructuras inestables. No circule con vehículos de perfil alto.";
-            case RAIN -> "Aléjese de cauces de ríos y barrancos. Evite circular por zonas inundables. No cruce vados ni zonas con acumulación de agua.";
-            case SNOW -> "Equipe su vehículo con cadenas si es necesario. Precaución en carreteras de montaña. Evite desplazamientos si no son imprescindibles.";
-            case STORM -> "Refúgiese en edificios sólidos. No se resguarde bajo árboles aislados. Desconecte aparatos eléctricos si hay tormenta eléctrica cercana.";
+            case HEAT ->
+                "Manténgase hidratado, evite la exposición al sol entre las 12h y las 17h. Use protección solar y ropa ligera. Preste especial atención a personas mayores y niños.";
+            case COLD ->
+                "Protéjase del frío con ropa adecuada por capas. Evite desplazamientos innecesarios. Mantenga la calefacción a temperatura estable.";
+            case WIND ->
+                "Asegure objetos en terrazas y balcones. Evite pasear por zonas arboladas o con estructuras inestables. No circule con vehículos de perfil alto.";
+            case RAIN ->
+                "Aléjese de cauces de ríos y barrancos. Evite circular por zonas inundables. No cruce vados ni zonas con acumulación de agua.";
+            case SNOW ->
+                "Equipe su vehículo con cadenas si es necesario. Precaución en carreteras de montaña. Evite desplazamientos si no son imprescindibles.";
+            case STORM ->
+                "Refúgiese en edificios sólidos. No se resguarde bajo árboles aislados. Desconecte aparatos eléctricos si hay tormenta eléctrica cercana.";
         };
 
         if (level == AlertLevel.RED) {

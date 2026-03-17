@@ -1,4 +1,4 @@
-package com.kernelpanic.campusostenible.domain;
+package com.kernelpanic.campusostenible.core.domain;
 
 public enum WeatherCondition {
     SUNNY("Soleado", "☀️", "wi-day-sunny"),
@@ -19,7 +19,15 @@ public enum WeatherCondition {
         this.iconClass = iconClass;
     }
 
-    public String getDisplayName() { return displayName; }
-    public String getEmoji() { return emoji; }
-    public String getIconClass() { return iconClass; }
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public String getEmoji() {
+        return emoji;
+    }
+
+    public String getIconClass() {
+        return iconClass;
+    }
 }

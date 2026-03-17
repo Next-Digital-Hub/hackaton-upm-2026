@@ -1,4 +1,4 @@
-package com.kernelpanic.campusostenible.domain;
+package com.kernelpanic.campusostenible.core.domain;
 
 public enum AlertLevel {
     GREEN("Verde", "#22c55e", "Sin riesgo"),
@@ -16,7 +16,15 @@ public enum AlertLevel {
         this.riskLabel = riskLabel;
     }
 
-    public String getDisplayName() { return displayName; }
-    public String getColor() { return color; }
-    public String getRiskLabel() { return riskLabel; }
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public String getRiskLabel() {
+        return riskLabel;
+    }
 }
