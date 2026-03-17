@@ -18,13 +18,11 @@ const severityConfig: Record<
   {
     icon: typeof AlertTriangle;
     className: string;
-    variant?: "destructive" | "default";
   }
 > = {
   EXTREME: {
     icon: AlertTriangle,
-    className: "",
-    variant: "destructive",
+    className: "border-red-300 bg-red-50 text-red-900",
   },
   SEVERE: {
     icon: AlertTriangle,
@@ -52,14 +50,13 @@ export function AlertBanner({ alerts }: AlertBannerProps) {
         return (
           <Alert
             key={alert.id}
-            variant={config.variant ?? "default"}
-            className={config.variant ? undefined : config.className}
+            className={config.className}
           >
-            <Icon className="size-4" />
+            <Icon className="size-5" />
             <AlertTitle>{alert.title}</AlertTitle>
             <AlertDescription>
               {alert.description}
-              <span className="mt-1 block text-xs opacity-70">
+              <span className="mt-2 block text-xs opacity-80">
                 {new Date(alert.createdAt).toLocaleString("es-ES", {
                   day: "numeric",
                   month: "long",

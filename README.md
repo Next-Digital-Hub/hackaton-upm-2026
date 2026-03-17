@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
 
-## Getting Started
+# Next Digital
 
-First, run the development server:
+### Sistema de Alertas Meteorológicas · Version 1.0
 
+![Version](https://img.shields.io/badge/version-1.0-orange)
+![Release](https://img.shields.io/badge/release-GitHub%20Ready-blue)
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6)
+![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748)
+
+Aplicación web de alertas meteorológicas para la Hackathon UPM 2026.
+
+</div>
+
+---
+
+# Next Digital - Sistema de Alertas Meteorológicas
+
+Aplicación web de alertas meteorológicas para la Hackathon UPM 2026.
+
+## 👥 Equipo
+
+- **Sandra Qiao Martínez**
+- **Guillermo España Jiménez**
+
+## Tecnologías
+
+- Next.js 15 (App Router)
+- TypeScript
+- Prisma ORM
+- PostgreSQL (Neon)
+- NextAuth.js v5
+- Tailwind CSS + shadcn/ui
+- AWS Bedrock (LLM)
+
+## Requisitos
+
+- Node.js 18+
+- PostgreSQL (o cuenta en Neon)
+- Cuenta AWS con acceso a Bedrock
+
+## Configuración
+
+1. **Configurar variables de entorno**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Edita `.env` con tus credenciales (ver `SETUP.md` para más detalles).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. **Configurar base de datos**
+```bash
+npx prisma generate
+npx prisma db push
+npx prisma db seed
+```

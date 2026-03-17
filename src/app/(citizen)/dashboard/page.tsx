@@ -34,7 +34,7 @@ export default async function DashboardPage() {
           {weatherResult.data.isDisasterScenario && (
             <Alert className="border-orange-300 bg-orange-50 text-orange-900">
               <AlertTriangle className="size-4" />
-              <AlertTitle>⚠️ Escenario de riesgo detectado</AlertTitle>
+              <AlertTitle>Escenario de riesgo detectado</AlertTitle>
               <AlertDescription>
                 Los modelos meteorológicos indican un escenario de
                 precipitación extrema (
