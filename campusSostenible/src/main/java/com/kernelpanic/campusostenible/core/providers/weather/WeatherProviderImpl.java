@@ -11,7 +11,8 @@ import com.kernelpanic.campusostenible.core.domain.WeatherData;
 public class WeatherProviderImpl implements WeatherProvider{
 
     public List<WeatherData> getTodayWeather() {
-        List<MeteoData> rawDataList = getWeatherAPI.fetchWeather();
+        getWeatherAPI weatherAPI = new getWeatherAPI();
+        List<MeteoData> rawDataList = weatherAPI.fetchWeather();
 
         return rawDataList.stream()
                 .map(this::convertToDomain)

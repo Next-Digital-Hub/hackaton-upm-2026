@@ -27,7 +27,7 @@ public class getWeatherAPI {
         this.objectMapper = new ObjectMapper();
     }
 
-    public static List<MeteoData> fetchWeather() {
+    public List<MeteoData> fetchWeather() {
         String url = "http://ec2-54-171-51-31.eu-west-1.compute.amazonaws.com/weather?disaster=false";
 
         HttpHeaders headers = new HttpHeaders();
