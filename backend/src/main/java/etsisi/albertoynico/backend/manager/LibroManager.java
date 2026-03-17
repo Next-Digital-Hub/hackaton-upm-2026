@@ -8,7 +8,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 public class LibroManager extends AbstractManager<Libro> {
 
     public LibroManager(DynamoDbEnhancedClient client) {
-        super(client, "hackathon-libros", Libro.class);
+        super(client, "hackathon-libros-v2", Libro.class);
     }
 
     @Override

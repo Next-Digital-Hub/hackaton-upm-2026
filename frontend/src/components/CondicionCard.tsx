@@ -2,7 +2,7 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import { ReactNode } from "react";
+import { type ReactNode } from "react";
 
 interface CondicionCardProps {
   label: string;

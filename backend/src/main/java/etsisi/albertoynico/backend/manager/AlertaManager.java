@@ -34,7 +34,7 @@ public class AlertaManager extends AbstractManager<Alerta> {
                          BedrockService bedrockService,
                          CondicionUsuarioManager condicionUsuarioManager,
                          CondicionClimaticaManager condicionClimaticaManager) {
-        super(client, "hackathon-alertas", Alerta.class);
+        super(client, "hackathon-alertas-v2", Alerta.class);
         this.bedrockService = bedrockService;
         this.condicionUsuarioManager = condicionUsuarioManager;
         this.condicionClimaticaManager = condicionClimaticaManager;

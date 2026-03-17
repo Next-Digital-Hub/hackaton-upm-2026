@@ -9,7 +9,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 public class CondicionUsuarioManager extends AbstractManager<CondicionUsuario> {
 
     public CondicionUsuarioManager(DynamoDbEnhancedClient client) {
-        super(client, "hackathon-condiciones-usuario", CondicionUsuario.class);
+        super(client, "hackathon-condiciones-usuario-v2", CondicionUsuario.class);
     }
 
     @Override

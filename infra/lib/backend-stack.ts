@@ -54,7 +54,7 @@ export class BackendStack extends cdk.Stack {
 
     // --- DynamoDB ---
     const usuariosTable = new dynamodb.Table(this, "UsuariosTable", {
-      tableName: "hackathon-usuarios",
+      tableName: "hackathon-usuarios-v2",
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -62,7 +62,7 @@ export class BackendStack extends cdk.Stack {
     usuariosTable.grantReadWriteData(instanceRole);
 
     const condicionesUsuarioTable = new dynamodb.Table(this, "CondicionesUsuarioTable", {
-      tableName: "hackathon-condiciones-usuario",
+      tableName: "hackathon-condiciones-usuario-v2",
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -70,7 +70,7 @@ export class BackendStack extends cdk.Stack {
     condicionesUsuarioTable.grantReadWriteData(instanceRole);
 
     const alertasTable = new dynamodb.Table(this, "AlertasTable", {
-      tableName: "hackathon-alertas",
+      tableName: "hackathon-alertas-v2",
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -78,7 +78,7 @@ export class BackendStack extends cdk.Stack {
     alertasTable.grantReadWriteData(instanceRole);
 
     const llmCallsTable = new dynamodb.Table(this, "LLMCallsTable", {
-      tableName: "hackathon-llm-calls",
+      tableName: "hackathon-llm-calls-v2",
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -86,7 +86,7 @@ export class BackendStack extends cdk.Stack {
     llmCallsTable.grantReadWriteData(instanceRole);
     
     const condicionesClimaticaTable = new dynamodb.Table(this, "CondicionesClimaticaTable", {
-      tableName: "hackathon-condiciones-climatica",
+      tableName: "hackathon-condiciones-climatica-v2",
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -101,7 +101,7 @@ export class BackendStack extends cdk.Stack {
     );
 
     const backendService = new apprunner.CfnService(this, "BackendService", {
-      serviceName: "hackathon-backend",
+      serviceName: "hackathon-backend-v2",
       sourceConfiguration: {
         authenticationConfiguration: { accessRoleArn: accessRole.roleArn },
         imageRepository: {

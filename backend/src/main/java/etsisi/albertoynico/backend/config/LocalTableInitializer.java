@@ -23,12 +23,12 @@ public class LocalTableInitializer {
 
     /** Lista de tablas a crear. Añade aquí las nuevas entidades. */
     private static final List<TableDef> TABLES = List.of(
-            new TableDef("hackathon-libros", "id"),
-            new TableDef("hackathon-usuarios", "id"),
-            new TableDef("hackathon-condiciones-usuario", "id"),
-            new TableDef("hackathon-alertas", "id"),
-            new TableDef("hackathon-llm-calls", "id"),
-            new TableDef("hackathon-condiciones-climatica", "id"));
+            new TableDef("hackathon-libros-v2", "id"),
+            new TableDef("hackathon-usuarios-v2", "id"),
+            new TableDef("hackathon-condiciones-usuario-v2", "id"),
+            new TableDef("hackathon-alertas-v2", "id"),
+            new TableDef("hackathon-llm-calls-v2", "id"),
+            new TableDef("hackathon-condiciones-climatica-v2", "id"));
 
     @Bean
     CommandLineRunner initDynamoTables(DynamoDbClient client) {

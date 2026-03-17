@@ -8,7 +8,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 public class CondicionClimaticaManager extends AbstractManager<CondicionClimatica> {
 
     public CondicionClimaticaManager(DynamoDbEnhancedClient client) {
-        super(client, "hackathon-condiciones-climatica", CondicionClimatica.class);
+        super(client, "hackathon-condiciones-climatica-v2", CondicionClimatica.class);
     }
 
     /**

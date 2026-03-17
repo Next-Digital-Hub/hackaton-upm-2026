@@ -8,7 +8,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 public class UsuarioManager extends AbstractManager<Usuario> {
 
     public UsuarioManager(DynamoDbEnhancedClient client) {
-        super(client, "hackathon-usuarios", Usuario.class);
+        super(client, "hackathon-usuarios-v2", Usuario.class);
     }
 
     @Override
