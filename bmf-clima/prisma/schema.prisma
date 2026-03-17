@@ -12,6 +12,17 @@ datasource db {
   provider = "postgresql"
 }
 
+model Alert {
+  id            Int @id @default(autoincrement())
+  title         String
+  dateTime      DateTime
+  city          String
+  description   String
+  author        User @relation(fields: [authorId], references: [id])
+  authorId      String
+
+}
+
 model Chat {
   id            Int @id @default(autoincrement())
   title         String
@@ -31,6 +42,8 @@ model User {
   sessions      Session[]
   accounts      Account[]
   chats         Chat[]
+  alerts        Alert[]
+  role          String
 
   @@unique([email])
   @@map("user")

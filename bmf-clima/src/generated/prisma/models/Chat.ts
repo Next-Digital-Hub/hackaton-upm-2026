@@ -349,21 +349,9 @@ export type ChatCreatecontentInput = {
   set: runtime.InputJsonValue[]
 }
 
-export type StringFieldUpdateOperationsInput = {
-  set?: string
-}
-
 export type ChatUpdatecontentInput = {
   set?: runtime.InputJsonValue[]
   push?: runtime.InputJsonValue | runtime.InputJsonValue[]
-}
-
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
 }
 
 export type ChatCreateNestedManyWithoutAuthorInput = {
