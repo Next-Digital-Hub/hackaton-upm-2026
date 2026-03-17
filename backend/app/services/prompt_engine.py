@@ -6,6 +6,9 @@ Five avatar templates, each with a distinct personality and output format.
 import json
 from typing import Any, Dict, List, Optional
 
+# Deferred import inside chat_response() to avoid any future circular-import issues
+# (prompt_engine ← weather_proxy ← auth_service is safe, but being explicit is cleaner)
+
 
 # ─── AVATAR SYSTEM PROMPT TEMPLATES ──────────────────────────────────────────
 
@@ -189,6 +192,42 @@ def build_emergency_user_prompt(disaster_data: Dict[str, Any]) -> str:
 ```
 
 Generate the emergency broadcast NOW. People need immediate, clear safety instructions."""
+
+
+# ─── CHAT RESPONSE ───────────────────────────────────────────────────────────
+
+async def chat_response(
+    avatar_state: str,
+    user_prompt: str,
+    weather_data: Dict[str, Any],
+    user_name: str = "friend",
+) -> str:
+    """
+    Builds a chat prompt by combining:
+      1. The avatar's system_prompt (personality + format rules)
+      2. Current weather JSON as context
+      3. A language-matching rule so the LLM mirrors the user's language
+    Then calls the external LLM and returns the text response.
+    """
+    from app.services.weather_proxy import call_llm, extract_llm_text  # noqa: PLC0415
+
+    base_system = get_system_prompt(avatar_state, user_name)
+    weather_json = json.dumps(weather_data, indent=2, ensure_ascii=False)
+
+    system_prompt = f"""{base_system}
+
+--- LIVE WEATHER CONTEXT (use this when answering weather-related questions) ---
+```json
+{weather_json}
+```
+---
+
+LANGUAGE RULE (mandatory): Detect the language of the user's message and reply in
+that EXACT language. Spanish message → Spanish reply. English → English. Any other
+language → match it. The weather data above is irrelevant to language selection."""
+
+    raw = await call_llm(system_prompt, user_prompt)
+    return extract_llm_text(raw)
 
 
 # ─── ADMIN ANALYSIS PROMPT ────────────────────────────────────────────────────

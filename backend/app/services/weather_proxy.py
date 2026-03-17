@@ -23,7 +23,7 @@ async def _request(method: str, path: str, retry: bool = True, **kwargs) -> Any:
     headers = await get_auth_headers()
     headers.update(kwargs.pop("extra_headers", {}))
 
-    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
+    async with httpx.AsyncClient(timeout=_TIMEOUT, follow_redirects=True) as client:
         resp = await client.request(method, f"{API_BASE_URL}{path}", headers=headers, **kwargs)
 
         if resp.status_code == 401 and retry:

@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react'
 import AvatarSelector from '../components/user/AvatarSelector'
 import HistoryDashboard from '../components/user/HistoryDashboard'
 import WeatherCard from '../components/user/WeatherCard'
+import ChatWidget from '../components/user/ChatWidget'
 import Navbar from '../components/shared/Navbar'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
@@ -117,6 +118,9 @@ export default function Dashboard() {
           <HistoryDashboard />
         </motion.div>
       </div>
+
+      {/* Floating chat — positioned fixed, receives current avatar state */}
+      <ChatWidget avatarState={avatarState} />
     </div>
   )
 }

@@ -1,62 +1,49 @@
 import logging
-import os
-from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.models import User
 from app.schemas.schemas import AvatarUpdate, Token, UserCreate, UserLogin, UserOut
+from app.services.jwt_service import create_access_token, verify_token
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/user", tags=["user"])
 
-# ─── JWT ──────────────────────────────────────────────────────────────────────
-SECRET_KEY = os.getenv("JWT_SECRET", "weatherself-change-this-in-production-please")
-ALGORITHM = "HS256"
-TOKEN_EXPIRE_DAYS = 30
-
-pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
-bearer_scheme = HTTPBearer(auto_error=False)
+# ─── CRYPTO ───────────────────────────────────────────────────────────────────
+_pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
+_bearer = HTTPBearer(auto_error=False)
 
 VALID_AVATAR_STATES = {"tired", "energized", "sick", "athletic", "important"}
 
 
 def _hash(password: str) -> str:
-    return pwd_ctx.hash(password)
+    return _pwd.hash(password)
 
 
 def _verify(plain: str, hashed: str) -> bool:
-    return pwd_ctx.verify(plain, hashed)
+    return _pwd.verify(plain, hashed)
 
 
-def _create_token(user_id: int) -> str:
-    exp = datetime.utcnow() + timedelta(days=TOKEN_EXPIRE_DAYS)
-    return jwt.encode({"sub": str(user_id), "exp": exp}, SECRET_KEY, algorithm=ALGORITHM)
-
-
-def _decode_token(token: str) -> Optional[dict]:
-    try:
-        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except JWTError:
-        return None
-
-
-# ─── DEPENDENCY ───────────────────────────────────────────────────────────────
+# ─── AUTH DEPENDENCIES ────────────────────────────────────────────────────────
 
 async def get_current_user(
-    creds: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+    creds: Optional[HTTPAuthorizationCredentials] = Depends(_bearer),
     db: Session = Depends(get_db),
 ) -> Optional[User]:
+    """
+    Soft auth — returns None if no/invalid token (used by endpoints that work
+    with or without authentication, e.g. weather fetching for anonymous users).
+    """
     if not creds:
         return None
-    payload = _decode_token(creds.credentials)
-    if not payload:
+    try:
+        payload = verify_token(creds.credentials)
+    except HTTPException:
         return None
     uid = payload.get("sub")
     if not uid:
@@ -65,16 +52,24 @@ async def get_current_user(
 
 
 async def require_user(
-    creds: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+    creds: Optional[HTTPAuthorizationCredentials] = Depends(_bearer),
     db: Session = Depends(get_db),
 ) -> User:
-    user = await get_current_user(creds, db)
-    if not user:
+    """
+    Hard auth — raises HTTP 401 if the request lacks a valid token.
+    All protected routes use this dependency.
+    """
+    if not creds:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
+            detail="Authentication required",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    payload = verify_token(creds.credentials)   # raises 401 internally if bad
+    uid = payload.get("sub")
+    user = db.query(User).filter(User.id == int(uid)).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
 
 
@@ -95,7 +90,8 @@ async def register(body: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    return Token(access_token=_create_token(user.id), user=UserOut.model_validate(user))
+    token = create_access_token(user_id=user.id, username=user.username)
+    return Token(access_token=token, user=UserOut.model_validate(user))
 
 
 @router.post("/login", response_model=Token)
@@ -104,7 +100,8 @@ async def login(body: UserLogin, db: Session = Depends(get_db)):
     if not user or not _verify(body.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
-    return Token(access_token=_create_token(user.id), user=UserOut.model_validate(user))
+    token = create_access_token(user_id=user.id, username=user.username)
+    return Token(access_token=token, user=UserOut.model_validate(user))
 
 
 @router.get("/me", response_model=UserOut)

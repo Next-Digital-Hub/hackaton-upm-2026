@@ -3,6 +3,7 @@ import { Cloud, LogOut, Settings, Wifi, WifiOff } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useWebSocket } from '../../context/WebSocketContext'
+import NotificationBell from './NotificationBell'
 
 const AVATAR_ICONS = {
   tired: '😴', energized: '⚡', sick: '🤒', athletic: '🏃', important: '💼',
@@ -67,6 +68,9 @@ export default function Navbar() {
               <span className="text-sm text-slate-200 font-medium">{user.username}</span>
             </div>
           )}
+
+          {/* Notification bell */}
+          <NotificationBell />
 
           {/* Admin link */}
           <Link to="/admin" className="btn-ghost text-xs py-1.5 px-3">
