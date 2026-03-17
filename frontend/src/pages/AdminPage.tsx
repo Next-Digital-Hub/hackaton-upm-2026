@@ -18,7 +18,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { Delete as DeleteIcon, PowerSettingsNew as PowerSettingsNewIcon } from "@mui/icons-material";
 import type { CondicionClimatica } from "../types/CondicionClimatica";
 import type { Alerta } from "../types/Alerta";
-import { getCondiciones, getAlertasByAdmin, crearAlerta, apagarAlerta, encenderAlerta, eliminarAlerta, getTiposAlerta, getNivelesAlerta } from "../config/api";
+import { getCondiciones, getAlertasByAdmin, crearAlerta, apagarAlerta, encenderAlerta, eliminarAlerta, getTiposAlerta, getNivelesAlerta, generarAlertas } from "../config/api";
 import { CondicionesRow } from "../components/CondicionesRow";
 
 // TODO: el admin podrá seleccionar provincia
@@ -44,6 +44,7 @@ export function AdminPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
+  const [generando, setGenerando] = useState(false);
 
   const cargarAlertas = useCallback(() => {
     getAlertasByAdmin()
@@ -121,6 +122,19 @@ export function AdminPage() {
     }
   };
 
+  const handleGenerar = async () => {
+    setGenerando(true);
+    setError(null);
+    try {
+      const nuevas = await generarAlertas();
+      setAlertas((prev) => [...nuevas, ...prev]);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Error al generar alertas");
+    } finally {
+      setGenerando(false);
+    }
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" mt={6}>
@@ -154,9 +168,19 @@ export function AdminPage() {
 
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h5">Mis alertas</Typography>
-        <Button variant="contained" color="error" onClick={() => setDialogOpen(true)}>
-          Emitir alerta
-        </Button>
+        <Box display="flex" gap={1}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleGenerar}
+            disabled={generando}
+          >
+            {generando ? "Generando…" : "Generar alertas"}
+          </Button>
+          <Button variant="contained" color="error" onClick={() => setDialogOpen(true)}>
+            Emitir alerta
+          </Button>
+        </Box>
       </Box>
 
       {alertas.length === 0 ? (

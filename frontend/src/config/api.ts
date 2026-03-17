@@ -112,8 +112,18 @@ function authHeader(): Record<string, string> {
 }
 
 export async function getAlertasByProvincia(provincia: string): Promise<Alerta[]> {
-  const res = await fetch(`${ALERTAS}?provincia=${encodeURIComponent(provincia)}`);
+  const res = await fetch(`${ALERTAS}/provincia/${encodeURIComponent(provincia)}`);
   if (!res.ok) throw new Error("Error al cargar alertas");
+  return res.json();
+}
+
+// Obtiene las alertas personalizadas del ciudadano autenticado
+// GET /api/alertas/mis-alertas-ciudadano (requiere Authorization header)
+export async function getMisAlertasCiudadano(): Promise<Alerta[]> {
+  const res = await fetch(`${ALERTAS}/mis-alertas-ciudadano`, {
+    headers: { ...authHeader() },
+  });
+  if (!res.ok) throw new Error("Error al cargar tus alertas");
   return res.json();
 }
 
@@ -167,6 +177,17 @@ export async function eliminarAlerta(id: string): Promise<void> {
     headers: { ...authHeader() },
   });
   if (!res.ok) throw new Error("Error al eliminar alerta");
+}
+
+// Lanza la generación automática de alertas basada en condiciones climáticas
+// POST /api/alertas/generar (requiere Authorization header de admin)
+export async function generarAlertas(): Promise<Alerta[]> {
+  const res = await fetch(`${ALERTAS}/generar`, {
+    method: "POST",
+    headers: { ...authHeader() },
+  });
+  if (!res.ok) throw new Error("Error al generar alertas");
+  return res.json();
 }
 
 // --- Libros (legacy) ---

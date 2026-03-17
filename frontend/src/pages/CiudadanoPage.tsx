@@ -6,12 +6,9 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Alert from "@mui/material/Alert";
 import type { CondicionClimatica } from "../types/CondicionClimatica";
 import type { Alerta } from "../types/Alerta";
-import { getCondiciones, getAlertasByProvincia } from "../config/api";
+import { getCondiciones, getMisAlertasCiudadano } from "../config/api";
 import { CondicionesRow } from "../components/CondicionesRow";
 import { AlertasContainer } from "../components/AlertasContainer";
-
-// TODO: obtener provincia del perfil del usuario
-const PROVINCIA = "VALENCIA";
 
 export function CiudadanoPage() {
   const [condicion, setCondicion] = useState<CondicionClimatica | null>(null);
@@ -23,7 +20,7 @@ export function CiudadanoPage() {
     setLoading(true);
     Promise.all([
       getCondiciones().catch(() => null),
-      getAlertasByProvincia(PROVINCIA).catch(() => []),
+      getMisAlertasCiudadano().catch(() => []),
     ])
       .then(([cond, alts]) => {
         setCondicion(cond);
@@ -44,7 +41,7 @@ export function CiudadanoPage() {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Typography variant="h4" gutterBottom>
-        Condiciones en {PROVINCIA}
+        Mis alertas
       </Typography>
 
       {error && (

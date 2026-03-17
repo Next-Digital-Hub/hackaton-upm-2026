@@ -1,7 +1,9 @@
 package etsisi.albertoynico.backend.controller;
 
 import etsisi.albertoynico.backend.manager.AlertaManager;
+import etsisi.albertoynico.backend.manager.CondicionUsuarioManager;
 import etsisi.albertoynico.backend.model.Alerta;
+import etsisi.albertoynico.backend.model.CondicionUsuario;
 import etsisi.albertoynico.backend.model.Provincia;
 import etsisi.albertoynico.backend.manager.UsuarioManager;
 import etsisi.albertoynico.backend.model.Usuario;
@@ -19,16 +21,18 @@ public class AlertaController {
     private final AlertaManager alertaManager;
     private final JwtService jwtService;
     private final UsuarioManager usuarioManager;
+    private final CondicionUsuarioManager condicionUsuarioManager;
 
-    public AlertaController(AlertaManager alertaManager, JwtService jwtService, UsuarioManager usuarioManager) {
+    public AlertaController(AlertaManager alertaManager, JwtService jwtService, UsuarioManager usuarioManager, CondicionUsuarioManager condicionUsuarioManager) {
         this.alertaManager = alertaManager;
         this.jwtService = jwtService;
         this.usuarioManager = usuarioManager;
+        this.condicionUsuarioManager = condicionUsuarioManager;
     }
 
     @GetMapping
     public List<Alerta> getAlertas() {
-        return alertaManager.generarAlertas();
+        return alertaManager.findAll();
     }
 
     @PostMapping
@@ -81,6 +85,20 @@ public class AlertaController {
         String usuarioId = jwtService.getUsuarioId(token);
         return usuarioManager.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
+
+    @PostMapping("/generar")
+    public ResponseEntity<?> generarAlertas(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            Usuario usuario = getUsuarioFromToken(authHeader);
+            if (!etsisi.albertoynico.backend.model.RolUsuario.ADMINISTRADOR.name().equals(usuario.getRol())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Acceso denegado: Se requiere rol ADMINISTRADOR");
+            }
+            List<Alerta> alertas = alertaManager.generarAlertas();
+            return ResponseEntity.ok(alertas);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
     @GetMapping("/mis-alertas")
@@ -176,5 +194,24 @@ public class AlertaController {
     public ResponseEntity<List<Alerta>> getAlertasByProvincia(@PathVariable Provincia provincia) {
         List<Alerta> alertas = alertaManager.findByProvincia(provincia);
         return ResponseEntity.ok(alertas);
+    }
+
+    @GetMapping("/mis-alertas-ciudadano")
+    public ResponseEntity<?> getMisAlertasCiudadano(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            Usuario usuario = getUsuarioFromToken(authHeader);
+            CondicionUsuario condicion = condicionUsuarioManager.findByUsuarioId(usuario.getId())
+                    .orElseThrow(() -> new RuntimeException("No se encontró perfil de condiciones para el usuario"));
+            Provincia provincia = condicion.getProvincia();
+            if (provincia == null) {
+                return ResponseEntity.ok(List.of());
+            }
+            List<Alerta> alertas = alertaManager.findByProvincia(provincia).stream()
+                    .filter(Alerta::isActive)
+                    .toList();
+            return ResponseEntity.ok(alertas);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
     }
 }

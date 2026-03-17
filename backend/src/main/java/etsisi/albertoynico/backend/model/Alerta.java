@@ -24,6 +24,7 @@ public class Alerta {
     private List<String> recomendaciones;
     private boolean isActive;
     private String adminId;           // opcional – ID del admin que creó la alerta
+    private String usuarioId;         // ID del ciudadano destinatario de la alerta
 
     @DynamoDbPartitionKey
     public String getId() {

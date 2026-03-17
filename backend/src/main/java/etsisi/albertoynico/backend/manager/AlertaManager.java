@@ -58,6 +58,12 @@ public class AlertaManager extends AbstractManager<Alerta> {
                 .toList();
     }
 
+    public List<Alerta> findByUsuarioId(String usuarioId) {
+        return table.scan().items().stream()
+                .filter(a -> usuarioId.equals(a.getUsuarioId()))
+                .toList();
+    }
+
     /**
      * Genera alertas a partir de las condiciones climáticas actuales.
      * 1. Obtiene condiciones del servicio meteorológico
@@ -93,7 +99,7 @@ public class AlertaManager extends AbstractManager<Alerta> {
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                 try {
                     String condicionesUsuarioJson = objectMapper.writeValueAsString(Map.of(
-                            "provincia", Optional.ofNullable(usuario.getProvincia()).orElse(""),
+                            "provincia", Optional.ofNullable(usuario.getProvincia()).map(Enum::name).orElse(""),
                             "tipoVivienda", Optional.ofNullable(usuario.getTipoVivienda()).map(Enum::name).orElse(""),
                             "necesidadesEspeciales", Optional.ofNullable(usuario.getNecesidadesEspeciales()).orElse(Set.of())
                     ));
@@ -103,7 +109,7 @@ public class AlertaManager extends AbstractManager<Alerta> {
                             .replace("{{CONDICIONES_USUARIO_JSON}}", condicionesUsuarioJson);
 
                     String respuestaLlm = bedrockService.sendMessage(systemPrompt, userPrompt);
-                    parsearYCrearAlertas(respuestaLlm, alertasBase, alertasFinales);
+                    parsearYCrearAlertas(respuestaLlm, alertasBase, alertasFinales, usuario.getUsuarioId());
                 } catch (Exception e) {
                     log.error("Error generando alertas para usuario {}", usuario.getUsuarioId(), e);
                 }
@@ -174,7 +180,7 @@ public class AlertaManager extends AbstractManager<Alerta> {
         }
     }
 
-    private void parsearYCrearAlertas(String respuestaLlm, List<Alerta> alertasBase, List<Alerta> destino) {
+    private void parsearYCrearAlertas(String respuestaLlm, List<Alerta> alertasBase, List<Alerta> destino, String usuarioId) {
         String descripcion = "";
         List<String> recomendaciones = List.of();
 
@@ -207,6 +213,7 @@ public class AlertaManager extends AbstractManager<Alerta> {
             alerta.setDescripcion(descripcion);
             alerta.setRecomendaciones(recomendaciones);
             alerta.setActive(true);
+            alerta.setUsuarioId(usuarioId);
             save(alerta);
             destino.add(alerta);
         }
