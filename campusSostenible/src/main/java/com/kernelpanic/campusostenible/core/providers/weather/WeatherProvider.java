@@ -1,5 +1,9 @@
 package com.kernelpanic.campusostenible.core.providers.weather;
 
-public interface WeatherProvider {
+import java.util.List;
 
+import com.kernelpanic.campusostenible.core.domain.WeatherData;
+
+public interface WeatherProvider {
+    List<WeatherData> getTodayWeather();
 }
