@@ -18,7 +18,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { Delete as DeleteIcon, PowerSettingsNew as PowerSettingsNewIcon } from "@mui/icons-material";
 import type { CondicionClimatica } from "../types/CondicionClimatica";
 import type { Alerta } from "../types/Alerta";
-import { getCondiciones, getAlertasByAdmin, crearAlerta, apagarAlerta, encenderAlerta, eliminarAlerta, getTiposAlerta, getNivelesAlerta, generarAlertas } from "../config/api";
+import { getCondiciones, getAlertasByAdmin, crearAlerta, apagarAlerta, encenderAlerta, eliminarAlerta, getTiposAlerta, getNivelesAlerta, generarAlertas, getProvincias } from "../config/api";
 import { CondicionesRow } from "../components/CondicionesRow";
 
 // TODO: el admin podrá seleccionar provincia
@@ -39,6 +39,7 @@ export function AdminPage() {
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [tiposAlerta, setTiposAlerta] = useState<string[]>([]);
   const [nivelesAlerta, setNivelesAlerta] = useState<string[]>([]);
+  const [provincias, setProvincias] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -59,12 +60,14 @@ export function AdminPage() {
       getAlertasByAdmin().catch(() => []),
       getTiposAlerta().catch(() => []),
       getNivelesAlerta().catch(() => []),
+      getProvincias().catch(() => []),
     ])
-      .then(([cond, alts, tipos, niveles]) => {
+      .then(([cond, alts, tipos, niveles, p]) => {
         setCondicion(cond);
         setAlertas(alts);
         setTiposAlerta(tipos.length > 0 ? tipos : ["TEMPERATURA", "LLUVIA", "VIENTO", "PRESION", "HUMEDAD"]);
         setNivelesAlerta(niveles.length > 0 ? niveles : ["VERDE", "AMARILLO", "NARANJA", "ROJO"]);
+        setProvincias(p);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -275,7 +278,19 @@ export function AdminPage() {
               <MenuItem key={n} value={n}>{n}</MenuItem>
             ))}
           </TextField>
-          <TextField label="Provincia" value={form.provincia} onChange={(e) => handleChange("provincia", e.target.value)} />
+          <TextField
+            select
+            label="Provincia"
+            value={form.provincia}
+            onChange={(e) => handleChange("provincia", e.target.value)}
+          >
+            <MenuItem value="">— Selecciona —</MenuItem>
+            {provincias.map((p) => (
+              <MenuItem key={p} value={p}>
+                {p.replace(/_/g, " ")}
+              </MenuItem>
+            ))}
+          </TextField>
           <TextField label="Valor detectado" value={form.valorDetectado} onChange={(e) => handleChange("valorDetectado", e.target.value)} />
           <TextField label="Umbral superado" value={form.umbralSuperado} onChange={(e) => handleChange("umbralSuperado", e.target.value)} />
           <TextField label="Descripción" multiline rows={3} value={form.descripcion} onChange={(e) => handleChange("descripcion", e.target.value)} />

@@ -16,6 +16,7 @@ import {
   getRoles,
   getTiposVivienda,
   getNecesidadesEspeciales,
+  getProvincias,
   registerCiudadano,
   registerAdmin,
 } from "../config/api";
@@ -30,6 +31,7 @@ export function RegisterPage({ onRegistered, onGoToLogin }: RegisterPageProps) {
   const [roles, setRoles] = useState<string[]>([]);
   const [tiposVivienda, setTiposVivienda] = useState<string[]>([]);
   const [necesidades, setNecesidades] = useState<string[]>([]);
+  const [provincias, setProvincias] = useState<string[]>([]);
   const [loadingEnums, setLoadingEnums] = useState(true);
 
   // Form state
@@ -48,11 +50,13 @@ export function RegisterPage({ onRegistered, onGoToLogin }: RegisterPageProps) {
       getRoles().catch(() => []),
       getTiposVivienda().catch(() => []),
       getNecesidadesEspeciales().catch(() => []),
+      getProvincias().catch(() => []),
     ])
-      .then(([r, tv, ne]) => {
+      .then(([r, tv, ne, p]) => {
         setRoles(r);
         setTiposVivienda(tv);
         setNecesidades(ne);
+        setProvincias(p);
       })
       .finally(() => setLoadingEnums(false));
   }, []);
@@ -174,10 +178,18 @@ export function RegisterPage({ onRegistered, onGoToLogin }: RegisterPageProps) {
         {rol === "CIUDADANO" && (
           <>
             <TextField
+              select
               label="Provincia"
               value={provincia}
               onChange={(e) => setProvincia(e.target.value)}
-            />
+            >
+              <MenuItem value="">— Selecciona —</MenuItem>
+              {provincias.map((p) => (
+                <MenuItem key={p} value={p}>
+                  {p.replace(/_/g, " ")}
+                </MenuItem>
+              ))}
+            </TextField>
             <TextField
               select
               label="Tipo de vivienda"
