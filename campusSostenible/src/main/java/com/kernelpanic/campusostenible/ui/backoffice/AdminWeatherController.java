@@ -2,7 +2,12 @@ package com.kernelpanic.campusostenible.ui.backoffice;
 
 import com.kernelpanic.campusostenible.core.domain.*;
 import com.kernelpanic.campusostenible.core.providers.MeteoData;
+import com.kernelpanic.campusostenible.core.providers.recomendation.RecomendationProvider;
+import com.kernelpanic.campusostenible.core.services.alert.AlertService;
 import com.kernelpanic.campusostenible.core.services.weather.WeatherService;
+
+import lombok.RequiredArgsConstructor;
+
 import com.kernelpanic.campusostenible.core.services.alert.SystemAlertService;
 import com.kernelpanic.campusostenible.core.providers.recomendation.RecomendationProvider;
 
@@ -14,22 +19,16 @@ import org.springframework.http.ResponseEntity;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/admin/weather")
+@RequiredArgsConstructor
 public class AdminWeatherController {
 
     private final WeatherService weatherService;
     private final SystemAlertService systemAlertService;
     private final RecomendationProvider recomendationProvider;
-
-    public AdminWeatherController(WeatherService weatherService, 
-                                  SystemAlertService systemAlertService, 
-                                  RecomendationProvider recomendationProvider) {
-        this.weatherService = weatherService;
-        this.systemAlertService = systemAlertService;
-        this.recomendationProvider = recomendationProvider;
-    }
 
     @GetMapping
     public String adminPanel(
@@ -40,7 +39,10 @@ public class AdminWeatherController {
         List<MeteoData> allData = weatherService.getAllMeteoData(selectedDate);
         List<SystemAlert> systemAlerts = systemAlertService.getAlertsByDate(selectedDate);
 
-        String advice = allData.isEmpty() ? "No hay datos meteorológicos disponibles para esta fecha." 
+        Optional<SystemAlert> systemAlert = recomendationProvider.recomendAlert(null);
+
+        // Advice logic moved to frontend; providing a simple message here
+        String advice = allData.isEmpty() ? "No hay datos meteorológicos disponibles para esta fecha."
                 : "Revise los niveles de alerta según los parámetros detectados.";
 
         model.addAttribute("meteoDataList", allData);
@@ -65,7 +67,7 @@ public class AdminWeatherController {
             @RequestParam String date) {
 
         Province province = Province.fromId(provinceId);
-        
+
         Alert alert = Alert.builder()
                 .alertLevel(level)
                 .province(province != null ? province.getName() : "Unknown")
@@ -84,11 +86,13 @@ public class AdminWeatherController {
             @RequestParam AlertLevel level,
             @RequestParam Long provinceId,
             @RequestParam String date) {
-        
+
         Province province = Province.fromId(provinceId);
-        if (province == null) return ResponseEntity.badRequest().build();
-        
-        String recommendation = recomendationProvider.generateSafetyRecommendation(level, province, LocalDate.parse(date));
+        if (province == null)
+            return ResponseEntity.badRequest().build();
+
+        String recommendation = recomendationProvider.generateSafetyRecommendation(level, province,
+                LocalDate.parse(date));
         return ResponseEntity.ok(Map.of("recommendation", recommendation));
     }
 }
