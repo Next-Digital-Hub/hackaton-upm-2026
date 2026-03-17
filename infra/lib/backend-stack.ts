@@ -84,6 +84,14 @@ export class BackendStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
     llmCallsTable.grantReadWriteData(instanceRole);
+    
+    const condicionesClimaticaTable = new dynamodb.Table(this, "CondicionesClimaticaTable", {
+      tableName: "hackathon-condiciones-climatica",
+      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+    condicionesClimaticaTable.grantReadWriteData(instanceRole);
 
     // --- App Runner ---
     const envVars = loadEnv(path.join(__dirname, "../../.env"));
