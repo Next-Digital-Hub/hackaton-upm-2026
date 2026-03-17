@@ -10,22 +10,20 @@ import com.kernelpanic.campusostenible.core.domain.WeatherData;
 import com.kernelpanic.campusostenible.core.domain.Alert;
 import com.kernelpanic.campusostenible.core.providers.MeteoData;
 import com.kernelpanic.campusostenible.core.services.weather.dal.WeatherRepository;
-import com.kernelpanic.campusostenible.repositories.AlertRepository;
-import com.kernelpanic.campusostenible.repositories.MeteoDataRepository;
+import com.kernelpanic.campusostenible.core.services.alert.dal.AlertRepository;
+
+import java.util.stream.Collectors;
 
 @Service
 public class WeatherServiceImpl implements WeatherService {
 
     private final WeatherRepository weatherRepository;
     private final AlertRepository alertRepository;
-    private final MeteoDataRepository meteoDataRepository;
 
     public WeatherServiceImpl(WeatherRepository weatherRepository,
-            AlertRepository alertRepository,
-            MeteoDataRepository meteoDataRepository) {
+            AlertRepository alertRepository) {
         this.weatherRepository = weatherRepository;
         this.alertRepository = alertRepository;
-        this.meteoDataRepository = meteoDataRepository;
     }
 
     @Override
@@ -45,8 +43,21 @@ public class WeatherServiceImpl implements WeatherService {
 
     @Override
     public List<MeteoData> getAllMeteoData(LocalDate date) {
-        // Mapping logic might be needed if repository returns different type
-        return meteoDataRepository.findByFecha(date.toString());
+        return weatherRepository.findByDate(date).stream()
+                .map(this::toMeteoData)
+                .collect(Collectors.toList());
+    }
+
+    private MeteoData toMeteoData(WeatherData data) {
+        return MeteoData.builder()
+                .provincia(data.getProvinceId() != null ? data.getProvinceId().toString() : "")
+                .fecha(data.getDate().toString())
+                .tmax(String.valueOf(data.getTemperatureMax()))
+                .tmin(String.valueOf(data.getTemperatureMin()))
+                .hrMedia(String.valueOf(data.getHumidity()))
+                .velmedia(String.valueOf(data.getWindSpeed()))
+                .dir(data.getWindDirection())
+                .build();
     }
 
     @Override
