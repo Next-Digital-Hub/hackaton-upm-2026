@@ -3,60 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
-const provincias = [
-  "A Coruna",
-  "Alava",
-  "Albacete",
-  "Alicante",
-  "Almeria",
-  "Asturias",
-  "Avila",
-  "Badajoz",
-  "Barcelona",
-  "Burgos",
-  "Caceres",
-  "Cadiz",
-  "Cantabria",
-  "Castellon",
-  "Ciudad Real",
-  "Cordoba",
-  "Cuenca",
-  "Girona",
-  "Granada",
-  "Guadalajara",
-  "Gipuzkoa",
-  "Huelva",
-  "Huesca",
-  "Illes Balears",
-  "Jaen",
-  "La Rioja",
-  "Las Palmas",
-  "Leon",
-  "Lleida",
-  "Lugo",
-  "Madrid",
-  "Malaga",
-  "Murcia",
-  "Navarra",
-  "Ourense",
-  "Palencia",
-  "Pontevedra",
-  "Salamanca",
-  "Santa Cruz de Tenerife",
-  "Segovia",
-  "Sevilla",
-  "Soria",
-  "Tarragona",
-  "Teruel",
-  "Toledo",
-  "Valencia",
-  "Valladolid",
-  "Bizkaia",
-  "Zamora",
-  "Zaragoza",
-  "Ceuta",
-  "Melilla",
-];
+import { provincias } from "./provincias";
 
 const tiposVivienda = ["Piso", "Casa", "Residencia", "Otro"];
 
@@ -79,19 +26,8 @@ export default function RegistroPage() {
                 Crea tu cuenta y prepara tu espacio de compra.
               </h1>
               <p className="max-w-lg text-base leading-8 text-slate-300">
-                Pantalla pensada para un primer acceso claro: datos personales, credenciales y necesidades del usuario en una sola vista.
+                Estos datos serán utilizados para personalizar tu experiencia, ofrecer recomendaciones relevantes y garantizar tu seguridad.
               </p>
-            </div>
-          </div>
-
-          <div className="grid gap-4 pt-10 sm:grid-cols-2">
-            <div className="rounded-2xl bg-white/10 p-4">
-              <p className="text-sm text-slate-300">Tiempo estimado</p>
-              <p className="mt-2 text-2xl font-bold">2 min</p>
-            </div>
-            <div className="rounded-2xl bg-white/10 p-4">
-              <p className="text-sm text-slate-300">Validaciones</p>
-              <p className="mt-2 text-2xl font-bold">Email y clave</p>
             </div>
           </div>
         </section>
