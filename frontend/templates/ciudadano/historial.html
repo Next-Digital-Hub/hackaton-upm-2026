@@ -46,6 +46,9 @@
             {% if w.horas_sol is not none %}
             <div class="wi"><div class="wi-l">Horas de sol</div><div class="wi-v">{{ w.horas_sol }} h</div></div>
             {% endif %}
+            {% if w.nivel_alerta %}
+            <div class="wi"><div class="wi-l">Nivel de alerta</div><div class="wi-v"><span class="nv nv-{{ w.nivel_alerta|lower }}">{{ w.nivel_alerta }}</span></div></div>
+            {% endif %}
         </div>
         {% else %}
         <pre class="json" style="max-height:150px">{{ l.datos }}</pre>

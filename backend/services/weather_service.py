@@ -33,8 +33,24 @@ def get_weather(disaster: bool = False) -> dict:
         return {"error": str(e)}
 
 
+
+
+
+def _get_alert_level(current: dict) -> str:
+    """Determina el nivel de alerta según datos meteorológicos."""
+    precip = current.get("precipitation", 0) or 0
+    viento = current.get("wind_speed_10m", 0) or 0
+    code = current.get("weather_code", 0) or 0
+
+    if precip > 50 or viento > 80 or code in [95, 99]:
+        return "rojo"
+    elif precip > 20 or viento > 50 or code in [65, 71]:
+        return "amarillo"
+    else:
+        return "verde"
+    
 def _normalize_weather(raw: dict) -> dict:
-    return {
+    normalize = {
         "estacion": raw.get("nombre"),
         "provincia": raw.get("provincia"),
         "fecha": raw.get("fecha"),
@@ -61,3 +77,5 @@ def _normalize_weather(raw: dict) -> dict:
         # Otros
         "horas_sol": _parse_decimal(raw.get("sol")),
     }
+    normalize["nivel_alerta"] = _get_alert_level(normalize)
+    return normalize

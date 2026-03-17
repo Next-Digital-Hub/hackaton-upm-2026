@@ -126,6 +126,19 @@ hr.sep{border:0;border-top:1px solid var(--border);margin:1rem 0}
     font-weight: 600;
 }
 
+.nv {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 12px;
+    font-size: .78rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+}
+.nv-verde    { background: #d4edda; color: #155724; }
+.nv-amarillo { background: #fff3cd; color: #856404; }
+.nv-naranja  { background: #ffe0cc; color: #993800; }
+.nv-rojo     { background: #f8d7da; color: #721c24; }
+
 .reco-item {
     display: flex;
     align-items: flex-start;
