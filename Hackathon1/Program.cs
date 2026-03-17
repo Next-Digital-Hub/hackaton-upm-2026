@@ -19,6 +19,7 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IWeatherService, WeatherService>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -13,15 +13,18 @@ namespace Hackathon1.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IWeatherService _weatherService;
+        private readonly IRecommendationService _recommendationService;
         private readonly ApplicationDbContext _context;
 
         public CitizenController(
             UserManager<ApplicationUser> userManager,
             IWeatherService weatherService,
+            IRecommendationService recommendationService,
             ApplicationDbContext context)
         {
             _userManager = userManager;
             _weatherService = weatherService;
+            _recommendationService = recommendationService;
             _context = context;
         }
 
@@ -34,15 +37,7 @@ namespace Hackathon1.Controllers
             var forecast = await _weatherService.GetForecastAsync(
                 string.IsNullOrWhiteSpace(user.Provincia) ? "Madrid" : user.Provincia);
 
-            var recommendations = new List<string>();
-            forecast.Prec.Replace(',', '.');
-            forecast.Tmax.Replace(",", ".");
-            decimal prec = Decimal.Parse(forecast.Prec);
-            decimal tmax = Decimal.Parse(forecast.Tmax);
-            if (prec > 30)
-                recommendations.Add("Evita desplazamientos largos");
-            if (tmax < 5)
-                recommendations.Add("Abrígate y revisa calefacción");
+            var recommendations = await _recommendationService.GetRecommendationsAsync(forecast, user.Id);
 
             var vm = new CitizenDashboardViewModel
             {
