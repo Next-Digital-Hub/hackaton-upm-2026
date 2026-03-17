@@ -62,7 +62,7 @@ public class AlertaController {
     }
 
     @GetMapping("/mis-alertas")
-    public ResponseEntity<?> getMisAlertas(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> getMisAlertas(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
             Usuario usuario = getUsuarioFromToken(authHeader);
             if (!etsisi.albertoynico.backend.model.RolUsuario.ADMINISTRADOR.name().equals(usuario.getRol())) {
@@ -76,7 +76,7 @@ public class AlertaController {
     }
 
     @PostMapping("/apagar-alerta/{id}")
-    public ResponseEntity<?> apagarAlerta(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> apagarAlerta(@PathVariable String id, @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
             Usuario usuario = getUsuarioFromToken(authHeader);
             if (!etsisi.albertoynico.backend.model.RolUsuario.ADMINISTRADOR.name().equals(usuario.getRol())) {
@@ -102,7 +102,7 @@ public class AlertaController {
     }
 
     @PostMapping("/encender-alerta/{id}")
-    public ResponseEntity<?> encenderAlerta(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> encenderAlerta(@PathVariable String id, @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
             Usuario usuario = getUsuarioFromToken(authHeader);
             if (!etsisi.albertoynico.backend.model.RolUsuario.ADMINISTRADOR.name().equals(usuario.getRol())) {
@@ -133,7 +133,7 @@ public class AlertaController {
             if (!etsisi.albertoynico.backend.model.RolUsuario.ADMINISTRADOR.name().equals(usuario.getRol())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Acceso denegado: Se requiere rol ADMINISTRADOR");
             }
-            
+
             Alerta alerta = alertaManager.findById(id).orElse(null);
             if (alerta == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Alerta no encontrada");

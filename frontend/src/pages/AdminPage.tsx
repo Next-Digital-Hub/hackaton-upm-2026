@@ -77,7 +77,7 @@ export function AdminPage() {
     setSubmitting(true);
     try {
       const nueva: Partial<Alerta> = {
-        isActive: true,
+        active: true,
       };
       if (form.tipo) nueva.tipo = form.tipo;
       if (form.nivel) nueva.nivel = form.nivel;
@@ -101,7 +101,7 @@ export function AdminPage() {
 
   const handleToggle = async (alerta: Alerta) => {
     try {
-      if (alerta.isActive) {
+      if (alerta.active) {
         await apagarAlerta(alerta.id);
       } else {
         await encenderAlerta(alerta.id);
@@ -172,7 +172,7 @@ export function AdminPage() {
               p: 2,
               mb: 1.5,
               borderRadius: 2,
-              opacity: a.isActive ? 1 : 0.55,
+              opacity: a.active ? 1 : 0.55,
               display: "flex",
               alignItems: "center",
               gap: 2,
@@ -189,10 +189,10 @@ export function AdminPage() {
                   />
                 )}
                 <Chip
-                  label={a.isActive ? "Activa" : "Inactiva"}
+                  label={a.active ? "Activa" : "Inactiva"}
                   size="small"
-                  variant={a.isActive ? "filled" : "outlined"}
-                  color={a.isActive ? "success" : "default"}
+                  variant={a.active ? "filled" : "outlined"}
+                  color={a.active ? "success" : "default"}
                 />
                 {a.provincia && (
                   <Typography variant="caption" color="text.secondary">
@@ -207,11 +207,11 @@ export function AdminPage() {
                 </Typography>
               )}
             </Box>
-            <Tooltip title={a.isActive ? "Apagar" : "Encender"}>
+            <Tooltip title={a.active ? "Apagar" : "Encender"}>
               <IconButton
-                color={a.isActive ? "warning" : "success"}
+                color={a.active ? "warning" : "success"}
                 onClick={() => handleToggle(a)}
-                aria-label={a.isActive ? "Apagar alerta" : "Encender alerta"}
+                aria-label={a.active ? "Apagar alerta" : "Encender alerta"}
               >
                 <PowerSettingsNewIcon />
               </IconButton>

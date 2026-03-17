@@ -1,7 +1,7 @@
 export interface Alerta {
   id: string;
-  isActive: boolean;
-  idAdmin: string;
+  active: boolean;
+  adminId: string;
   fecha: string;
   tipo: string;
   nivel: string;

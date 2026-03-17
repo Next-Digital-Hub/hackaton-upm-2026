@@ -56,24 +56,28 @@ export async function getNivelesAlerta(): Promise<string[]> {
 
 // Registra un ciudadano con sus datos personales y formulario de condiciones
 // POST /api/auth/registerCiudadano — body: RegisterDTO (con userForm)
-export async function registerCiudadano(dto: RegisterDTO): Promise<void> {
+// Devuelve { token, usuario, condicionUsuario }
+export async function registerCiudadano(dto: RegisterDTO): Promise<{ token: string }> {
   const res = await fetch(`${AUTH}/registerCiudadano`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(dto),
   });
   if (!res.ok) throw new Error("Error al registrar ciudadano");
+  return res.json();
 }
 
 // Registra un administrador (solo nombre y contraseña)
 // POST /api/auth/registerAdmin — body: { nombre, password }
-export async function registerAdmin(dto: RegisterDTO): Promise<void> {
+// Devuelve { token, usuario }
+export async function registerAdmin(dto: RegisterDTO): Promise<{ token: string }> {
   const res = await fetch(`${AUTH}/registerAdmin`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(dto),
   });
   if (!res.ok) throw new Error("Error al registrar administrador");
+  return res.json();
 }
 
 // --- Clima ---

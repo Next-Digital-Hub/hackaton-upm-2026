@@ -81,9 +81,11 @@ export function RegisterPage({ onRegistered }: RegisterPageProps) {
           tipoVivienda,
           necesidadesEspeciales: necesidadesSeleccionadas,
         };
-        await registerCiudadano(dto);
+        const resp = await registerCiudadano(dto);
+        localStorage.setItem("token", resp.token);
       } else {
-        await registerAdmin(dto);
+        const resp = await registerAdmin(dto);
+        localStorage.setItem("token", resp.token);
       }
 
       setSuccess(true);
