@@ -44,6 +44,27 @@ public class AlertaController {
             alerta.setId(alertaManager.newId());
             alerta.setAdminId(usuario.getId());
             alerta.setActive(true);
+
+            // Evaluar Nivel Alerta en base al valorDetectado
+            double valor;
+            try {
+                valor = Double.parseDouble(alerta.getValorDetectado().replace(",", "."));
+            } catch (NumberFormatException ex) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El valor detectado no es un número válido");
+            }
+
+            // Los umbrales de NO_APLICA deben definirse, por defecto si es < 0 en cosas como viento/lluvia. 
+            // Para temperatura podríamos poner -20, pero usaremos 0 por defecto como límite inferior general a menos que queramos otro comportamiento
+            double limiteNoAplica = 0; 
+            
+            etsisi.albertoynico.backend.model.NivelAlerta nivelCalculado = etsisi.albertoynico.backend.config.UmbralesAlertaConfig.evaluarNivel(alerta.getTipo(), valor, limiteNoAplica);
+            
+            if (nivelCalculado == etsisi.albertoynico.backend.model.NivelAlerta.NO_APLICA) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El valor detectado no alcanza el umbral mínimo para generar una alerta");
+            }
+
+            alerta.setNivel(nivelCalculado);
+
             alertaManager.save(alerta);
             return ResponseEntity.ok(alerta);
         } catch (Exception e) {
