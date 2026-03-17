@@ -1,0 +1,40 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: yks_db
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    networks:
+      - hackathon-network
+    
+  backend:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.backend
+
+    environment:
+      - DATABASE_URL=sqlite:///yks.db
+
+    networks:
+      - hackathon-network
+
+  frontend:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - BACKEND_URL=http://backend:5000
+    networks:
+      - hackathon-network
+    depends_on:
+      - backend
+
+networks:
+  hackathon-network:
+    driver: bridge
+
+    
