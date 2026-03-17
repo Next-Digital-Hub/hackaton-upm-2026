@@ -9,6 +9,7 @@ build/
 bld/
 bin/
 obj/
+Migrations/
 
 # Visual Studio files
 .vs/

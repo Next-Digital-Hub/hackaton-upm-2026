@@ -177,20 +177,102 @@ namespace Hackathon1.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("Altitud")
+                        .HasColumnType("int");
 
-                    b.Property<double>("Humidity")
-                        .HasColumnType("float");
+                    b.Property<string>("Dir")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
-                    b.Property<string>("Location")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("TemperatureCelsius")
-                        .HasColumnType("float");
-
-                    b.Property<DateTime>("Timestamp")
+                    b.Property<DateTime>("Fecha")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("HoraHrMax")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("HoraHrMin")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("HoraPresMax")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("HoraPresMin")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("HoraTmax")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("HoraTmin")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Horaracha")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int?>("HrMax")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("HrMedia")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("HrMin")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Indicativo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("Prec")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("PresMax")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("PresMin")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Provincia")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal?>("Racha")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Sol")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Tmax")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Tmed")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Tmin")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Velmedia")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
