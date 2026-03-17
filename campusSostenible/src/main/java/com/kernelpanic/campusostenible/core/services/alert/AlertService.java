@@ -1,5 +1,6 @@
 package com.kernelpanic.campusostenible.core.services.alert;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import com.kernelpanic.campusostenible.core.domain.Alert;
