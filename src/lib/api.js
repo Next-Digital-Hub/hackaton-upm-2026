@@ -87,7 +87,7 @@ FORMATO DE SALIDA ESTRICTO (Máximo 100 palabras, sin introducciones ni saludos)
  */
 export function buildUserPrompt(weatherData, profile) {
     const cleanWeatherData = Object.fromEntries(
-        Object.entries(weatherData).filter(([_, value]) => value !== null)
+        Object.entries(weatherData).filter(([, value]) => value !== null)
     );
 
     const userProfile = {
