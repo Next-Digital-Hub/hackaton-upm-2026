@@ -4,6 +4,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabase";
 import {
 	fetchWeather,
+	WEATHER_DISASTER_MODE,
 	sendPrompt,
 	buildSystemPrompt,
 	buildUserPrompt,
@@ -163,7 +164,7 @@ export default function DashboardPage() {
 	async function handleFetchWeather() {
 		setWeatherLoading(true);
 		try {
-			const data = await fetchWeather(true);
+			const data = await fetchWeather(WEATHER_DISASTER_MODE);
 			setWeather(data);
 			setWeatherAlert(buildWeatherAlert(data));
 
@@ -171,14 +172,14 @@ export default function DashboardPage() {
 			await supabase.from("weather_logs").insert({
 				user_id: user.id,
 				weather_data: data,
-				disaster: false,
+				disaster: WEATHER_DISASTER_MODE,
 			});
 			setWeatherHistory((prev) => [
 				{
 					id: `weather-${createdAt}`,
 					created_at: createdAt,
 					weather_data: data,
-					disaster: false,
+					disaster: WEATHER_DISASTER_MODE,
 				},
 				...prev.slice(0, 19),
 			]);

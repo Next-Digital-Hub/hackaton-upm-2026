@@ -5,6 +5,8 @@
 
 const API_BASE = '/api'
 const BEARER_TOKEN = import.meta.env.VITE_BEARER_TOKEN || ''
+export const WEATHER_DISASTER_MODE =
+    String(import.meta.env.VITE_WEATHER_DISASTER_MODE || 'false').toLowerCase() === 'true'
 
 /**
  * Fetch weather data from the hackathon API.
