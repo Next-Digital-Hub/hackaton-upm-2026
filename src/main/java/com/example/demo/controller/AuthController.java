@@ -35,7 +35,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public String login(LoginDTO dto){
-        Optional<User> userOpt = userService.buscarPorNombre(dto.username());
+        Optional<User> userOpt = userService.findByUsername(dto.username());
         if (userOpt.isPresent()){
             User user = userOpt.get();
             if (passwordEncoder.matches(dto.password(), user.getPassword())){

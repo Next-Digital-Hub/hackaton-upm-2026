@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.PrevisionDTO;
+import com.example.demo.dto.PredictionDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
@@ -8,12 +8,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 @Service
-public class ApiPrevisionClient {
+public class ApiPredictionClient {
 
     private final RestClient restClient;
 
     // Spring inyecta el RestClient.Builder y también busca el valor de hackaton.api.jwt
-    public ApiPrevisionClient(
+    public ApiPredictionClient(
             RestClient.Builder restBuilder,
             @Value("${hackaton.api.jwt}") String token,
             @Value("${hackaton.api.base-url}") String url){
@@ -25,12 +25,12 @@ public class ApiPrevisionClient {
     }
 
     @Cacheable("prevision")
-    public PrevisionDTO getPrevision() {
+    public PredictionDTO getPrediction() {
         try {
-            ResponseEntity<PrevisionDTO> response = this.restClient.get()
+            ResponseEntity<PredictionDTO> response = this.restClient.get()
                     .uri("/weather") // Asegúrate de apuntar al endpoint correcto ("weather")
                     .retrieve()
-                    .toEntity(PrevisionDTO.class);
+                    .toEntity(PredictionDTO.class);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 return response.getBody();
