@@ -12,15 +12,14 @@ public class ApiLlmClient {
 
     private final RestClient restClient;
 
-    private static final String LLM_URL_API = "https://ec2-54-171-51-31.eu-west-1.compute.amazonaws.com/";
-
     public ApiLlmClient(
             RestClient.Builder restBuilder,
-            @Value("${hackaton.api.jwt}") String token) {
+            @Value("${hackaton.api.jwt}") String token,
+            @Value("${hackaton.api.base-url}") String url){
 
         this.restClient = restBuilder
                 // Actualizado con la URL del servidor EC2 de la documentación
-                .baseUrl(LLM_URL_API)
+                .baseUrl(url)
                 .defaultHeader("Authorization", "Bearer " + token)
                 // Fundamental para el POST al LLM
                 .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)

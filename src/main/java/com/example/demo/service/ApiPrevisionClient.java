@@ -9,17 +9,16 @@ import org.springframework.web.client.RestClient;
 @Service
 public class ApiPrevisionClient {
 
-    private static final String WEATHER_URL_API = "https://api.github.com/Next-Digital-Hub/hackaton-upm-2026";
-
     private final RestClient restClient;
 
     // Spring inyecta el RestClient.Builder y también busca el valor de hackaton.api.jwt
     public ApiPrevisionClient(
             RestClient.Builder restBuilder,
-            @Value("${hackaton.api.jwt}") String token) {
+            @Value("${hackaton.api.jwt}") String token,
+            @Value("${hackaton.api.base-url}") String url){
 
         this.restClient = restBuilder
-                .baseUrl(WEATHER_URL_API)
+                .baseUrl(url)
                 .defaultHeader("Authorization", "Bearer " + token)
                 .build();
     }
