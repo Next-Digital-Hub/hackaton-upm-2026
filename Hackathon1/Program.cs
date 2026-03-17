@@ -1,5 +1,6 @@
 using Hackathon1.Data;
 using Hackathon1.Models;
+using Hackathon1.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,7 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IWeatherService, WeatherService>();
 
 var app = builder.Build();
 
