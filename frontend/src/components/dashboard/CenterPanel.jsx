@@ -477,7 +477,7 @@ export default function CenterPanel({
                                bg-white/5 border border-white/8 text-white/35 hover:text-white/55
                                text-[11px] transition-colors"
                   >
-                    <span>📊 Análisis IA</span>
+                    <span>Análisis IA</span>
                     <motion.span animate={{ rotate: analysisOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>▾</motion.span>
                   </button>
                   <AnimatePresence>

@@ -15,6 +15,20 @@ from app.services.weather_proxy import call_llm, extract_llm_text, get_weather
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/weather", tags=["weather"])
 
+SPANISH_ANALYSIS_RULE = (
+    "IDIOMA OBLIGATORIO: responde SIEMPRE en espanol (es-ES). "
+    "No uses ingles en el analisis final."
+)
+
+ENGLISH_MARKERS = (
+    " the ", " and ", " with ", " today ", " weather ", " forecast ",
+    " temperature ", " humidity ", " wind ", " recommendation ",
+)
+SPANISH_MARKERS = (
+    " el ", " la ", " los ", " las ", " con ", " hoy ", " clima ",
+    " tiempo ", " temperatura ", " humedad ", " viento ",
+)
+
 # ─── Simulated weather data per mode ─────────────────────────────────────────
 SIMULATED_WEATHER = {
     "rain":   {"temperature": 12, "tmin": 8,  "humidity": 95, "wind_speed": 40,
@@ -62,6 +76,35 @@ def _extract_scalars(data: dict) -> dict:
             "description": str(desc) if desc else None}
 
 
+def _looks_english(text: str) -> bool:
+    if not text or len(text) < 20:
+        return False
+    normalized = f" {text.lower()} "
+    en_score = sum(1 for marker in ENGLISH_MARKERS if marker in normalized)
+    es_score = sum(1 for marker in SPANISH_MARKERS if marker in normalized)
+    return en_score >= 2 and en_score > es_score
+
+
+async def _ensure_spanish_analysis(text: str) -> str:
+    if not text or not _looks_english(text):
+        return text
+
+    translation_system_prompt = (
+        "You are a professional translator. "
+        "Translate the provided weather analysis to natural Spanish (es-ES). "
+        "Preserve Markdown structure, bullets and emojis. Return only the translated text."
+    )
+    translation_user_prompt = f"Translate this weather analysis to Spanish:\n\n{text}"
+
+    try:
+        translated_raw = await call_llm(translation_system_prompt, translation_user_prompt)
+        translated_text = extract_llm_text(translated_raw).strip()
+        return translated_text or text
+    except Exception as exc:
+        logger.warning(f"Could not auto-translate analysis to Spanish: {exc}")
+        return text
+
+
 @router.get("/current", response_model=WeatherResponse)
 async def get_current_weather(
     avatar_state: str = "energized",
@@ -87,9 +130,15 @@ async def get_current_weather(
         )
         if cached:
             logger.info(f"Returning cached weather record {cached.id} for user {current_user.id}")
+            cached_llm = await _ensure_spanish_analysis(cached.llm_response or "")
+            if cached_llm != (cached.llm_response or ""):
+                cached.llm_response = cached_llm
+                db.add(cached)
+                db.commit()
+                db.refresh(cached)
             return WeatherResponse(
                 weather_data=cached.weather_data,
-                llm_response=cached.llm_response or "",
+                llm_response=cached_llm,
                 avatar_state=cached.avatar_state or avatar_state,
                 record_id=cached.id,
             )
@@ -124,15 +173,15 @@ async def get_current_weather(
             for r in rows
         ]
 
-    system_prompt = get_system_prompt(avatar_state, user_name)
+    system_prompt = f"{get_system_prompt(avatar_state, user_name)}\n\n{SPANISH_ANALYSIS_RULE}"
     user_prompt = build_weather_user_prompt(weather_data, avatar_state, history)
 
     try:
         llm_raw = await call_llm(system_prompt, user_prompt)
-        llm_text = extract_llm_text(llm_raw)
+        llm_text = await _ensure_spanish_analysis(extract_llm_text(llm_raw))
     except Exception as exc:
         logger.error(f"LLM unavailable: {exc}")
-        llm_text = "⚠️ AI analysis temporarily unavailable. Here is the raw weather data above."
+        llm_text = "⚠️ El analisis de IA no esta disponible temporalmente. Arriba tienes los datos meteorologicos en bruto."
 
     scalars = _extract_scalars(weather_data)
     record = WeatherRecord(
