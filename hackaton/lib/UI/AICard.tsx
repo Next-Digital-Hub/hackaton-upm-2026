@@ -1,20 +1,22 @@
-// components/AICard.tsx
+"use client";
+
 import { AICardProps } from "@/lib/services/ServicioIA";
+import { useEffect, useState } from "react";
 
-export default async function AICard(dataProps : AICardProps) {
-  const data = dataProps.data
+export default function AICard(dataProps : AICardProps) {
+  const data = dataProps.data;
+  const [aiConsejo, setAiConsejo] = useState<string>("Generando consejo...");
 
-  const url = "http://ec2-54-171-51-31.eu-west-1.compute.amazonaws.com/prompt";
-  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqZXN1cyIsImV4cCI6MTc3MzgyMzM4MH0.m2YZVsFSXmhVOE54h_yMdiugogfHDifC2pvAghmin6o"; // Considera mover esto a .env
+  useEffect(() => {
+    const getConsejo = async () => {
+      if (!data) {
+        setAiConsejo("Datos meteorológicos no disponibles para un consejo de IA.");
+        return;
+      }
 
-  let aiConsejo: string | null = null;
-  
-  if (true  ) {
-    const system_prompt = "Eres un experto meteorólogo que da consejos prácticos y cercanos. Tu respuesta debe ser concisa (máximo 3-4 frases). Se claro, conciso y empieza con imperativo. Los consejos deben ir separados en nuevas líneas y deben empezar con '·'. NO UTILICES SIMBOLOS, NI ENCABEZADOS. La estructura del prompt debe ser la siguiente:· <consejo1> \n · <consejo2> \n ..."
-    
+      const system_prompt = "Eres un experto meteorólogo que da consejos prácticos y cercanos. Tu respuesta debe ser concisa (máximo 3-4 frases). Se claro, conciso y empieza con imperativo. Los consejos deben ir separados en nuevas líneas y deben empezar con '·'. NO UTILICES SIMBOLOS, NI ENCABEZADOS. La estructura del prompt debe ser la siguiente:· <consejo1> \\n · <consejo2> \\n ...";
 
-    // Usamos los datos de la interfaz para crear un prompt dinámico
-    const user_prompt = `
+      const user_prompt = `
       Hola, estoy en ${data.lugar}. 
       Hoy hace una media de ${data.tmed}°C, de minima ${data.tmin} y de maxima ${data.tmax} y han caído ${data.prec}mm de lluvia. 
       La humedad media es ${data.humedadMedia}
@@ -22,33 +24,32 @@ export default async function AICard(dataProps : AICardProps) {
       ¿Qué consejo me das?
     `;
 
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ system_prompt, user_prompt }),
-        next: { revalidate: 3600 } // Cachear la respuesta de la IA por 1 hora
-      });
+      try {
+        const response = await fetch(`${window.location.origin}/api/prompt`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ system_prompt, user_prompt }),
+          cache: "no-store"
+        });
 
+        if (!response.ok) {
+          console.error("Error al llamar a la IA:", response.status);
+          setAiConsejo("Error al obtener el consejo de la IA.");
+          return;
+        }
 
-      if (!response.ok) {
-        console.error("Error al llamar a la IA:", response.status);
-        aiConsejo = "Error al obtener el consejo de la IA.";
-      } else {
         const returnData = await response.json();
-        aiConsejo = returnData.response || "No se pudo generar un consejo.";
-        console.log(aiConsejo)
+        setAiConsejo(returnData.response || "No se pudo generar un consejo.");
+      } catch (error) {
+        console.error("Error de red al llamar a la IA:", error);
+        setAiConsejo("Problema de conexión con el servicio de IA.");
       }
-    } catch (error) {
-      console.error("Error de red al llamar a la IA:", error);
-      aiConsejo = "Problema de conexión con el servicio de IA.";
-    }
-  } else {
-    aiConsejo = "Datos meteorológicos no disponibles para un consejo de IA.";
-  }
+    };
+
+    getConsejo();
+  }, [data]);
 
   return (
     <article className="rounded-[2rem] border border-sky-200 bg-gradient-to-br from-blue-900 to-indigo-900 p-6 text-white shadow-[0_15px_50px_rgba(15,23,42,0.08)]">

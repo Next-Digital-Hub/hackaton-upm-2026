@@ -1,14 +1,9 @@
 
 export default async function ServicioMeteorologia() {
   try {
-    const url = "http://ec2-54-171-51-31.eu-west-1.compute.amazonaws.com/weather";
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqZXN1cyIsImV4cCI6MTc3MzgyMzM4MH0.m2YZVsFSXmhVOE54h_yMdiugogfHDifC2pvAghmin6o"}`,
-        "Content-Type": "application/json"
-      }
+    const apiUrl = `${window.location.origin}/api/weather`;
+    const response = await fetch(apiUrl, {
+      cache: "no-store"
     });
 
     if (!response.ok) {

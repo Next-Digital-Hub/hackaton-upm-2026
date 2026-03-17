@@ -1,7 +1,7 @@
 
 import { AICardProps } from "@/lib/services/ServicioIA";
 
-export default async function WeatherCard(dataProps : AICardProps) {
+export default function WeatherCard(dataProps : AICardProps) {
   const data = dataProps.data
   if (!data) return <div className="p-6 text-slate-500">Datos no disponibles</div>;
 
