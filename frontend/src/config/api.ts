@@ -126,6 +126,15 @@ export async function getCondiciones(): Promise<CondicionClimatica | null> {
   return res.json();
 }
 
+export async function simularNuevoDia(): Promise<CondicionClimatica | null> {
+  const res = await fetch(`${CLIMA}/simular-dia`, {
+    method: "POST",
+    headers: { ...authHeader() },
+  });
+  await throwIfError(res, "Error al simular nuevo día");
+  return res.json();
+}
+
 // --- Alertas ---
 
 // Helper para obtener el header de autorización

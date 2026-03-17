@@ -78,4 +78,36 @@ public class ClimaServiceImpl implements ClimaService {
             return null;
         }
     }
+
+    @Override
+    public CondicionClimatica simularNuevoDia() {
+        try {
+            log.info("Simulando nuevo día: consultando API meteorológica externa directamente");
+            URI uri = URI.create(apiUrl + "/weather?disaster=false");
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .header("Authorization", "Bearer " + apiToken)
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                log.error("Error al simular nuevo día: HTTP {}", response.statusCode());
+                return null;
+            }
+
+            CondicionClimatica condicion = objectMapper.readValue(response.body(), CondicionClimatica.class);
+            
+            if (condicion != null) {
+                log.info("Actualizando condiciones climáticas en la base de datos para el 'nuevo día'");
+                condicionClimaticaManager.saveWithCleanup(condicion);
+            }
+            
+            return condicion;
+        } catch (Exception e) {
+            log.error("Error al simular nuevo día", e);
+            return null;
+        }
+    }
 }

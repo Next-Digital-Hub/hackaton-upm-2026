@@ -3,6 +3,7 @@ package etsisi.albertoynico.backend.controller;
 import etsisi.albertoynico.backend.model.CondicionClimatica;
 import etsisi.albertoynico.backend.service.ClimaService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,5 +20,10 @@ public class ClimaController {
     @GetMapping
     public CondicionClimatica getCondiciones() {
         return climaService.obtenerCondiciones();
+    }
+
+    @PostMapping("/simular-dia")
+    public CondicionClimatica simularNuevoDia() {
+        return climaService.simularNuevoDia();
     }
 }

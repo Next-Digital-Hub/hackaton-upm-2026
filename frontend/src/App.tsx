@@ -12,7 +12,7 @@ import Popover from "@mui/material/Popover";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
-import { AccountCircle } from "@mui/icons-material";
+import { AccountCircle, CalendarToday as CalendarTodayIcon } from "@mui/icons-material";
 
 interface UserSession {
   token: string;
@@ -36,6 +36,7 @@ function App() {
   const [view, setView] = useState<View>("login");
   const [loading, setLoading] = useState(true);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Al montar, intentar restaurar sesión desde localStorage
   useEffect(() => {
@@ -63,6 +64,15 @@ function App() {
     setAnchorEl(null);
   };
 
+  const handleSimularNuevoDia = async () => {
+    try {
+      await import("./config/api").then(api => api.simularNuevoDia());
+      setRefreshKey(prev => prev + 1);
+    } catch (err) {
+      alert("Error al simular día: " + (err instanceof Error ? err.message : String(err)));
+    }
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" mt={6}>
@@ -83,6 +93,17 @@ function App() {
     <>
       <AppBar position="static" color="default" elevation={1}>
         <Toolbar>
+          {user?.rol === "ADMINISTRADOR" && (
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<CalendarTodayIcon />}
+              onClick={handleSimularNuevoDia}
+              sx={{ mr: 2, borderRadius: 2, textTransform: "none" }}
+            >
+              Simular nuevo día
+            </Button>
+          )}
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             {user?.rol === "ADMINISTRADOR" ? "Panel Admin" : "ClimAlert"}
           </Typography>
@@ -109,7 +130,11 @@ function App() {
         </Toolbar>
       </AppBar>
 
-      {user?.rol === "ADMINISTRADOR" ? <AdminPage /> : <CiudadanoPage />}
+      {user?.rol === "ADMINISTRADOR" ? (
+        <AdminPage key={`admin-${refreshKey}`} />
+      ) : (
+        <CiudadanoPage key={`user-${refreshKey}`} />
+      )}
     </>
   );
 }

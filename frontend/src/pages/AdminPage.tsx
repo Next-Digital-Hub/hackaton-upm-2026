@@ -353,7 +353,7 @@ export function AdminPage() {
                     </Box>
                     <Collapse in={expandedId === a.id}>
                       <Box component="ul" sx={{ m: 0, px: 2.5, py: 1, listStyle: "disc" }}>
-                        {a.recomendaciones.map((r, i) => (
+                        {a.recomendaciones.map((r: string, i: number) => (
                           <Typography
                             component="li"
                             variant="caption"
