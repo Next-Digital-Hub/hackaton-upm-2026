@@ -1,16 +1,43 @@
 const express = require('express');
 const cors = require('cors');
-const app = express();
+const sqlite3 = require('sqlite3');
+const { open } = require('sqlite');
+const fetch = require('node-fetch'); // Recuerda: npm install node-fetch@2
 
+const app = express();
 app.use(cors());
 app.use(express.json());
 
-const ADMIN_CODE = "UPM2026"; // Código secreto
+let db;
 
-app.post('/registro', (req, res) => {
-    const data = req.body;
+// 1. INICIALIZACIÓN DE BASE DE DATOS (SQLite)
+(async () => {
+    db = await open({
+        filename: './usuarios_upm.db',
+        driver: sqlite3.Database
+    });
     
-    // Validación de Administrador
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            dni TEXT UNIQUE,
+            nombre TEXT,
+            edad INTEGER,
+            provincia TEXT,
+            perfil TEXT,
+            rol TEXT
+        )
+    `);
+    console.log("✅ Base de datos SQLite conectada y lista.");
+})();
+
+const ADMIN_CODE = "UPM2026";
+
+// 2. RUTA DE REGISTRO (Guardar en BD y calcular perfil)
+app.post('/registro', async (req, res) => {
+    const data = req.body;
+
+    // Validación Admin
     if (data.tipoUsuario === 'administrador' && data.adminCode !== ADMIN_CODE) {
         return res.status(401).json({ error: "Código admin incorrecto" });
     }
@@ -18,16 +45,54 @@ app.post('/registro', (req, res) => {
     // Lógica de Perfilado
     let perfil = "Estándar";
     const necesidadesMedicas = data.necesidades.filter(n => n !== 'mascotas').length > 0;
-
-    if (necesidadesMedicas || data.dependiente) {
+    
+    if (necesidadesMedicas) {
         perfil = "Dependiente";
     } else if (parseInt(data.edad) < 18) {
         perfil = "Menor de Edad";
     }
 
-    console.log("Usuario registrado:", { ...data, perfilAsignado: perfil });
-    
-    res.json({ mensaje: "Éxito", perfil: perfil, nombre: data.nombre });
+    try {
+        // Guardar en SQLite
+        await db.run(
+            `INSERT INTO usuarios (dni, nombre, edad, provincia, perfil, rol) VALUES (?, ?, ?, ?, ?, ?)`,
+            [data.dni, data.nombre, data.edad, data.provincia, perfil, data.tipoUsuario]
+        );
+        
+        console.log(`👤 Usuario registrado: ${data.nombre} (${perfil})`);
+        res.json({ mensaje: "Éxito", perfil: perfil, nombre: data.nombre, provincia: data.provincia });
+    } catch (e) {
+        console.error("Error al insertar:", e.message);
+        res.status(400).json({ error: "El DNI ya existe o error en los datos." });
+    }
 });
 
-app.listen(3000, () => console.log("Servidor en http://localhost:3000"));
+// 3. RUTA DE CLIMA (Conexión con API externa)
+app.get('/clima/:provincia', async (req, res) => {
+    const prov = req.params.provincia;
+    const API_KEY = "TU_API_KEY_AQUI"; // <--- SUSTITUYE POR TU CLAVE DE OPENWEATHER
+    
+    try {
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${prov},es&units=metric&lang=es&appid=${API_KEY}`;
+        const response = await fetch(url);
+        const climaData = await response.json();
+        
+        if (climaData.cod !== 200) {
+            return res.status(404).json({ error: "No se encontró el clima para esa provincia" });
+        }
+
+        res.json({
+            temp: Math.round(climaData.main.temp) + "°C",
+            desc: climaData.weather[0].description,
+            icon: climaData.weather[0].icon
+        });
+    } catch (e) {
+        res.status(500).json({ error: "Error conectando con la API de clima" });
+    }
+});
+
+// Iniciar servidor
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+});
