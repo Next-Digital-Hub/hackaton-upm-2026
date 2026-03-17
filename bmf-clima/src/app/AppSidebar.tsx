@@ -4,19 +4,22 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarHeader,
+  SidebarProvider,
 } from "@/components/ui/sidebar";
+import React from "react";
 
 export default function AppSidebar() {
   return (
-          <Sidebar className="bg-primary">
+  
+          <Sidebar className="bg-primary" variant="inset">
           <SidebarHeader>Sidebar header</SidebarHeader>
           
           <SidebarContent>
-          <SidebarGroup>SidebarGroup 1</ SidebarGroup>
-          <SidebarGroup>SidebarGroup 2</ SidebarGroup>
+          <SidebarGroup>History of Chats</ SidebarGroup>
+          <SidebarGroup>Meteorology </ SidebarGroup>
           </ SidebarContent>
           
-          <SidebarFooter>Footer</SidebarFooter>
+          <SidebarFooter>BMF-Clima</SidebarFooter>
           
           </Sidebar>
           );
