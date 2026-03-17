@@ -15,6 +15,7 @@ import Paper from "@mui/material/Paper";
 import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
+import Collapse from "@mui/material/Collapse";
 import {
   Delete as DeleteIcon,
   PowerSettingsNew as PowerSettingsNewIcon,
@@ -24,6 +25,7 @@ import {
   Opacity as OpacityIcon,
   Speed as SpeedIcon,
   Warning as WarningIcon,
+  ExpandMore as ExpandMoreIcon,
 } from "@mui/icons-material";
 import type { CondicionClimatica } from "../types/CondicionClimatica";
 import type { Alerta } from "../types/Alerta";
@@ -55,6 +57,7 @@ export function AdminPage() {
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [generando, setGenerando] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const cargarAlertas = useCallback(() => {
     getAlertasByAdmin()
@@ -302,6 +305,54 @@ export function AdminPage() {
                     )}
                   </Box>
                 </Box>
+
+                {/* Recomendaciones expandibles */}
+                {a.recomendaciones && a.recomendaciones.length > 0 && (
+                  <>
+                    <Box
+                      onClick={() => setExpandedId(expandedId === a.id ? null : a.id)}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 0.5,
+                        px: 1.5,
+                        py: 0.5,
+                        cursor: "pointer",
+                        borderTop: "1px solid",
+                        borderColor: "divider",
+                        "&:hover": { bgcolor: "action.hover" },
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary">
+                        Recomendaciones
+                      </Typography>
+                      <ExpandMoreIcon
+                        sx={{
+                          fontSize: 18,
+                          color: "text.secondary",
+                          transition: "transform 0.2s",
+                          transform: expandedId === a.id ? "rotate(180deg)" : "rotate(0deg)",
+                        }}
+                      />
+                    </Box>
+                    <Collapse in={expandedId === a.id}>
+                      <Box component="ul" sx={{ m: 0, px: 2.5, py: 1, listStyle: "disc" }}>
+                        {a.recomendaciones.map((r, i) => (
+                          <Typography
+                            component="li"
+                            variant="caption"
+                            key={i}
+                            color="text.secondary"
+                            sx={{ mb: 0.3 }}
+                          >
+                            {r}
+                          </Typography>
+                        ))}
+                      </Box>
+                    </Collapse>
+                  </>
+                )}
 
                 {/* Acciones */}
                 <Box
