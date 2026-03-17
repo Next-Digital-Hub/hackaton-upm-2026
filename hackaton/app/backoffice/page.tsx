@@ -1,13 +1,44 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useEffect } from "react";
 
 const ubicacionesDisponibles = ["Madrid", "Barcelona", "Valencia", "Sevilla", "Malaga", "Bilbao"];
 
 export default function BackofficePage() {
+  const router = useRouter();
   const [ubicacionesAlerta, setUbicacionesAlerta] = useState<string[]>(["Madrid"]);
   const [ubicacionesRecomendacion, setUbicacionesRecomendacion] = useState<string[]>(["Madrid"]);
+  const [autorizado, setAutorizado] = useState(false);
+  const [nombreUsuario, setNombreUsuario] = useState("Usuario");
+
+  const cerrarSesion = () => {
+    sessionStorage.removeItem("hackatonSession");
+    router.replace("/");
+  };
+
+  useEffect(() => {
+    const sesionRaw = sessionStorage.getItem("hackatonSession");
+    if (!sesionRaw) {
+      router.replace("/iniciar-sesion");
+      return;
+    }
+
+    try {
+      const sesion = JSON.parse(sesionRaw) as { tipoUsuario?: string; nombre?: string };
+      if (sesion.tipoUsuario !== "Backoffice") {
+        router.replace("/cliente");
+        return;
+      }
+      const nombre = typeof sesion.nombre === "string" ? sesion.nombre.trim() : "";
+      setNombreUsuario(nombre || "Usuario");
+      setAutorizado(true);
+    } catch {
+      router.replace("/iniciar-sesion");
+    }
+  }, [router]);
 
   const toggleUbicacion = (
     ubicacion: string,
@@ -18,6 +49,10 @@ export default function BackofficePage() {
       actuales.includes(ubicacion) ? actuales.filter((item) => item !== ubicacion) : [...actuales, ubicacion],
     );
   };
+
+  if (!autorizado) {
+    return null;
+  }
 
   return (
     <main className="min-h-screen bg-[linear-gradient(135deg,_#f8fafc_0%,_#eef2ff_48%,_#fff1f2_100%)] px-6 py-10 text-slate-900">
@@ -38,7 +73,7 @@ export default function BackofficePage() {
 
           <div className="rounded-[1.5rem] bg-white/10 px-5 py-4">
             <p className="text-sm text-slate-300">Responsable activo</p>
-            <p className="mt-1 text-2xl font-bold">Equipo Backoffice</p>
+            <p className="mt-1 text-2xl font-bold">{nombreUsuario}</p>
           </div>
         </header>
 
@@ -141,9 +176,13 @@ export default function BackofficePage() {
         </section>
 
         <div className="flex justify-end">
-          <Link href="/iniciar-sesion" className="rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-white">
-            Cambiar sesion
-          </Link>
+          <button
+            type="button"
+            onClick={cerrarSesion}
+            className="rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-white"
+          >
+            Cerrar sesion
+          </button>
         </div>
       </div>
     </main>

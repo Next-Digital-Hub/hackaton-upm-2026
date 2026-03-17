@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, doc, getDoc } from "firebase/firestore";
 
 import { provincias } from "./provincias";
 import { TipoVivienda, Usuario } from "@/lib/models/Usuario";
@@ -45,6 +45,42 @@ export default function RegistroPage() {
     if (tipoUsuario === "Backoffice" && !codigoBackoffice) {
       setMensaje("Para Backoffice debes introducir el codigo de acceso.");
       return;
+    }
+
+    if (tipoUsuario === "Backoffice") {
+      try {
+        const configRef = doc(db, "config", "backoffice");
+        const configSnap = await getDoc(configRef);
+
+        if (!configSnap.exists()) {
+          setMensaje("No existe la configuracion de Backoffice en la base de datos.");
+          return;
+        }
+
+        const data = configSnap.data() as {
+          codigo?: string;
+          codigoAdmin?: string;
+          codigoAdministrador?: string;
+          adminCode?: string;
+        };
+
+        const codigoConfigurado =
+          data.codigo ?? data.codigoAdmin ?? data.codigoAdministrador ?? data.adminCode ?? "";
+
+        if (!codigoConfigurado) {
+          setMensaje("El codigo de Backoffice no esta configurado en la base de datos.");
+          return;
+        }
+
+        if (codigoBackoffice !== codigoConfigurado) {
+          setMensaje("Codigo de administrador incorrecto. No se puede crear una cuenta Backoffice.");
+          return;
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        setMensaje(`No se pudo validar el codigo de Backoffice: ${msg}`);
+        return;
+      }
     }
 
     const nuevoUsuario = new Usuario(
