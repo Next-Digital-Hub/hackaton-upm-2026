@@ -2,6 +2,7 @@ package etsisi.albertoynico.backend.service;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import etsisi.albertoynico.backend.manager.AlertaManager;
 import etsisi.albertoynico.backend.manager.CondicionClimaticaManager;
 import etsisi.albertoynico.backend.model.CondicionClimatica;
 import org.slf4j.Logger;
@@ -14,6 +15,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class ClimaServiceImpl implements ClimaService {
@@ -23,16 +25,19 @@ public class ClimaServiceImpl implements ClimaService {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final CondicionClimaticaManager condicionClimaticaManager;
+    private final AlertaManager alertaManager;
     private final String apiUrl;
     private final String apiToken;
 
     public ClimaServiceImpl(
             @Value("${weather.api.url}") String apiUrl,
             @Value("${api.token}") String apiToken,
-            CondicionClimaticaManager condicionClimaticaManager) {
+            CondicionClimaticaManager condicionClimaticaManager,
+            AlertaManager alertaManager) {
         this.apiUrl = apiUrl;
         this.apiToken = apiToken;
         this.condicionClimaticaManager = condicionClimaticaManager;
+        this.alertaManager = alertaManager;
         this.httpClient = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -70,6 +75,7 @@ public class ClimaServiceImpl implements ClimaService {
             if (condicion != null) {
                 log.info("Guardando nuevas condiciones en la base de datos");
                 condicionClimaticaManager.saveWithCleanup(condicion);
+                lanzarGeneracionAlertas();
             }
             
             return condicion;
@@ -102,6 +108,7 @@ public class ClimaServiceImpl implements ClimaService {
             if (condicion != null) {
                 log.info("Actualizando condiciones climáticas en la base de datos para el 'nuevo día'");
                 condicionClimaticaManager.saveWithCleanup(condicion);
+                lanzarGeneracionAlertas();
             }
             
             return condicion;
@@ -109,5 +116,16 @@ public class ClimaServiceImpl implements ClimaService {
             log.error("Error al simular nuevo día", e);
             return null;
         }
+    }
+
+    private void lanzarGeneracionAlertas() {
+        CompletableFuture.runAsync(() -> {
+            try {
+                log.info("Lanzando generación automática de alertas tras nuevos datos climáticos");
+                alertaManager.generarAlertas();
+            } catch (Exception ex) {
+                log.error("Error en generación automática de alertas", ex);
+            }
+        });
     }
 }

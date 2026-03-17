@@ -29,7 +29,7 @@ import {
 } from "@mui/icons-material";
 import type { CondicionClimatica } from "../types/CondicionClimatica";
 import type { Alerta } from "../types/Alerta";
-import { getCondiciones, getAlertasByAdmin, crearAlerta, apagarAlerta, encenderAlerta, eliminarAlerta, getTiposAlerta, getNivelesAlerta, generarAlertas, getProvincias } from "../config/api";
+import { getCondiciones, getAlertasByAdmin, crearAlerta, apagarAlerta, encenderAlerta, eliminarAlerta, getTiposAlerta, getNivelesAlerta, getProvincias } from "../config/api";
 import { CondicionesRow } from "../components/CondicionesRow";
 
 // TODO: el admin podrá seleccionar provincia
@@ -56,7 +56,6 @@ export function AdminPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
-  const [generando, setGenerando] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const cargarAlertas = useCallback(() => {
@@ -137,22 +136,6 @@ export function AdminPage() {
     }
   };
 
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
-
-  const handleGenerar = async () => {
-    setGenerando(true);
-    setError(null);
-    setSuccessMsg(null);
-    try {
-      await generarAlertas();
-      setSuccessMsg("Generación de alertas iniciada. Las alertas aparecerán en unos segundos.");
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Error al generar alertas");
-    } finally {
-      setGenerando(false);
-    }
-  };
-
 
   if (loading) {
     return (
@@ -189,31 +172,15 @@ export function AdminPage() {
         </Alert>
       )}
 
-      {successMsg && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMsg(null)}>
-          {successMsg}
-        </Alert>
-      )}
-
       <Box mb={4} position="relative">
         <CondicionesRow condicion={condicion} />
       </Box>
 
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h5">Mis alertas</Typography>
-        <Box display="flex" gap={1}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleGenerar}
-            disabled={generando}
-          >
-            {generando ? "Generando…" : "Generar alertas"}
-          </Button>
-          <Button variant="contained" color="error" onClick={() => setDialogOpen(true)}>
-            Emitir alerta
-          </Button>
-        </Box>
+        <Button variant="contained" color="error" onClick={() => setDialogOpen(true)}>
+          Emitir alerta
+        </Button>
       </Box>
 
       {alertas.length === 0 ? (

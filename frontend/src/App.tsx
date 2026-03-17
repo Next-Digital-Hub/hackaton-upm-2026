@@ -14,7 +14,6 @@ import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import { AccountCircle, CalendarToday as CalendarTodayIcon, History as HistoryIcon } from "@mui/icons-material";
 import { LLMHistoryPage } from "./pages/LLMHistoryPage";
-import { AccountCircle, CalendarToday as CalendarTodayIcon } from "@mui/icons-material";
 import logo from "./assets/logo.png";
 
 interface UserSession {
