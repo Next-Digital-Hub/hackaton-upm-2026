@@ -2,7 +2,7 @@
 
 ClimAlert es una plataforma integral diseñada para la monitorización de condiciones meteorológicas y la gestión de alertas de seguridad ciudadana. El sistema permite a los usuarios estar informados sobre el clima actual y proporciona a las autoridades herramientas avanzadas para la toma de decisiones y la simulación de escenarios críticos.
 
-## 👥 Roles del Sistema
+## Roles del Sistema
 
 El sistema cuenta con un sistema robusto de autenticación basado en JWT y distingue entre dos tipos de usuarios con permisos específicos:
 
@@ -22,7 +22,7 @@ Este rol posee todos los permisos del ciudadano, sumando capacidades de gestión
     *   **Simulación Avanzada:** Capacidad de simular un "nuevo día" eligiendo explícitamente entre un escenario de **día normal** o un escenario de **desastre**, forzando la actualización de datos desde la API externa.
 *   **Historial de Inteligencia:** Acceso a un panel detallado con el historial de llamadas a modelos de lenguaje (LLM), permitiendo auditar la generación de recomendaciones.
 
-## 🔄 Flujo del Sistema y Funcionalidades
+## Flujo del Sistema y Funcionalidades
 
 El siguiente diagrama detalla cómo interactúan los componentes del sistema cuando un usuario accede a la plataforma:
 
@@ -60,7 +60,7 @@ sequenceDiagram
 3.  **Ciclo de Simulación:** Tanto administradores como ciudadanos pueden "Simular un nuevo día". El administrador tiene el control adicional de disparar simulaciones de **desastre**, lo que obliga al sistema a obtener datos extremos de la API y actualizar a todos los usuarios.
 4.  **Auditoría LLM:** Cada vez que el sistema genera recomendaciones inteligentes, se registra una entrada en el historial de llamadas LLM, accesible para los administradores para asegurar la precisión de los consejos brindados.
 
-## 🚀 Características Principales
+## Características Principales
 
 *   **Sincronización Inteligente:** El backend prioriza la lectura de datos desde la base de datos local para optimizar el rendimiento, consultando la API meteorológica externa solo cuando es estrictamente necesario o solicitado.
 *   **Arquitectura Moderna:** Frontend desarrollado en React con Material UI y backend construido con Spring Boot, garantizando una interfaz premium y un servicio escalable.
