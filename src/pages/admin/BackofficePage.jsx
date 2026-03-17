@@ -377,7 +377,7 @@ Usa como umbrales de riesgo: lluvia acumulada > 100 mm y/o viento > 60 km/h como
                                     <strong>{alert.title}</strong>
                                     <p>{alert.description}</p>
                                     <button
-                                        className="btn-secondary"
+                                        className="btn-secondary alert-action-btn alert-action-btn-danger"
                                         onClick={() => handleToggleAlert(alert.id, alert.active)}
                                         disabled={updatingAlertId === alert.id}
                                     >
@@ -411,7 +411,7 @@ Usa como umbrales de riesgo: lluvia acumulada > 100 mm y/o viento > 60 km/h como
                                     <p>{alert.description}</p>
                                     {!alert.active && (
                                         <button
-                                            className="btn-secondary"
+                                            className="btn-secondary alert-action-btn alert-action-btn-success"
                                             onClick={() => handleToggleAlert(alert.id, alert.active)}
                                             disabled={updatingAlertId === alert.id}
                                         >
