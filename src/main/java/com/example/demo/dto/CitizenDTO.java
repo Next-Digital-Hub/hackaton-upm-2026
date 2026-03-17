@@ -5,7 +5,7 @@ import com.example.demo.model.Rol;
 import com.example.demo.model.TipoNecesidades;
 import com.example.demo.model.TipoVivienda;
 
-public record UserRegitrationDTO(
+public record CitizenDTO(
         String username,
         String password,
         Provincia provincia,

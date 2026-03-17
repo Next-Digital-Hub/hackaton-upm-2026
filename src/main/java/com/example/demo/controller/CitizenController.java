@@ -1,6 +1,9 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.CitizenDTO;
 import com.example.demo.dto.PrevisionDTO;
+import com.example.demo.model.Ciudadano;
+import com.example.demo.model.User;
 import com.example.demo.service.ApiPrevisionClient;
 import com.example.demo.service.ApiLlmClient;
 import org.springframework.http.ResponseEntity;
@@ -87,5 +90,19 @@ public class CitizenController {
                 "Consulta de recomendación IA - 16/03/2026 18:30"
         );
         return ResponseEntity.ok(historialMock);
+    }
+
+    private CitizenDTO convertToDTO(User user){
+        if(!(user instanceof Ciudadano ciudadano)){
+            throw new IllegalArgumentException("El usuario no es un ciudadano");
+        }
+        return new CitizenDTO(
+                ciudadano.getUsername(),
+                ciudadano.getPassword(),
+                ciudadano.getProvincia(),
+                ciudadano.getTipoVivienda(),
+                ciudadano.getTipoNecesidades(),
+                ciudadano.getRol()
+        );
     }
 }
