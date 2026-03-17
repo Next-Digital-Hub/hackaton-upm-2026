@@ -1,6 +1,7 @@
 package etsisi.albertoynico.backend.dto;
 
 import etsisi.albertoynico.backend.model.NecesidadEspecial;
+import etsisi.albertoynico.backend.model.Provincia;
 import etsisi.albertoynico.backend.model.TipoVivienda;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +13,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserFormDTO {
-    private String provincia;
+    private Provincia provincia;
     private TipoVivienda tipoVivienda;
     private Set<NecesidadEspecial> necesidadesEspeciales;
 }

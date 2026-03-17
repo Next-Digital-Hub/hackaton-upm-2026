@@ -26,7 +26,7 @@ public class CondicionClimatica {
     private String prec;
     private String presMax;
     private String presMin;
-    private String provincia;
+    private Provincia provincia;
     private String racha;
     private String sol;
     private String tmax;

@@ -17,7 +17,7 @@ public class Alerta {
     private String fecha;
     private TipoAlerta tipo;
     private NivelAlerta nivel;
-    private String provincia;
+    private Provincia provincia;
     private String valorDetectado;
     private String umbralSuperado;
     private String descripcion;

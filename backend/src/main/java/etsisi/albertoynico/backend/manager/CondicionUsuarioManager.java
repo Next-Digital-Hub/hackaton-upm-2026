@@ -1,6 +1,7 @@
 package etsisi.albertoynico.backend.manager;
 
 import etsisi.albertoynico.backend.model.CondicionUsuario;
+import etsisi.albertoynico.backend.model.Provincia;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 

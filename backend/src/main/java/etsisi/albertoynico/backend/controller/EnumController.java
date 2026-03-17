@@ -2,6 +2,7 @@ package etsisi.albertoynico.backend.controller;
 
 import etsisi.albertoynico.backend.model.NecesidadEspecial;
 import etsisi.albertoynico.backend.model.NivelAlerta;
+import etsisi.albertoynico.backend.model.Provincia;
 import etsisi.albertoynico.backend.model.RolUsuario;
 import etsisi.albertoynico.backend.model.TipoAlerta;
 import etsisi.albertoynico.backend.model.TipoVivienda;
@@ -39,5 +40,10 @@ public class EnumController {
     @GetMapping("/niveles-alerta")
     public List<String> getNivelesAlerta() {
         return Arrays.stream(NivelAlerta.values()).map(Enum::name).toList();
+    }
+
+    @GetMapping("/provincias")
+    public List<String> getProvincias() {
+        return Arrays.stream(Provincia.values()).map(Enum::name).toList();
     }
 }
