@@ -7,7 +7,7 @@ import com.kernelpanic.campusostenible.core.domain.Citizen;
 import com.kernelpanic.campusostenible.core.domain.WeatherData;
 
 public interface RecomendationProvider {
-    String getRecommendation(Citizen citizen, Alert alert);
+    String getRecommendation(Citizen citizen, WeatherData meteoData);
 
     String getSimplifiedRecommendation(Citizen citizen, Alert alert);
 

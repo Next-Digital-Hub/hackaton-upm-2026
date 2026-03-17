@@ -2,6 +2,8 @@ package com.kernelpanic.campusostenible.ui.citizen;
 
 import com.kernelpanic.campusostenible.core.domain.*;
 import com.kernelpanic.campusostenible.core.services.weather.WeatherService;
+import com.kernelpanic.campusostenible.core.services.alert.AlertService;
+import com.kernelpanic.campusostenible.core.providers.recomendation.RecomendationProvider;
 import com.kernelpanic.campusostenible.ui.dto.*;
 
 import org.springframework.stereotype.Controller;
@@ -19,10 +21,12 @@ public class CitizenWeatherController {
 
         private final WeatherService weatherService;
         private final AlertService alertService;
+        private final RecomendationProvider recomendationProvider;
 
-        public CitizenWeatherController(WeatherService weatherService, AlertService alertService) {
+        public CitizenWeatherController(WeatherService weatherService, AlertService alertService, RecomendationProvider recomendationProvider) {
                 this.weatherService = weatherService;
                 this.alertService = alertService;
+                this.recomendationProvider = recomendationProvider;
         }
 
         @GetMapping
@@ -46,10 +50,10 @@ public class CitizenWeatherController {
                                 .collect(Collectors.toList());
 
                 // Get daily recommendations based on weather conditions
-                WeatherRecommendationDTO recommendations = weatherService.getDailyRecommendations(weatherData);
+                WeatherRecommendationDTO recommendations = recomendationProvider.getRecomendations(null, weatherData);
 
                 // Get 7-day history for mini timeline
-                List<WeatherData> historyRaw = weatherService.getWeatherHistory(province, selectedDate, 7);
+                List<WeatherData> historyRaw = weatherService.getWeatherByProvice(1);
                 List<MeteoDataDTO> historyDTOs = historyRaw.stream()
                                 .map(WeatherMapper::toDTO)
                                 .collect(Collectors.toList());

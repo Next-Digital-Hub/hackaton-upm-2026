@@ -28,13 +28,13 @@ public class getRecomendationAPI {
         this.objectMapper = new ObjectMapper();
     }
 
-    public String getRecommendation(Citizen citizen, Alert alert) {
+    public String getRecommendation(Citizen citizen, WeatherData weatherData) {
         String url = "http://ec2-54-171-51-31.eu-west-1.compute.amazonaws.com/prompt";
         String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTZXJnaW8iLCJleHAiOjE3NzM4MjQ3NDd9.zloyQhaXgRSd-PPJH6EVbQj0zsxve0q0AWYrOdqo0UE";
         String userPrompt = "Dame las precauciones que debe tomar el ciudadano de la provincia " + citizen.getProvince()
                 + ", con tipo de vivienda: " + citizen.getVillageType() + ". Y con necesidades especiales : "
-                + citizen.getSpecialNeeds() + "\n Para una alerta de la provincia de " + alert.getProvince()
-                + " y que comenta lo siguiente: " + alert.getMessage();
+                + citizen.getSpecialNeeds() + "\n Para una alerta de la provincia de " + weatherData.getProvincia()
+                + " y que comenta lo siguiente: " + weatherData.getMessage();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
