@@ -22,12 +22,20 @@ public class Alerta {
     private String umbralSuperado;
     private String descripcion;
     private List<String> recomendaciones;
-    private boolean isActive;
+    private Boolean active;
     private String adminId;           // opcional – ID del admin que creó la alerta
     private String usuarioId;         // ID del ciudadano destinatario de la alerta
 
     @DynamoDbPartitionKey
     public String getId() {
         return id;
+    }
+
+    public Boolean isActive() {
+        return active != null && active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 }

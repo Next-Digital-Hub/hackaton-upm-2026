@@ -21,11 +21,6 @@ export class FrontendStack extends cdk.Stack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     });
 
-    new s3deploy.BucketDeployment(this, "DeployFrontend", {
-      sources: [s3deploy.Source.asset(path.join(__dirname, "../../frontend/dist"))],
-      destinationBucket: webBucket,
-    });
-
     // --- CloudFront ---
     const backendOrigin = new origins.HttpOrigin(props.backendUrl, {
       protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
@@ -63,6 +58,14 @@ export class FrontendStack extends cdk.Stack {
         },
       },
       defaultRootObject: "index.html",
+    });
+
+    // Deploy frontend assets to S3 and invalidate CloudFront cache
+    new s3deploy.BucketDeployment(this, "DeployFrontendWithInvalidation", {
+      sources: [s3deploy.Source.asset(path.join(__dirname, "../../frontend/dist"))],
+      destinationBucket: webBucket,
+      distribution,
+      distributionPaths: ["/*"],
     });
 
     new cdk.CfnOutput(this, "CloudFrontURL", {
