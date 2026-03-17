@@ -25,14 +25,8 @@ import {
 import { useSession } from "@/lib/auth-client";
 
 import LoginCard from "./LoginCard";
-import { Field } from "@base-ui/react";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-  FieldSet,
-} from "@/components/ui/field"
+/*import { Field } from "@base-ui/react";*/
+import {Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 
 
 function LogDialog() {
@@ -160,9 +154,14 @@ export default function Chat() {
                                                                                                                                                                                                     </div>*/}
           
           <div>
-            <Field>
+            <Field className = "w-full sticky top-0 z-index bg-neutral-500 p-4 rounded-lg ">
+              <FieldLabel>Emergencias Climaticas</FieldLabel>
+              <FieldDescription className = "text-color-zinc-500 justify-self-center  p-2">
+                  Olas de calor
+                  Tormenta Electrica
+              </FieldDescription>
+            </Field>
 
-            </File>
           </div>
           <div className="flex flex-col gap-4 p-4 "> 
           {chatConversation
