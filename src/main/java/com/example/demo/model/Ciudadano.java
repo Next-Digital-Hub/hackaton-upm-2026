@@ -7,10 +7,10 @@ import jakarta.persistence.Entity;
 @Entity
 @DiscriminatorValue("CIUDADANO")
 public class Ciudadano extends User{
-    @Column(nullable = false)
+    @Column
     private Provincia provincia;
 
-    @Column(nullable = false)
+    @Column
     private TipoVivienda tipoVivienda;
 
     @Column

@@ -40,7 +40,6 @@ public abstract class User {
         this.password = password;
     }
 
-
     public Rol getRol() {
         return rol;
     }
