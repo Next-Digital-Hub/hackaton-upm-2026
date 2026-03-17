@@ -73,13 +73,17 @@ public class AlertaManager extends AbstractManager<Alerta> {
      * 5. Guarda en DynamoDB
      */
     public List<Alerta> generarAlertas() {
+        log.info("Iniciando generación de alertas");
         CondicionClimatica condicion = climaService.obtenerCondiciones();
         if (condicion == null) {
             log.warn("No se pudieron obtener condiciones climáticas");
             return List.of();
         }
+        log.info("Condiciones obtenidas: provincia={}, tmax={}, prec={}, racha={}", 
+                condicion.getProvincia(), condicion.getTmax(), condicion.getPrec(), condicion.getRacha());
 
         List<Alerta> alertasBase = evaluarUmbrales(condicion);
+        log.info("Alertas base generadas: {}", alertasBase.size());
         if (alertasBase.isEmpty()) {
             log.info("No se han superado umbrales");
             return List.of();
@@ -87,7 +91,10 @@ public class AlertaManager extends AbstractManager<Alerta> {
 
         List<CondicionUsuario> usuarios = condicionUsuarioManager.findAll();
         if (usuarios.isEmpty()) {
-            log.info("No hay usuarios registrados con condiciones");
+            log.info("No hay usuarios registrados con condiciones, guardando alertas base");
+            for (Alerta alerta : alertasBase) {
+                save(alerta);
+            }
             return alertasBase;
         }
 
@@ -108,10 +115,28 @@ public class AlertaManager extends AbstractManager<Alerta> {
                             .replace("{{ALERTAS_JSON}}", alertasJson)
                             .replace("{{CONDICIONES_USUARIO_JSON}}", condicionesUsuarioJson);
 
+                    log.info("Llamando a Bedrock para usuario {}", usuario.getUsuarioId());
                     String respuestaLlm = bedrockService.sendMessage(systemPrompt, userPrompt);
+                    log.info("Respuesta LLM para usuario {}: {} chars", usuario.getUsuarioId(),
+                            respuestaLlm != null ? respuestaLlm.length() : 0);
                     parsearYCrearAlertas(respuestaLlm, alertasBase, alertasFinales, usuario.getUsuarioId());
                 } catch (Exception e) {
-                    log.error("Error generando alertas para usuario {}", usuario.getUsuarioId(), e);
+                    log.error("Error generando alertas para usuario {}, guardando alertas sin LLM", usuario.getUsuarioId(), e);
+                    // Guardar alertas base sin descripción/recomendaciones del LLM
+                    for (Alerta base : alertasBase) {
+                        Alerta alerta = new Alerta();
+                        alerta.setId(newId());
+                        alerta.setFecha(base.getFecha());
+                        alerta.setTipo(base.getTipo());
+                        alerta.setNivel(base.getNivel());
+                        alerta.setProvincia(base.getProvincia());
+                        alerta.setValorDetectado(base.getValorDetectado());
+                        alerta.setUmbralSuperado(base.getUmbralSuperado());
+                        alerta.setActive(true);
+                        alerta.setUsuarioId(usuario.getUsuarioId());
+                        save(alerta);
+                        alertasFinales.add(alerta);
+                    }
                 }
             });
             futures.add(future);
