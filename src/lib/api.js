@@ -98,14 +98,11 @@ export function buildUserPrompt(weatherData, profile) {
             : ["Ninguna"]
     };
 
-    return `<perfil_usuario>
+    return `Perfil del Usuario:
 ${JSON.stringify(userProfile, null, 2)}
-</perfil_usuario>
 
-<datos_meteorologicos>
+Datos Meteorológicos Actuales:
 ${JSON.stringify(cleanWeatherData, null, 2)}
-</datos_meteorologicos>
 
-Genera el reporte meteorológico siguiendo estrictamente el formato Markdown indicado en tus instrucciones. 
-Regla vital: NO incluyas ninguna etiqueta XML en tu respuesta final. Comienza directamente con el título de Prioridad.`;
+Genera el reporte meteorológico siguiendo estrictamente el formato Markdown indicado en tus instrucciones.`;
 }
