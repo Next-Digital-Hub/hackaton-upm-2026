@@ -102,4 +102,8 @@ public class UmbralesAlertaConfig {
         }
         return Optional.empty();
     }
+
+    public static Map<TipoAlerta, Map<NivelAlerta, Double>> getUmbralesMap() {
+        return UMBRALES_MAXIMOS;
+    }
 }

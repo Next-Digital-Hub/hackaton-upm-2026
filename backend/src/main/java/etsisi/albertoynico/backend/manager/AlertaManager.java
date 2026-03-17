@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import etsisi.albertoynico.backend.config.UmbralesAlertaConfig;
 import etsisi.albertoynico.backend.model.*;
 import etsisi.albertoynico.backend.service.BedrockService;
-import etsisi.albertoynico.backend.service.ClimaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -24,21 +23,21 @@ public class AlertaManager extends AbstractManager<Alerta> {
 
     private static final Logger log = LoggerFactory.getLogger(AlertaManager.class);
 
-    private final ClimaService climaService;
     private final BedrockService bedrockService;
     private final CondicionUsuarioManager condicionUsuarioManager;
+    private final CondicionClimaticaManager condicionClimaticaManager;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final String systemPrompt;
     private final String userPromptTemplate;
 
     public AlertaManager(DynamoDbEnhancedClient client,
-                         ClimaService climaService,
                          BedrockService bedrockService,
-                         CondicionUsuarioManager condicionUsuarioManager) {
+                         CondicionUsuarioManager condicionUsuarioManager,
+                         CondicionClimaticaManager condicionClimaticaManager) {
         super(client, "hackathon-alertas", Alerta.class);
-        this.climaService = climaService;
         this.bedrockService = bedrockService;
         this.condicionUsuarioManager = condicionUsuarioManager;
+        this.condicionClimaticaManager = condicionClimaticaManager;
         this.systemPrompt = cargarRecurso("system_prompt.txt");
         this.userPromptTemplate = cargarRecurso("user_prompt.txt");
     }
@@ -73,21 +72,12 @@ public class AlertaManager extends AbstractManager<Alerta> {
      * 5. Guarda en DynamoDB
      */
     public List<Alerta> generarAlertas() {
-        log.info("Iniciando generación de alertas");
-        CondicionClimatica condicion = climaService.obtenerCondiciones();
-        if (condicion == null) {
-            log.warn("No se pudieron obtener condiciones climáticas");
+        List<CondicionClimatica> condiciones = condicionClimaticaManager.findAll();
+        if (condiciones.isEmpty()) {
+            log.warn("No hay condiciones climáticas en la base de datos");
             return List.of();
         }
-        log.info("Condiciones obtenidas: provincia={}, tmax={}, prec={}, racha={}", 
-                condicion.getProvincia(), condicion.getTmax(), condicion.getPrec(), condicion.getRacha());
-
-        List<Alerta> alertasBase = evaluarUmbrales(condicion);
-        log.info("Alertas base generadas: {}", alertasBase.size());
-        if (alertasBase.isEmpty()) {
-            log.info("No se han superado umbrales");
-            return List.of();
-        }
+        CondicionClimatica condicion = condiciones.get(0); // Tomamos la más reciente (según lógica actual)
 
         List<CondicionUsuario> usuarios = condicionUsuarioManager.findAll();
         if (usuarios.isEmpty()) {
@@ -95,31 +85,31 @@ public class AlertaManager extends AbstractManager<Alerta> {
             for (Alerta alerta : alertasBase) {
                 save(alerta);
             }
-            return alertasBase;
+            return List.of();
         }
 
         List<Alerta> alertasFinales = new CopyOnWriteArrayList<>();
-        String alertasJson = serializarAlertasParaPrompt(alertasBase);
+        String umbralesJson = serializarObjeto(UmbralesAlertaConfig.getUmbralesMap());
+        String condicionClimaticaJson = serializarObjeto(condicion);
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (CondicionUsuario usuario : usuarios) {
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                 try {
-                    String condicionesUsuarioJson = objectMapper.writeValueAsString(Map.of(
+                    String condicionesUsuarioJson = serializarObjeto(Map.of(
                             "provincia", Optional.ofNullable(usuario.getProvincia()).map(Enum::name).orElse(""),
                             "tipoVivienda", Optional.ofNullable(usuario.getTipoVivienda()).map(Enum::name).orElse(""),
                             "necesidadesEspeciales", Optional.ofNullable(usuario.getNecesidadesEspeciales()).orElse(Set.of())
                     ));
 
                     String userPrompt = userPromptTemplate
-                            .replace("{{ALERTAS_JSON}}", alertasJson)
+                            .replace("{{CONDICIONES_CLIMATICAS_JSON}}", condicionClimaticaJson)
+                            .replace("{{UMBRALES_JSON}}", umbralesJson)
                             .replace("{{CONDICIONES_USUARIO_JSON}}", condicionesUsuarioJson);
 
                     log.info("Llamando a Bedrock para usuario {}", usuario.getUsuarioId());
                     String respuestaLlm = bedrockService.sendMessage(systemPrompt, userPrompt);
-                    log.info("Respuesta LLM para usuario {}: {} chars", usuario.getUsuarioId(),
-                            respuestaLlm != null ? respuestaLlm.length() : 0);
-                    parsearYCrearAlertas(respuestaLlm, alertasBase, alertasFinales, usuario.getUsuarioId());
+                    parsearYGuardarAlertas(respuestaLlm, usuario.getUsuarioId(), condicion.getProvincia(), condicion.getFecha(), alertasFinales);
                 } catch (Exception e) {
                     log.error("Error generando alertas para usuario {}, guardando alertas sin LLM", usuario.getUsuarioId(), e);
                     // Guardar alertas base sin descripción/recomendaciones del LLM
@@ -146,111 +136,61 @@ public class AlertaManager extends AbstractManager<Alerta> {
         return alertasFinales;
     }
 
-    private List<Alerta> evaluarUmbrales(CondicionClimatica c) {
-        List<Alerta> alertas = new ArrayList<>();
-        evaluarTipo(c, TipoAlerta.TEMPERATURA, c.getTmax(), alertas);
-        evaluarTipo(c, TipoAlerta.LLUVIA, c.getPrec(), alertas);
-        evaluarTipo(c, TipoAlerta.VIENTO, c.getRacha() != null ? c.getRacha() : c.getVelmedia(), alertas);
-        evaluarTipo(c, TipoAlerta.PRESION, c.getPresMin(), alertas);
-        evaluarTipo(c, TipoAlerta.HUMEDAD, c.getHrMax(), alertas);
-        return alertas;
-    }
-
-    private void evaluarTipo(CondicionClimatica c, TipoAlerta tipo, String valorStr, List<Alerta> alertas) {
-        if (valorStr == null || valorStr.isBlank()) return;
-        double valor = parseDouble(valorStr);
-
-        // limiteNoAplica = 0 para que cualquier valor positivo sea evaluado
-        NivelAlerta nivel = UmbralesAlertaConfig.evaluarNivel(tipo, valor, 0);
-        if (nivel == NivelAlerta.NO_APLICA || nivel == NivelAlerta.VERDE) return;
-
-        // Obtener el umbral superado (el techo del nivel anterior)
-        String umbralSuperado = UmbralesAlertaConfig.getUmbralMaximo(tipo, nivelAnterior(nivel))
-                .map(String::valueOf)
-                .orElse("");
-
-        Alerta alerta = new Alerta();
-        alerta.setId(newId());
-        alerta.setFecha(c.getFecha() != null ? c.getFecha() : LocalDate.now().toString());
-        alerta.setTipo(tipo);
-        alerta.setNivel(nivel);
-        alerta.setProvincia(c.getProvincia());
-        alerta.setValorDetectado(valorStr);
-        alerta.setUmbralSuperado(umbralSuperado);
-        alerta.setActive(true);
-        alertas.add(alerta);
-    }
-
-    /** Devuelve el nivel inmediatamente inferior para obtener el umbral que se superó */
-    private NivelAlerta nivelAnterior(NivelAlerta nivel) {
-        return switch (nivel) {
-            case AMARILLO -> NivelAlerta.VERDE;
-            case NARANJA -> NivelAlerta.AMARILLO;
-            case ROJO -> NivelAlerta.NARANJA;
-            default -> NivelAlerta.NO_APLICA;
-        };
-    }
-
-    private String serializarAlertasParaPrompt(List<Alerta> alertas) {
+    private String serializarObjeto(Object o) {
         try {
-            List<Map<String, String>> lista = alertas.stream().map(a -> Map.of(
-                    "tipo", a.getTipo().name(),
-                    "nivel", a.getNivel().name(),
-                    "valorDetectado", Optional.ofNullable(a.getValorDetectado()).orElse(""),
-                    "umbralSuperado", Optional.ofNullable(a.getUmbralSuperado()).orElse("")
-            )).toList();
-            return objectMapper.writeValueAsString(lista);
+            return objectMapper.writeValueAsString(o);
         } catch (Exception e) {
-            return "[]";
+            return "{}";
         }
     }
 
-    private void parsearYCrearAlertas(String respuestaLlm, List<Alerta> alertasBase, List<Alerta> destino, String usuarioId) {
-        String descripcion = "";
-        List<String> recomendaciones = List.of();
+    private void parsearYGuardarAlertas(String respuestaLlm, String usuarioId, Provincia provincia, String fecha, List<Alerta> destino) {
+        try {
+            String json = limpiarRespuestaJson(respuestaLlm);
+            JsonNode root = objectMapper.readTree(json);
+            if (!root.isArray()) return;
 
-        if (respuestaLlm == null || respuestaLlm.isBlank()) {
-            log.warn("Respuesta LLM vacía para usuario {}", usuarioId);
-        } else {
-            try {
-                String json = respuestaLlm.trim();
-                // Limpiar markdown code blocks si los hay
-                if (json.contains("```")) {
-                    int start = json.indexOf("{");
-                    int end = json.lastIndexOf("}");
-                    if (start >= 0 && end > start) json = json.substring(start, end + 1);
-                }
-                JsonNode node = objectMapper.readTree(json);
-                if (node.has("descripcion")) descripcion = node.get("descripcion").asText();
+            for (JsonNode node : root) {
+                Alerta alerta = new Alerta();
+                alerta.setId(newId());
+                alerta.setUsuarioId(usuarioId);
+                alerta.setProvincia(provincia);
+                alerta.setFecha(fecha != null ? fecha : LocalDate.now().toString());
+                alerta.setActive(true);
+
+                if (node.has("tipo")) alerta.setTipo(TipoAlerta.valueOf(node.get("tipo").asText()));
+                if (node.has("nivel")) alerta.setNivel(NivelAlerta.valueOf(node.get("nivel").asText()));
+                if (node.has("valorDetectado")) alerta.setValorDetectado(node.get("valorDetectado").asText());
+                if (node.has("umbralSuperado")) alerta.setUmbralSuperado(node.get("umbralSuperado").asText());
+                if (node.has("descripcion")) alerta.setDescripcion(node.get("descripcion").asText());
+
                 if (node.has("recomendaciones") && node.get("recomendaciones").isArray()) {
-                    recomendaciones = new ArrayList<>();
-                    for (JsonNode r : node.get("recomendaciones")) recomendaciones.add(r.asText());
+                    List<String> recs = new ArrayList<>();
+                    for (JsonNode r : node.get("recomendaciones")) recs.add(r.asText());
+                    alerta.setRecomendaciones(recs);
                 }
-                log.info("Parseado OK para usuario {}: descripcion={} chars, recomendaciones={}", 
-                        usuarioId, descripcion.length(), recomendaciones.size());
-            } catch (Exception e) {
-                log.warn("Error parseando respuesta LLM para usuario {}. Respuesta raw (primeros 500 chars): {}", 
-                        usuarioId, respuestaLlm.substring(0, Math.min(500, respuestaLlm.length())), e);
+
+                save(alerta);
+                destino.add(alerta);
+            }
+        } catch (Exception e) {
+            log.warn("Error parseando respuesta LLM para usuario {}: {}", usuarioId, e.getMessage());
+        }
+    }
+
+    private String limpiarRespuestaJson(String raw) {
+        String cleaned = raw.trim();
+        if (cleaned.startsWith("```")) {
+            int start = cleaned.indexOf("[");
+            int end = cleaned.lastIndexOf("]");
+            if (start >= 0 && end > start) {
+                cleaned = cleaned.substring(start, end + 1);
             }
         }
-
-        for (Alerta base : alertasBase) {
-            Alerta alerta = new Alerta();
-            alerta.setId(newId());
-            alerta.setFecha(base.getFecha());
-            alerta.setTipo(base.getTipo());
-            alerta.setNivel(base.getNivel());
-            alerta.setProvincia(base.getProvincia());
-            alerta.setValorDetectado(base.getValorDetectado());
-            alerta.setUmbralSuperado(base.getUmbralSuperado());
-            alerta.setDescripcion(descripcion);
-            alerta.setRecomendaciones(recomendaciones);
-            alerta.setActive(true);
-            alerta.setUsuarioId(usuarioId);
-            save(alerta);
-            destino.add(alerta);
-        }
+        return cleaned;
     }
+
+
 
     private String cargarRecurso(String nombre) {
         try {
@@ -259,11 +199,5 @@ public class AlertaManager extends AbstractManager<Alerta> {
             log.error("No se pudo cargar recurso: {}", nombre, e);
             return "";
         }
-    }
-
-    private double parseDouble(String value) {
-        if (value == null || value.isBlank()) return 0;
-        try { return Double.parseDouble(value.replace(",", ".")); }
-        catch (NumberFormatException e) { return 0; }
     }
 }
