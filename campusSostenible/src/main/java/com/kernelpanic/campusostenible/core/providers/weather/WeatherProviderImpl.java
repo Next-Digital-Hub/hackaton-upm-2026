@@ -7,7 +7,9 @@ import java.util.stream.Collectors;
 import com.kernelpanic.campusostenible.core.domain.WeatherCondition;
 import com.kernelpanic.campusostenible.core.providers.MeteoData;
 import com.kernelpanic.campusostenible.core.domain.WeatherData;
+import org.springframework.stereotype.Component;
 
+@Component
 public class WeatherProviderImpl implements WeatherProvider{
 
     public List<WeatherData> getTodayWeather() {

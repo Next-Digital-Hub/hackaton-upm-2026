@@ -2,10 +2,8 @@ package com.kernelpanic.campusostenible.core.providers.recomendation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kernelpanic.campusostenible.core.domain.Alert;
-import com.kernelpanic.campusostenible.core.domain.Citizen;
+import com.kernelpanic.campusostenible.core.domain.*;
 import com.kernelpanic.campusostenible.core.providers.MeteoData;
-import com.kernelpanic.campusostenible.core.domain.WeatherData;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -17,9 +15,10 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
-public class getRecomendationAPI {
+public class getRecomendationAPI implements RecomendationProvider{
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -122,15 +121,15 @@ public class getRecomendationAPI {
         return "No se ha podido obtener la recomendación.";
     }
 
-    public JsonNode recomendAlert(MeteoData meteoData) {
+    public Optional<SystemAlert> recomendAlert(WeatherData weatherData) {
         String url = "http://ec2-54-171-51-31.eu-west-1.compute.amazonaws.com/prompt";
         String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTZXJnaW8iLCJleHAiOjE3NzM4MjQ3NDd9.zloyQhaXgRSd-PPJH6EVbQj0zsxve0q0AWYrOdqo0UE";
 
-        String userPrompt = "Teniendo en cuenta los siguientes datos de la provincia " + meteoData.getProvincia() + ": "
+        String userPrompt = "Teniendo en cuenta los siguientes datos de la provincia " + Province.fromId(weatherData.getProvinceId()) + ": "
                 +
-                "Temperatura Máxima: " + meteoData.getTmax() + "°C, Mínima: " + meteoData.getTmin() + "°C, " +
-                "Humedad: " + meteoData.getHrMedia() + "%, Viento: " + meteoData.getVelmedia() + " km/h, " +
-                "Precipitación: " + meteoData.getPrec() + "mm. " +
+                "Temperatura Máxima: " + weatherData.getTemperatureMax() + "°C, Mínima: " + weatherData.getTemperatureMin() + "°C, " +
+                "Humedad: " + weatherData.getHumidity() + "%, Viento: " + weatherData.getWindSpeed() + " km/h, " +
+                "Precipitación: " + weatherData.getRainProbability() + "mm. " +
                 "Indica si recomiendas generar una alerta ciudadana. Responde estricta y únicamente con un bloque JSON "
                 +
                 "con el formato: {\"recomienda_alerta\": true/false, \"alerta\": { \"id\": \"string\", \"date\": \"string\", \"province\": \"string\", \"message\": \"string\" } }. "
@@ -158,7 +157,7 @@ public class getRecomendationAPI {
             if (response.getBody() != null) {
                 // Leer la respuesta como JsonNode. Asumimos que el LLM devolverá un JSON
                 // directamente.
-                return objectMapper.readTree(response.getBody());
+                return SystemAlert.builder().date(weatherData.getDate()).province(Province.fromId(weatherData.getProvinceId())).alert(response.toString());
             }
 
         } catch (Exception e) {
@@ -166,6 +165,6 @@ public class getRecomendationAPI {
         }
 
         // Devolver un JSON vacío en caso de error
-        return objectMapper.createObjectNode();
+        return Optional.empty();
     }
 }

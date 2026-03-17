@@ -1,5 +1,6 @@
 package com.kernelpanic.campusostenible.ui.dto;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.Locale;
@@ -57,7 +58,7 @@ public class WeatherMapper {
                 .riskLabel(alert.getAlertLevel().getRiskLabel())
                 .title("Alertas por clima extremos")
                 .safetyRecommendation(alert.getSafetyRecommendation())
-                .date(alert.getDate().format(DATE_FMT))
+                .date(LocalDate.parse(alert.getDate().format(DATE_FMT)))
                 .build();
     }
 }
