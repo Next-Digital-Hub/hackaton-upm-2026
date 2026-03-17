@@ -1,4 +1,5 @@
 using Hackathon1.Data;
+using Hackathon1.Hubs;
 using Hackathon1.Models;
 using Hackathon1.Services;
 using Microsoft.AspNetCore.Identity;
@@ -18,6 +19,7 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
+builder.Services.AddSignalR();
 builder.Services.AddScoped<IWeatherService, WeatherService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 var app = builder.Build();
@@ -42,6 +44,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
+app.MapHub<NotificationsHub>("/hubs/notifications");
 
 using (var scope = app.Services.CreateScope())
 {

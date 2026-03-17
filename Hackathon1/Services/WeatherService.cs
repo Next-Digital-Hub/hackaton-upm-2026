@@ -1,5 +1,7 @@
 using Hackathon1.Data;
+using Hackathon1.Hubs;
 using Hackathon1.Models;
+using Microsoft.AspNetCore.SignalR;
 using System.Net.Http.Headers;
 
 namespace Hackathon1.Services
@@ -9,12 +11,14 @@ namespace Hackathon1.Services
         private readonly ApplicationDbContext _context;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly IHubContext<NotificationsHub> _hub;
 
-        public WeatherService(ApplicationDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public WeatherService(ApplicationDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration, IHubContext<NotificationsHub> hub)
         {
             _context = context;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            _hub = hub;
         }
 
         public async Task<WeatherDto> GetForecastAsync(string provincia)
@@ -93,6 +97,8 @@ namespace Hackathon1.Services
 
             _context.WeatherRecords.Add(record);
             await _context.SaveChangesAsync();
+
+            await _hub.Clients.Group("Ciudadano").SendAsync("SendWeather", dto);
 
             return dto;
         }

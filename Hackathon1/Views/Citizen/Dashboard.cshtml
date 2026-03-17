@@ -29,79 +29,79 @@
         <div class="col-md-8">
             <div class="card h-100 shadow-sm">
                 <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="bi bi-cloud-sun-fill"></i> Previsión para @Model.Forecast.Provincia — @Model.Forecast.Fecha.ToString("dd/MM/yyyy")</h5>
+                    <h5 class="mb-0"><i class="bi bi-cloud-sun-fill"></i> Previsión para <span id="rt-provincia">@Model.Forecast.Provincia</span> — <span id="rt-fecha">@Model.Forecast.Fecha.ToString("dd/MM/yyyy")</span></h5>
                 </div>
                 <div class="card-body">
                     <div class="row row-cols-2 row-cols-sm-3 g-3">
                         <div class="col">
                             <div class="border rounded p-2 text-center">
                                 <div class="text-muted small">Tmax</div>
-                                <div class="fs-5 fw-bold">@Model.Forecast.Tmax °C</div>
-                                <div class="text-muted small">(@Model.Forecast.HoraTmax)</div>
+                                <div class="fs-5 fw-bold"><span id="rt-tmax">@Model.Forecast.Tmax</span> °C</div>
+                                <div class="text-muted small">(<span id="rt-horatmax">@Model.Forecast.HoraTmax</span>)</div>
                             </div>
                         </div>
                         <div class="col">
                             <div class="border rounded p-2 text-center">
                                 <div class="text-muted small">Tmin</div>
-                                <div class="fs-5 fw-bold">@Model.Forecast.Tmin °C</div>
-                                <div class="text-muted small">(@Model.Forecast.HoraTmin)</div>
+                                <div class="fs-5 fw-bold"><span id="rt-tmin">@Model.Forecast.Tmin</span> °C</div>
+                                <div class="text-muted small">(<span id="rt-horatmin">@Model.Forecast.HoraTmin</span>)</div>
                             </div>
                         </div>
                         <div class="col">
                             <div class="border rounded p-2 text-center">
                                 <div class="text-muted small">Tmed</div>
-                                <div class="fs-5 fw-bold">@Model.Forecast.Tmed °C</div>
+                                <div class="fs-5 fw-bold"><span id="rt-tmed">@Model.Forecast.Tmed</span> °C</div>
                             </div>
                         </div>
                         <div class="col">
                             <div class="border rounded p-2 text-center">
                                 <div class="text-muted small">Precipitación</div>
-                                <div class="fs-5 fw-bold">@Model.Forecast.Prec mm</div>
+                                <div class="fs-5 fw-bold"><span id="rt-prec">@Model.Forecast.Prec</span> mm</div>
                             </div>
                         </div>
                         <div class="col">
                             <div class="border rounded p-2 text-center">
                                 <div class="text-muted small">Humedad media</div>
-                                <div class="fs-5 fw-bold">@Model.Forecast.HrMedia %</div>
+                                <div class="fs-5 fw-bold"><span id="rt-hrmedia">@Model.Forecast.HrMedia</span> %</div>
                             </div>
                         </div>
                         <div class="col">
                             <div class="border rounded p-2 text-center">
                                 <div class="text-muted small">Racha máx.</div>
-                                <div class="fs-5 fw-bold">@Model.Forecast.Racha km/h</div>
-                                <div class="text-muted small">(@Model.Forecast.Horaracha)</div>
+                                <div class="fs-5 fw-bold"><span id="rt-racha">@Model.Forecast.Racha</span> km/h</div>
+                                <div class="text-muted small">(<span id="rt-horaracha">@Model.Forecast.Horaracha</span>)</div>
                             </div>
                         </div>
                         <div class="col">
                             <div class="border rounded p-2 text-center">
                                 <div class="text-muted small">Vel. media viento</div>
-                                <div class="fs-5 fw-bold">@Model.Forecast.Velmedia km/h</div>
+                                <div class="fs-5 fw-bold"><span id="rt-velmedia">@Model.Forecast.Velmedia</span> km/h</div>
                             </div>
                         </div>
                         <div class="col">
                             <div class="border rounded p-2 text-center">
                                 <div class="text-muted small">Dirección viento</div>
-                                <div class="fs-5 fw-bold">@Model.Forecast.Dir</div>
+                                <div class="fs-5 fw-bold"><span id="rt-dir">@Model.Forecast.Dir</span></div>
                             </div>
                         </div>
                         <div class="col">
                             <div class="border rounded p-2 text-center">
                                 <div class="text-muted small">Horas de sol</div>
-                                <div class="fs-5 fw-bold">@Model.Forecast.Sol h</div>
+                                <div class="fs-5 fw-bold"><span id="rt-sol">@Model.Forecast.Sol</span> h</div>
                             </div>
                         </div>
                         <div class="col">
                             <div class="border rounded p-2 text-center">
                                 <div class="text-muted small">Pres. máx.</div>
-                                <div class="fs-5 fw-bold">@Model.Forecast.PresMax hPa</div>
-                                <div class="text-muted small">(@Model.Forecast.HoraPresMax)</div>
+                                <div class="fs-5 fw-bold"><span id="rt-presmax">@Model.Forecast.PresMax</span> hPa</div>
+                                <div class="text-muted small">(<span id="rt-horapresmax">@Model.Forecast.HoraPresMax</span>)</div>
                             </div>
                         </div>
                         <div class="col">
                             <div class="border rounded p-2 text-center">
                                 <div class="text-muted small">Pres. mín.</div>
-                                <div class="fs-5 fw-bold">@Model.Forecast.PresMin hPa</div>
-                                <div class="text-muted small">(@Model.Forecast.HoraPresMin)</div>
+                                <div class="fs-5 fw-bold"><span id="rt-presmin">@Model.Forecast.PresMin</span> hPa</div>
+                                <div class="text-muted small">(<span id="rt-horapresmin">@Model.Forecast.HoraPresMin</span>)</div>
                             </div>
                         </div>
                         @if (Model.Forecast.Altitud.HasValue)
@@ -109,7 +109,7 @@
                             <div class="col">
                                 <div class="border rounded p-2 text-center">
                                     <div class="text-muted small">Altitud</div>
-                                    <div class="fs-5 fw-bold">@Model.Forecast.Altitud m</div>
+                                    <div class="fs-5 fw-bold"><span id="rt-altitud">@Model.Forecast.Altitud</span> m</div>
                                 </div>
                             </div>
                         }
@@ -141,3 +141,9 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script>
+        window.realtimeRole = 'Ciudadano';
+    </script>
+}
