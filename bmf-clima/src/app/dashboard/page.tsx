@@ -25,7 +25,7 @@ export default function CrearAlertaPage() {
   
   useEffect(() => {
               if (isPending || !session?.user) {
-                router.push("/");
+                //router.push("/");
               }
             }, [session, isPending]);
   
