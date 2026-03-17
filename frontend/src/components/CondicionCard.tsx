@@ -30,8 +30,12 @@ export function CondicionCard({ label, valor, unidad, nivel = "normal", icon }: 
         textAlign: "center",
         flex: "0 0 auto",
         borderRadius: 2,
-        transition: "transform 0.2s",
-        "&:hover": { transform: "translateY(-4px)" }
+        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+        transition: "transform 0.2s, box-shadow 0.2s",
+        "&:hover": {
+          transform: "translateY(-4px)",
+          boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
+        }
       }}
     >
       <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>

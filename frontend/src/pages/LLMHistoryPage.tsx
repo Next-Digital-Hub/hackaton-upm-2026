@@ -76,7 +76,7 @@ export function LLMHistoryPage({ onBack }: LLMHistoryPageProps) {
           <Paper
             key={c.id}
             variant="outlined"
-            sx={{ mb: 1.5, borderRadius: 2, overflow: "hidden" }}
+            sx={{ mb: 1.5, borderRadius: 2, overflow: "hidden", boxShadow: "0 1px 6px rgba(0,0,0,0.06)" }}
           >
             {/* Header */}
             <Box sx={{ px: 2, py: 1.2, display: "flex", alignItems: "center", gap: 1 }}>

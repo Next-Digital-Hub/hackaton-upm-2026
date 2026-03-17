@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
+import Paper from "@mui/material/Paper";
 import { login } from "../config/api";
 import logo from "../assets/logo.png";
 
@@ -38,6 +39,16 @@ export function LoginPage({ onLogin, onGoToRegister }: LoginPageProps) {
 
   return (
     <Container maxWidth="xs" sx={{ py: 8 }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 4,
+          borderRadius: 3,
+          boxShadow: "0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)",
+          bgcolor: "rgba(255,255,255,0.9)",
+          backdropFilter: "blur(8px)",
+        }}
+      >
       <Box display="flex" justifyContent="center" mb={3}>
         <Box component="img" src={logo} alt="ClimAlert Logo" sx={{ height: 100 }} />
       </Box>
@@ -77,6 +88,7 @@ export function LoginPage({ onLogin, onGoToRegister }: LoginPageProps) {
           ¿No tienes cuenta? Regístrate
         </Button>
       </Box>
+      </Paper>
     </Container>
   );
 }

@@ -116,6 +116,16 @@ export function RegisterPage({ onRegistered, onGoToLogin }: RegisterPageProps) {
   if (!rol) {
     return (
       <Container maxWidth="xs" sx={{ py: 6 }}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: 4,
+            borderRadius: 3,
+            boxShadow: "0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)",
+            bgcolor: "rgba(255,255,255,0.9)",
+            backdropFilter: "blur(8px)",
+          }}
+        >
         <Box display="flex" justifyContent="center" mb={3}>
           <Box component="img" src={logo} alt="ClimAlert Logo" sx={{ height: 80 }} />
         </Box>
@@ -138,6 +148,7 @@ export function RegisterPage({ onRegistered, onGoToLogin }: RegisterPageProps) {
             ))}
           </ToggleButtonGroup>
         </Box>
+        </Paper>
       </Container>
     );
   }
@@ -145,6 +156,16 @@ export function RegisterPage({ onRegistered, onGoToLogin }: RegisterPageProps) {
   // Paso 2: formulario
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 4,
+          borderRadius: 3,
+          boxShadow: "0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)",
+          bgcolor: "rgba(255,255,255,0.9)",
+          backdropFilter: "blur(8px)",
+        }}
+      >
       <Box display="flex" alignItems="center" gap={2} mb={2}>
         <Box component="img" src={logo} alt="ClimAlert Logo" sx={{ height: 50 }} />
         <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
@@ -242,6 +263,7 @@ export function RegisterPage({ onRegistered, onGoToLogin }: RegisterPageProps) {
           ¿Ya tienes cuenta? Inicia sesión
         </Button>
       </Box>
+      </Paper>
     </Container>
   );
 }

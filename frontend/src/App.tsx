@@ -96,8 +96,8 @@ function App() {
 
   return (
     <>
-      <AppBar position="static" color="default" elevation={1}>
-        <Toolbar>
+      <AppBar position="sticky" color="default" elevation={0}>
+        <Toolbar sx={{ gap: 1 }}>
           <Button
             variant="outlined"
             size="small"

@@ -66,6 +66,12 @@ export function AlertasContainer({ alertas }: AlertasContainerProps) {
                   display: "flex",
                   flexDirection: "column",
                   overflow: "hidden",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
+                  },
                 }}
               >
                 {/* Cabecera */}
