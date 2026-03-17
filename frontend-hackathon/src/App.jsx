@@ -12,11 +12,10 @@ const limpiarTextoIA = (texto) => {
     .filter(line => line.trim() !== '');
 };
 
-// ✅ MEJORA 1: RenderizarRespuestaIA con limpieza manual de Markdown
+// MEJORA: RenderizarRespuestaIA con limpieza manual de Markdown
 const RenderizarRespuestaIA = ({ texto }) => {
   if (!texto) return null;
 
-  // Limpiamos el Markdown básico para que no se vean las almohadillas
   const limpiarMarkdown = (t) => {
     return t.replaceAll('###', '').replaceAll('##', '').replaceAll('**', '').replaceAll('#', '');
   };
@@ -36,12 +35,10 @@ const RenderizarRespuestaIA = ({ texto }) => {
         boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
         lineHeight: '1.6'
       }}>
-        {/* Usamos whiteSpace: 'pre-line' para que respete los saltos de línea sin fuente rara */}
         <div style={{ whiteSpace: 'pre-line' }}>
           {limpiarMarkdown(texto)}
         </div>
 
-        {/* BOTÓN DE EMERGENCIA SIEMPRE VISIBLE ABAJO SI ES CRÍTICO */}
         <div style={{ marginTop: '20px', borderTop: '1px solid #ddd', paddingTop: '15px', textAlign: 'center' }}>
           <p style={{ fontWeight: 'bold', color: '#c62828' }}>🚨 ¿Peligro inminente?</p>
           <a href="tel:112" style={{ 
@@ -201,7 +198,6 @@ function HistorialAdmin({ usuario }) {
   useEffect(() => {
     const cargarHistorial = async () => {
       try {
-        // El admin ve TODAS las consultas de todos los ciudadanos
         const [meteoRes, llmRes, alertasRes] = await Promise.all([
           fetch(`http://localhost:3000/api/admin/consultas_meteo`),
           fetch(`http://localhost:3000/api/admin/consultas_llm`),
@@ -340,7 +336,7 @@ function HistorialAdmin({ usuario }) {
 }
 
 // ==========================================
-// 1. COMPONENTE: DASHBOARD DEL CIUDADANO (REORDENADO + CHAT AL FINAL)
+// 1. DASHBOARD CIUDADANO (IGUAL QUE ANTES)
 // ==========================================
 function Dashboard({ usuario, onLogout }) {
   const [datosEmergencia, setDatosEmergencia] = useState(null);
@@ -348,15 +344,13 @@ function Dashboard({ usuario, onLogout }) {
   const [cargando, setCargando] = useState(true);
   const [mostrarHistorial, setMostrarHistorial] = useState(false);
   
-  // Estados para el chat interactivo con IA
   const [preguntaUsuario, setPreguntaUsuario] = useState("");
   const [respuestaIA, setRespuestaIA] = useState(null);
   const [cargandoChat, setCargandoChat] = useState(false);
 
-  // Función para enviar pregunta personalizada a la IA
   const enviarPregunta = async () => {
     if (!preguntaUsuario) return;
-    setRespuestaIA("Pensando..."); // Feedback visual
+    setRespuestaIA("Pensando...");
     setCargandoChat(true);
 
     try {
@@ -371,7 +365,6 @@ function Dashboard({ usuario, onLogout }) {
       
       const data = await res.json();
       
-      // Verificamos que data.recomendacion.response exista
       if (data.recomendacion && data.recomendacion.response) {
         setRespuestaIA(data.recomendacion.response);
       } else {
@@ -387,17 +380,14 @@ function Dashboard({ usuario, onLogout }) {
   useEffect(() => {
     const cargarTodo = async () => {
       try {
-        // 1. Pedimos los datos de la IA
         const resIA = await fetch(`http://localhost:3000/api/emergencias/${usuario.nickName}`);
         const dataIA = await resIA.json();
         if (resIA.ok) setDatosEmergencia(dataIA);
 
-        // 2. Pedimos la última alerta oficial
         const resAdmin = await fetch(`http://localhost:3000/api/alerta_oficial`);
         const dataAdmin = await resAdmin.json();
         if (resAdmin.ok && dataAdmin.length > 0) setAlertaOficial(dataAdmin[0]);
 
-        // 3. Registrar automáticamente la consulta
         if (resIA.ok) {
           await fetch(`http://localhost:3000/api/registrar_consulta`, {
             method: 'POST',
@@ -420,12 +410,10 @@ function Dashboard({ usuario, onLogout }) {
     cargarTodo();
   }, [usuario.nickName]);
 
-  // VISTA ADMIN
   if (usuario.rol === 'backoffice') {
     return <AdminPanel usuario={usuario} onLogout={onLogout} />;
   }
 
-  // VISTA CIUDADANO (REORDENADA)
   return (
     <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto', fontFamily: 'system-ui' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #eee', paddingBottom: '10px' }}>
@@ -449,10 +437,8 @@ function Dashboard({ usuario, onLogout }) {
         </div>
       </header>
 
-      {/* CONTENIDO PRINCIPAL */}
       {!mostrarHistorial ? (
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          {/* ✅ REORDENACIÓN 1: Alerta Oficial (primero) */}
           {alertaOficial && (
             <div style={{ 
               background: '#ff4d4d', 
@@ -473,7 +459,6 @@ function Dashboard({ usuario, onLogout }) {
             <p style={{ marginTop: '20px' }}>Cargando datos meteorológicos...</p>
           ) : (
             <>
-              {/* ✅ REORDENACIÓN 2: Datos Meteorológicos (segundo) */}
               <div style={{ 
                 background: '#f8f9fa', 
                 padding: '15px', 
@@ -490,7 +475,6 @@ function Dashboard({ usuario, onLogout }) {
                 </div>
               </div>
 
-              {/* ✅ REORDENACIÓN 3: Instrucciones Automáticas (tercero) */}
               <div style={{ 
                 backgroundColor: '#fff', 
                 borderRadius: '12px', 
@@ -528,7 +512,6 @@ function Dashboard({ usuario, onLogout }) {
                 </div>
               </div>
 
-              {/* ✅ REORDENACIÓN 4: Chat / Pregunta Personalizada (cuarto/último) */}
               <div style={{ 
                 marginTop: '30px', 
                 backgroundColor: 'rgba(255,255,255,0.9)', 
@@ -563,8 +546,6 @@ function Dashboard({ usuario, onLogout }) {
                     {cargandoChat ? "..." : "Preguntar"}
                   </button>
                 </div>
-
-                {/* Respuesta del chat (abajo del input/botón) */}
                 {respuestaIA && <RenderizarRespuestaIA texto={respuestaIA} />}
               </div>
             </>
@@ -578,14 +559,22 @@ function Dashboard({ usuario, onLogout }) {
 }
 
 // ==========================================
-// 2. PANEL DE ADMIN (CON SU PROPIO HISTORIAL)
+// 2. PANEL DE ADMIN ACTUALIZADO ✅
 // ==========================================
 function AdminPanel({ usuario, onLogout }) {
   const [mensaje, setMensaje] = useState("");
   const [enviado, setEnviado] = useState(false);
   const [mostrarHistorial, setMostrarHistorial] = useState(false);
 
-  const enviar = async () => {
+  // NUEVO: Datos para el admin
+  const [datosEmergenciaAdmin, setDatosEmergenciaAdmin] = useState(null);
+  const [cargandoAdmin, setCargandoAdmin] = useState(true);
+  const [preguntaAdmin, setPreguntaAdmin] = useState("");
+  const [respuestaAdminIA, setRespuestaAdminIA] = useState(null);
+  const [cargandoChatAdmin, setCargandoChatAdmin] = useState(false);
+
+  // Enviar alerta
+  const enviarAlerta = async () => {
     if (!mensaje.trim()) return;
     try {
       await fetch('http://localhost:3000/api/admin/alertar', {
@@ -607,8 +596,54 @@ function AdminPanel({ usuario, onLogout }) {
     }
   };
 
+  // NUEVO: Consulta IA para ADMIN
+  const enviarPreguntaAdmin = async () => {
+    if (!preguntaAdmin) return;
+    setRespuestaAdminIA("Pensando...");
+    setCargandoChatAdmin(true);
+
+    try {
+      const res = await fetch(`http://localhost:3000/api/preguntar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          nickName: usuario.nickName,
+          pregunta: preguntaAdmin 
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (data.recomendacion && data.recomendacion.response) {
+        setRespuestaAdminIA(data.recomendacion.response);
+      } else {
+        setRespuestaAdminIA("No recibí una respuesta clara. Intenta de nuevo.");
+      }
+    } catch (err) {
+      setRespuestaAdminIA("Error de conexión con el servidor.");
+    } finally {
+      setCargandoChatAdmin(false);
+    }
+  };
+
+  // Cargar datos meteorológicos para ADMIN
+  useEffect(() => {
+    const cargarDatosAdmin = async () => {
+      try {
+        const res = await fetch(`http://localhost:3000/api/emergencias/${usuario.nickName}`);
+        const data = await res.json();
+        if (res.ok) setDatosEmergenciaAdmin(data);
+      } catch (err) {
+        console.error("Error cargando datos admin", err);
+      } finally {
+        setCargandoAdmin(false);
+      }
+    };
+    cargarDatosAdmin();
+  }, [usuario.nickName]);
+
   return (
-    <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto' }}>
+    <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto', fontFamily: 'system-ui' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #eee', paddingBottom: '10px' }}>
         <h2>🛡️ Panel de Control: Backoffice</h2>
         <div>
@@ -624,24 +659,26 @@ function AdminPanel({ usuario, onLogout }) {
               marginRight: '10px'
             }}
           >
-            {mostrarHistorial ? '📊 Ocultar Historial Global' : '📊 Ver Historial Global'}
+            {mostrarHistorial ? '📊 Ocultar Historial' : '📊 Ver Historial'}
           </button>
           <button onClick={onLogout} style={{ background: '#e74c3c', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer' }}>Salir</button>
         </div>
       </header>
 
       {!mostrarHistorial ? (
-        <>
-          <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '10px', marginBottom: '30px', marginTop: '20px' }}>
-            <h3>Emitir Nueva Alerta</h3>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          
+          {/* PANEL PARA ENVIAR ALERTAS */}
+          <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '10px', marginBottom: '20px', marginTop: '20px' }}>
+            <h3>Emitir Nueva Alerta Oficial</h3>
             <textarea 
               value={mensaje} 
               onChange={(e) => setMensaje(e.target.value)} 
               style={{ width: '100%', height: '100px', padding: '10px', borderRadius: '8px', border: '1px solid #ddd' }} 
-              placeholder="Escribe la alerta oficial (ej: 'Evacuar zonas cercanas al río')" 
+              placeholder="Escribe la alerta para todos los ciudadanos" 
             />
             <button 
-              onClick={enviar} 
+              onClick={enviarAlerta} 
               style={{ 
                 background: '#d32f2f', 
                 color: 'white', 
@@ -653,17 +690,72 @@ function AdminPanel({ usuario, onLogout }) {
                 fontWeight: 'bold'
               }}
             >
-              🚨 EMITIR ALERTA A TODOS LOS CIUDADANOS
+              🚨 EMITIR ALERTA
             </button>
             {enviado && <p style={{ color: '#27ae60', marginTop: '10px', fontWeight: '500' }}>✅ Alerta enviada correctamente</p>}
           </div>
 
-          {/* Vista rápida de últimas alertas */}
-          <div>
-            <h3>Últimas Alertas Emitidas</h3>
-            {/* Aquí puedes mantener tu vista rápida de alertas si la tenías */}
-          </div>
-        </>
+          {/* NUEVO: DATOS METEOROLÓGICOS PARA ADMIN */}
+          {cargandoAdmin ? (
+            <p>⏳ Cargando datos meteorológicos...</p>
+          ) : (
+            <>
+              <div style={{ 
+                background: '#f8f9fa', 
+                padding: '15px', 
+                borderRadius: '10px', 
+                border: '1px solid #dee2e6',
+                marginBottom: '20px'
+              }}>
+                <h4 style={{ margin: '0 0 10px 0', color: '#495057' }}>🌡️ Datos Meteorológicos en Tiempo Real (AEMET)</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px' }}>
+                  <span><strong>Temperatura:</strong> {datosEmergenciaAdmin?.clima?.tmed || 'N/A'}°C</span>
+                  <span><strong>Humedad:</strong> {datosEmergenciaAdmin?.clima?.hrMedia || 'N/A'}%</span>
+                  <span><strong>Precipitación:</strong> {datosEmergenciaAdmin?.clima?.prec || 'N/A'} mm</span>
+                  <span><strong>Viento:</strong> {datosEmergenciaAdmin?.clima?.horaracha || 'N/A'}</span>
+                </div>
+              </div>
+
+              {/* NUEVO: CHAT IA PARA ADMIN */}
+              <div style={{ 
+                backgroundColor: 'rgba(255,255,255,0.9)', 
+                padding: '20px', 
+                borderRadius: '15px', 
+                border: '1px solid #3498db',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+              }}>
+                <h4 style={{ margin: '0 0 15px 0', color: '#2980b9' }}>🤖 Consulta Manual a la IA (Administrador)</h4>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  <input 
+                    type="text" 
+                    value={preguntaAdmin}
+                    onChange={(e) => setPreguntaAdmin(e.target.value)}
+                    placeholder="Escribe tu consulta..."
+                    style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #ddd', minWidth: '250px' }}
+                    disabled={cargandoChatAdmin}
+                  />
+                  <button 
+                    onClick={enviarPreguntaAdmin}
+                    disabled={cargandoChatAdmin || !preguntaAdmin.trim()}
+                    style={{ 
+                      background: cargandoChatAdmin ? '#95a5a6' : '#3498db', 
+                      color: 'white', 
+                      border: 'none', 
+                      padding: '0 20px', 
+                      borderRadius: '8px', 
+                      cursor: cargandoChatAdmin ? 'not-allowed' : 'pointer',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {cargandoChatAdmin ? "..." : "Preguntar"}
+                  </button>
+                </div>
+                {respuestaAdminIA && <RenderizarRespuestaIA texto={respuestaAdminIA} />}
+              </div>
+            </>
+          )}
+
+        </div>
       ) : (
         <HistorialAdmin usuario={usuario} />
       )}
@@ -672,18 +764,17 @@ function AdminPanel({ usuario, onLogout }) {
 }
 
 // ==========================================
-// 3. COMPONENTE PRINCIPAL (CON FONDO DE IMAGEN Y TOKEN DE ADMIN)
+// 3. COMPONENTE PRINCIPAL APP
 // ==========================================
 function App() {
   const [isLogin, setIsLogin] = useState(false);
   const [usuarioLogueado, setUsuarioLogueado] = useState(null);
 
-  // Campo adminToken incluido
   const [formData, setFormData] = useState({
     nickName: '',
     password: '',
     rol: 'ciudadano',
-    adminToken: '', // Token de admin
+    adminToken: '',
     provincia: '',
     tipoVivienda: '',
     necesidades: {
@@ -725,9 +816,8 @@ function App() {
         if (isLogin) {
           setUsuarioLogueado(datosRecibidos.usuario);
         } else {
-          alert("¡Cuenta creada! Por favor, inicia sesión para entrar.");
+          alert("¡Cuenta creada! Inicia sesión");
           setIsLogin(true);
-          // Resetear formulario después de registro
           setFormData({
             nickName: '',
             password: '',
@@ -745,11 +835,11 @@ function App() {
           });
         }
       } else {
-        alert("Error: " + (datosRecibidos.detail || 'No se pudo completar la operación'));
+        alert("Error: " + (datosRecibidos.detail || 'No se pudo completar'));
       }
     } catch (error) {
       console.error("Error conectando al servidor:", error);
-      alert("Error de conexión. Revisa que Rails esté encendido.");
+      alert("Error de conexión. Revisa el servidor Rails.");
     }
   };
 
@@ -803,7 +893,6 @@ function App() {
                       </select>
                     </div>
 
-                    {/* Campo de token para admin */}
                     {formData.rol === 'backoffice' && (
                       <div style={{ marginTop: '10px', padding: '10px', background: '#fff3cd', borderRadius: '5px', border: '1px solid #ffeeba' }}>
                         <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#856404' }}>CÓDIGO SECRETO DE ADMINISTRADOR</label>
