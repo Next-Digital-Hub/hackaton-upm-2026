@@ -68,18 +68,18 @@ export function AdminPage() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      getCondiciones().catch(() => null),
       getAlertasByAdmin().catch(() => []),
       getTiposAlerta().catch(() => []),
       getNivelesAlerta().catch(() => []),
       getProvincias().catch(() => []),
+      getCondiciones().catch(() => null),
     ])
-      .then(([cond, alts, tipos, niveles, p]) => {
-        setCondicion(cond);
+      .then(([alts, tipos, niveles, p, cond]) => {
         setAlertas(alts);
         setTiposAlerta(tipos.length > 0 ? tipos : ["TEMPERATURA", "LLUVIA", "VIENTO", "PRESION", "HUMEDAD"]);
         setNivelesAlerta(niveles.length > 0 ? niveles : ["VERDE", "AMARILLO", "NARANJA", "ROJO"]);
         setProvincias(p);
+        setCondicion(cond);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -153,6 +153,16 @@ export function AdminPage() {
     }
   };
 
+  const handleRefrescarClima = async () => {
+    setError(null);
+    try {
+      const cond = await getCondiciones();
+      setCondicion(cond);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Error al refrescar clima");
+    }
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" mt={6}>
@@ -194,7 +204,12 @@ export function AdminPage() {
         </Alert>
       )}
 
-      <Box mb={4}>
+      <Box mb={4} position="relative">
+        <Box position="absolute" right={0} top={-40}>
+          <Button size="small" variant="outlined" onClick={handleRefrescarClima}>
+            Refrescar clima
+          </Button>
+        </Box>
         <CondicionesRow condicion={condicion} />
       </Box>
 

@@ -9,6 +9,7 @@ import type { Alerta } from "../types/Alerta";
 import { getCondiciones, getMisAlertasCiudadano } from "../config/api";
 import { CondicionesRow } from "../components/CondicionesRow";
 import { AlertasContainer } from "../components/AlertasContainer";
+import Button from "@mui/material/Button";
 
 export function CiudadanoPage() {
   const [condicion, setCondicion] = useState<CondicionClimatica | null>(null);
@@ -19,16 +20,26 @@ export function CiudadanoPage() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      getCondiciones().catch(() => null),
       getMisAlertasCiudadano().catch(() => []),
+      getCondiciones().catch(() => null),
     ])
-      .then(([cond, alts]) => {
-        setCondicion(cond);
+      .then(([alts, cond]) => {
         setAlertas(alts);
+        setCondicion(cond);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleRefrescarClima = async () => {
+    setError(null);
+    try {
+      const cond = await getCondiciones();
+      setCondicion(cond);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Error al refrescar clima");
+    }
+  };
 
   if (loading) {
     return (
@@ -50,7 +61,12 @@ export function CiudadanoPage() {
         </Alert>
       )}
 
-      <Box mb={4}>
+      <Box mb={4} position="relative">
+        <Box position="absolute" right={0} top={-40}>
+          <Button size="small" variant="outlined" onClick={handleRefrescarClima}>
+            Ver clima actual
+          </Button>
+        </Box>
         <CondicionesRow condicion={condicion} />
       </Box>
 

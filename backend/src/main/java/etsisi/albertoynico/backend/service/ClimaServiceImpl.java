@@ -2,6 +2,7 @@ package etsisi.albertoynico.backend.service;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import etsisi.albertoynico.backend.manager.CondicionClimaticaManager;
 import etsisi.albertoynico.backend.model.CondicionClimatica;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 
 @Service
 public class ClimaServiceImpl implements ClimaService {
@@ -20,14 +22,17 @@ public class ClimaServiceImpl implements ClimaService {
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
+    private final CondicionClimaticaManager condicionClimaticaManager;
     private final String apiUrl;
     private final String apiToken;
 
     public ClimaServiceImpl(
             @Value("${weather.api.url}") String apiUrl,
-            @Value("${api.token}") String apiToken) {
+            @Value("${api.token}") String apiToken,
+            CondicionClimaticaManager condicionClimaticaManager) {
         this.apiUrl = apiUrl;
         this.apiToken = apiToken;
+        this.condicionClimaticaManager = condicionClimaticaManager;
         this.httpClient = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -36,6 +41,15 @@ public class ClimaServiceImpl implements ClimaService {
     @Override
     public CondicionClimatica obtenerCondiciones() {
         try {
+            // 1. Prioridad: Base de Datos
+            List<CondicionClimatica> existentes = condicionClimaticaManager.findAll();
+            if (!existentes.isEmpty()) {
+                log.info("Cargando condiciones climáticas desde la base de datos");
+                return existentes.get(0);
+            }
+
+            // 2. Fallback: API Externa
+            log.info("Base de datos vacía, consultando API meteorológica externa");
             URI uri = URI.create(apiUrl + "/weather?disaster=false");
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri)
@@ -50,9 +64,17 @@ public class ClimaServiceImpl implements ClimaService {
                 return null;
             }
 
-            return objectMapper.readValue(response.body(), CondicionClimatica.class);
+            CondicionClimatica condicion = objectMapper.readValue(response.body(), CondicionClimatica.class);
+            
+            // 3. Persistir en DB para futuras consultas
+            if (condicion != null) {
+                log.info("Guardando nuevas condiciones en la base de datos");
+                condicionClimaticaManager.saveWithCleanup(condicion);
+            }
+            
+            return condicion;
         } catch (Exception e) {
-            log.error("Error al conectar con la API meteorológica", e);
+            log.error("Error al conectar con la API meteorológica o la base de datos", e);
             return null;
         }
     }
