@@ -6,13 +6,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ALERT_SEVERITIES } from "@/config/constants";
-import { AlertCircle, Bell, CheckCircle2 } from "lucide-react";
+import { AlertCircle, Bell, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
-export default async function AlertsHistoryPage() {
-  const result = await getAlertHistoryAction(1, 20);
+interface Props {
+  searchParams: Promise<{ page?: string }>;
+}
+
+export default async function AlertsHistoryPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const page = parseInt(params.page ?? "1", 10);
+  const result = await getAlertHistoryAction(page, 10);
 
   return (
     <div className="space-y-6">
@@ -84,11 +90,27 @@ export default async function AlertsHistoryPage() {
             );
           })}
 
+          {/* Pagination */}
           {result.data && result.data.totalPages > 1 && (
-            <p className="text-center text-sm text-muted-foreground">
-              Mostrando página {result.data.page} de {result.data.totalPages} (
-              {result.data.total} alertas)
-            </p>
+            <div className="flex items-center justify-between pt-2">
+              <Link
+                href={`/history/alerts?page=${Math.max(1, page - 1)}`}
+                className={`inline-flex items-center gap-1 rounded-md border px-3 py-2 text-sm ${page <= 1 ? "pointer-events-none opacity-50" : "hover:bg-accent"}`}
+              >
+                <ChevronLeft className="size-4" />
+                Anterior
+              </Link>
+              <span className="text-sm text-muted-foreground">
+                Página {result.data.page} de {result.data.totalPages} ({result.data.total} alertas)
+              </span>
+              <Link
+                href={`/history/alerts?page=${Math.min(result.data.totalPages, page + 1)}`}
+                className={`inline-flex items-center gap-1 rounded-md border px-3 py-2 text-sm ${page >= result.data.totalPages ? "pointer-events-none opacity-50" : "hover:bg-accent"}`}
+              >
+                Siguiente
+                <ChevronRight className="size-4" />
+              </Link>
+            </div>
           )}
         </div>
       )}

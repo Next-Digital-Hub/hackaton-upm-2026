@@ -54,7 +54,7 @@ export default async function BackofficeLayout({
               <span className="cursor-default text-sm hover:underline" role="button" tabIndex={0} aria-haspopup="true">
                 Historial ▾
               </span>
-              <div className="invisible absolute left-0 top-full z-50 mt-1 w-48 rounded-md border bg-white py-1 shadow-lg group-hover:visible group-focus-within:visible">
+              <div className="invisible absolute left-0 top-full z-50 mt-1 w-48 rounded-md border bg-white py-1 shadow-lg delay-200 group-hover:visible group-focus-within:visible">
                 <Link
                   href="/admin/history/weather"
                   className="block px-3 py-2 text-sm hover:bg-gray-100"
@@ -78,7 +78,7 @@ export default async function BackofficeLayout({
           </nav>
 
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-gray-500 sm:inline">{session.user.email}</span>
+            <span className="hidden text-sm text-gray-500 sm:inline">Admin</span>
             <SignOutButton />
             <MobileNav items={adminNavItems} />
           </div>

@@ -140,7 +140,7 @@ export async function fetchWeather(
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      next: { revalidate: 300 }, // Cache for 5 minutes
+      next: { revalidate: 60 }, // Cache for 1 minute
     }
   );
 

@@ -8,10 +8,17 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Sparkles } from "lucide-react";
+import { AlertCircle, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
-export default async function LlmHistoryPage() {
-  const result = await getLlmHistoryAction(1, 20);
+interface Props {
+  searchParams: Promise<{ page?: string }>;
+}
+
+export default async function LlmHistoryPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const page = parseInt(params.page ?? "1", 10);
+  const result = await getLlmHistoryAction(page, 10);
 
   return (
     <div className="space-y-6">
@@ -69,11 +76,27 @@ export default async function LlmHistoryPage() {
             </Card>
           ))}
 
+          {/* Pagination */}
           {result.data && result.data.totalPages > 1 && (
-            <p className="text-center text-sm text-muted-foreground">
-              Mostrando página {result.data.page} de {result.data.totalPages} (
-              {result.data.total} consultas)
-            </p>
+            <div className="flex items-center justify-between pt-2">
+              <Link
+                href={`/history/llm?page=${Math.max(1, page - 1)}`}
+                className={`inline-flex items-center gap-1 rounded-md border px-3 py-2 text-sm ${page <= 1 ? "pointer-events-none opacity-50" : "hover:bg-accent"}`}
+              >
+                <ChevronLeft className="size-4" />
+                Anterior
+              </Link>
+              <span className="text-sm text-muted-foreground">
+                Página {result.data.page} de {result.data.totalPages} ({result.data.total} consultas)
+              </span>
+              <Link
+                href={`/history/llm?page=${Math.min(result.data.totalPages, page + 1)}`}
+                className={`inline-flex items-center gap-1 rounded-md border px-3 py-2 text-sm ${page >= result.data.totalPages ? "pointer-events-none opacity-50" : "hover:bg-accent"}`}
+              >
+                Siguiente
+                <ChevronRight className="size-4" />
+              </Link>
+            </div>
           )}
         </div>
       )}

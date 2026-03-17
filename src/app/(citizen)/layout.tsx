@@ -74,7 +74,9 @@ export default async function CitizenLayout({
           </nav>
 
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-gray-500 sm:inline">{session.user.email}</span>
+            <span className="hidden text-sm text-gray-500 sm:inline">
+              {session.user.name || session.user.email?.split('@')[0]}
+            </span>
             <SignOutButton />
             <MobileNav items={citizenNavItems} />
           </div>

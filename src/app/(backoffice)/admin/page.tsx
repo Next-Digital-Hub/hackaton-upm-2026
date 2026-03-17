@@ -10,15 +10,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  AlertTriangle,
   CloudOff,
   Users,
-  Bell,
   BellRing,
   Database,
   MessageSquare,
 } from "lucide-react";
-import Link from "next/link";
 
 export default async function AdminDashboardPage() {
   const [weatherResult, statsResult] = await Promise.all([
@@ -38,7 +35,7 @@ export default async function AdminDashboardPage() {
 
       {/* Quick stats */}
       {statsResult.success && statsResult.data && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Ciudadanos</CardTitle>
@@ -55,15 +52,6 @@ export default async function AdminDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{statsResult.data.activeAlerts}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total alertas</CardTitle>
-              <Bell className="size-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{statsResult.data.totalAlerts}</div>
             </CardContent>
           </Card>
           <Card>
@@ -87,35 +75,11 @@ export default async function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Weather data — normal + disaster comparison */}
+      {/* Weather data */}
       {weatherResult.success && weatherResult.data ? (
-        <div className="space-y-4">
-          {/* Disaster scenario warning */}
-          {weatherResult.data.isDisasterScenario && (
-            <Alert className="border-orange-300 bg-orange-50 text-orange-900">
-              <AlertTriangle className="size-4" />
-              <AlertTitle>Escenario de riesgo detectado</AlertTitle>
-              <AlertDescription>
-                Los modelos muestran precipitación extrema ({weatherResult.data.disaster.precipitation?.toFixed(1) ?? "N/D"} mm) en escenario de desastre vs{" "}
-                {weatherResult.data.normal.precipitation?.toFixed(1) ?? "N/D"} mm normales.{" "}
-                <Link href="/admin/alerts" className="font-medium underline">
-                  Crear alerta →
-                </Link>
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Normal weather */}
-          <div>
-            <h2 className="mb-2 text-lg font-semibold">Datos meteorológicos — Escenario normal</h2>
-            <WeatherCards weather={weatherResult.data.normal} />
-          </div>
-
-          {/* Disaster weather */}
-          <div>
-            <h2 className="mb-2 text-lg font-semibold">Datos meteorológicos — Escenario desastre</h2>
-            <WeatherCards weather={weatherResult.data.disaster} />
-          </div>
+        <div>
+          <h2 className="mb-2 text-lg font-semibold">Datos meteorológicos</h2>
+          <WeatherCards weather={weatherResult.data.normal} />
         </div>
       ) : (
         <Alert variant="destructive">

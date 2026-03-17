@@ -149,9 +149,77 @@ export async function markAlertReadAction(
 // ─── Admin Actions ────────────────────────────────────────────
 
 /**
- * Get all alerts (admin view — includes inactive).
+ * Get all active alerts (admin view — only shows active alerts).
  */
 export async function getAllAlertsAction(
+  page: number = 1,
+  pageSize: number = 20
+): Promise<{
+  success: boolean;
+  data?: {
+    alerts: Array<{
+      id: string;
+      title: string;
+      description: string;
+      severity: string;
+      active: boolean;
+      createdBy: string;
+      createdAt: Date;
+      _count: { notifications: number };
+    }>;
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  };
+  error?: string;
+}> {
+  try {
+    const session = await auth();
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return { success: false, error: "No autorizado" };
+    }
+
+    const [alerts, total] = await Promise.all([
+      prisma.alert.findMany({
+        where: { active: true },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: { _count: { select: { notifications: true } } },
+      }),
+      prisma.alert.count({ where: { active: true } }),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        alerts: alerts.map((a) => ({
+          id: a.id,
+          title: a.title,
+          description: a.description,
+          severity: a.severity,
+          active: a.active,
+          createdBy: a.createdBy,
+          createdAt: a.createdAt,
+          _count: a._count,
+        })),
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    };
+  } catch (error) {
+    console.error("[getAllAlertsAction] Error:", error);
+    return { success: false, error: "Error al obtener alertas" };
+  }
+}
+
+/**
+ * Get all alerts history (admin view — includes both active and inactive alerts).
+ */
+export async function getAllAlertsHistoryAction(
   page: number = 1,
   pageSize: number = 20
 ): Promise<{
@@ -210,8 +278,8 @@ export async function getAllAlertsAction(
       },
     };
   } catch (error) {
-    console.error("[getAllAlertsAction] Error:", error);
-    return { success: false, error: "Error al obtener alertas" };
+    console.error("[getAllAlertsHistoryAction] Error:", error);
+    return { success: false, error: "Error al obtener historial de alertas" };
   }
 }
 
@@ -267,11 +335,11 @@ export async function createAlertAction(
 }
 
 /**
- * Toggle an alert's active status.
+ * Deactivate an alert (cannot be reactivated, only remains in history logs).
  */
-export async function toggleAlertAction(
+export async function deactivateAlertAction(
   alertId: string
-): Promise<{ success: boolean; active?: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string }> {
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -287,15 +355,19 @@ export async function toggleAlertAction(
       return { success: false, error: "Alerta no encontrada" };
     }
 
-    const updated = await prisma.alert.update({
+    if (!alert.active) {
+      return { success: false, error: "La alerta ya está desactivada" };
+    }
+
+    await prisma.alert.update({
       where: { id: alertId },
-      data: { active: !alert.active },
+      data: { active: false },
     });
 
-    return { success: true, active: updated.active };
+    return { success: true };
   } catch (error) {
-    console.error("[toggleAlertAction] Error:", error);
-    return { success: false, error: "Error al actualizar la alerta" };
+    console.error("[deactivateAlertAction] Error:", error);
+    return { success: false, error: "Error al desactivar la alerta" };
   }
 }
 

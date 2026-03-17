@@ -13,7 +13,7 @@ export interface WeatherResult {
 
 /**
  * Fetch weather data (both normal and disaster scenarios),
- * persist to DB, and return parsed results.
+ * persist to DB (only if no recent record), and return parsed results.
  */
 export async function getWeatherAction(): Promise<{
   success: boolean;
@@ -41,24 +41,53 @@ export async function getWeatherAction(): Promise<{
       normal.precipitation !== null &&
       disaster.precipitation > normal.precipitation * 3;
 
-    // Persist normal weather record to DB
-    await prisma.weatherRecord.create({
-      data: {
-        data: JSON.parse(JSON.stringify(normalRaw)),
-        province: normal.province,
-        disaster: false,
-        fetchedAt: new Date(),
-      },
-    });
+    // Get current time rounded to the minute (remove seconds and milliseconds)
+    const now = new Date();
+    const currentMinute = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      now.getHours(),
+      now.getMinutes(),
+      0,
+      0
+    );
+    
+    // Use a transaction to atomically check and insert
+    await prisma.$transaction(async (tx) => {
+      // Check if a record already exists for this exact minute
+      const existingRecord = await tx.weatherRecord.findFirst({
+        where: {
+          fetchedAt: {
+            gte: currentMinute,
+            lt: new Date(currentMinute.getTime() + 60 * 1000), // Next minute
+          },
+        },
+      });
 
-    // Persist disaster weather record to DB
-    await prisma.weatherRecord.create({
-      data: {
-        data: JSON.parse(JSON.stringify(disasterRaw)),
-        province: disaster.province,
-        disaster: true,
-        fetchedAt: new Date(),
-      },
+      // Only persist if no record exists for this hour-minute
+      if (!existingRecord) {
+        // Use the rounded timestamp for both records
+        
+        // Save in sequential order: normal first, then disaster
+        await tx.weatherRecord.create({
+          data: {
+            data: JSON.parse(JSON.stringify(normalRaw)),
+            province: normal.province,
+            disaster: false,
+            fetchedAt: currentMinute,
+          },
+        });
+
+        await tx.weatherRecord.create({
+          data: {
+            data: JSON.parse(JSON.stringify(disasterRaw)),
+            province: disaster.province,
+            disaster: true,
+            fetchedAt: currentMinute,
+          },
+        });
+      }
     });
 
     return {

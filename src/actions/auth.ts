@@ -1,9 +1,9 @@
 "use server";
 
 import { signIn } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 import { loginSchema } from "@/lib/validations";
 import { AuthError } from "next-auth";
-import { redirect } from "next/navigation";
 
 export type ActionResult = {
   success: boolean;
@@ -25,11 +25,18 @@ export async function loginAction(
     return { success: false, error: firstError };
   }
 
+  const user = await prisma.user.findUnique({
+    where: { email: parsed.data.email },
+    select: { role: true },
+  });
+
+  const redirectTo = user?.role === "ADMIN" ? "/admin" : "/dashboard";
+
   try {
     await signIn("credentials", {
       email: parsed.data.email,
       password: parsed.data.password,
-      redirectTo: "/dashboard",
+      redirectTo,
     });
   } catch (error) {
     if (error instanceof AuthError) {

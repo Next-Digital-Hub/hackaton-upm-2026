@@ -54,7 +54,9 @@ export const authConfig = {
 
       if (isOnAuth) {
         if (isLoggedIn) {
-          return Response.redirect(new URL("/dashboard", nextUrl));
+          const user = session.user as unknown as { role: string };
+          const redirectPath = user.role === "ADMIN" ? "/admin" : "/dashboard";
+          return Response.redirect(new URL(redirectPath, nextUrl));
         }
         return true;
       }

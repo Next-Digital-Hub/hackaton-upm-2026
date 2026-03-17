@@ -1,4 +1,4 @@
-import { getAllAlertsAction } from "@/actions/alerts";
+import { getAllAlertsHistoryAction } from "@/actions/alerts";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -17,7 +17,7 @@ interface Props {
 export default async function AdminAlertsHistoryPage({ searchParams }: Props) {
   const params = await searchParams;
   const page = parseInt(params.page ?? "1", 10);
-  const result = await getAllAlertsAction(page, 10);
+  const result = await getAllAlertsHistoryAction(page, 10);
 
   return (
     <div className="space-y-6">
