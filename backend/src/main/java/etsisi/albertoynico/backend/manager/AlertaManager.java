@@ -209,21 +209,29 @@ public class AlertaManager extends AbstractManager<Alerta> {
         String descripcion = "";
         List<String> recomendaciones = List.of();
 
-        try {
-            String json = respuestaLlm.trim();
-            if (json.contains("```")) {
-                int start = json.indexOf("{");
-                int end = json.lastIndexOf("}");
-                if (start >= 0 && end > start) json = json.substring(start, end + 1);
+        if (respuestaLlm == null || respuestaLlm.isBlank()) {
+            log.warn("Respuesta LLM vacía para usuario {}", usuarioId);
+        } else {
+            try {
+                String json = respuestaLlm.trim();
+                // Limpiar markdown code blocks si los hay
+                if (json.contains("```")) {
+                    int start = json.indexOf("{");
+                    int end = json.lastIndexOf("}");
+                    if (start >= 0 && end > start) json = json.substring(start, end + 1);
+                }
+                JsonNode node = objectMapper.readTree(json);
+                if (node.has("descripcion")) descripcion = node.get("descripcion").asText();
+                if (node.has("recomendaciones") && node.get("recomendaciones").isArray()) {
+                    recomendaciones = new ArrayList<>();
+                    for (JsonNode r : node.get("recomendaciones")) recomendaciones.add(r.asText());
+                }
+                log.info("Parseado OK para usuario {}: descripcion={} chars, recomendaciones={}", 
+                        usuarioId, descripcion.length(), recomendaciones.size());
+            } catch (Exception e) {
+                log.warn("Error parseando respuesta LLM para usuario {}. Respuesta raw (primeros 500 chars): {}", 
+                        usuarioId, respuestaLlm.substring(0, Math.min(500, respuestaLlm.length())), e);
             }
-            JsonNode node = objectMapper.readTree(json);
-            if (node.has("descripcion")) descripcion = node.get("descripcion").asText();
-            if (node.has("recomendaciones") && node.get("recomendaciones").isArray()) {
-                recomendaciones = new ArrayList<>();
-                for (JsonNode r : node.get("recomendaciones")) recomendaciones.add(r.asText());
-            }
-        } catch (Exception e) {
-            log.warn("Error parseando respuesta LLM: {}", e.getMessage());
         }
 
         for (Alerta base : alertasBase) {

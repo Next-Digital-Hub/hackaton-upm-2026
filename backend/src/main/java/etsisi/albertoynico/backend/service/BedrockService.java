@@ -79,6 +79,9 @@ public class BedrockService {
         public String sendMessage(String systemPrompt, String userPrompt) {
                 String respuestaText = "";
                 try {
+                        log.info("Llamando a Bedrock modelo={}, systemPrompt={} chars, userPrompt={} chars", 
+                                modelId, systemPrompt.length(), userPrompt.length());
+
                         Message userMessage = Message.builder()
                                         .role(ConversationRole.USER)
                                         .content(ContentBlock.fromText(userPrompt))
@@ -100,14 +103,24 @@ public class BedrockService {
                                         .map(ContentBlock::text)
                                         .findFirst()
                                         .orElse("");
+
+                        log.info("Respuesta Bedrock recibida: {} chars, stopReason={}", 
+                                respuestaText.length(), response.stopReason());
                 } catch (Exception e) {
                         log.error("Error llamando a Bedrock (system+user): {}", e.getMessage(), e);
                 }
 
-                // Creamos y guardamos el objeto LLMCall
-                String fullPrompt = "System: " + systemPrompt + "\nUser: " + userPrompt;
-                LLMCall call = LLMCall.crear(fullPrompt, respuestaText);
-                llmCallManager.save(call);
+                // Guardamos LLMCall truncando el prompt para no exceder límites de DynamoDB
+                try {
+                        String fullPrompt = "System: " + systemPrompt + "\nUser: " + userPrompt;
+                        if (fullPrompt.length() > 10000) {
+                                fullPrompt = fullPrompt.substring(0, 10000) + "... [truncado]";
+                        }
+                        LLMCall call = LLMCall.crear(fullPrompt, respuestaText);
+                        llmCallManager.save(call);
+                } catch (Exception e) {
+                        log.warn("Error guardando LLMCall en DynamoDB: {}", e.getMessage());
+                }
 
                 return respuestaText;
         }
