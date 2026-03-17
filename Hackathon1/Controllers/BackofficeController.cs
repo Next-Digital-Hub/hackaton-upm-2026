@@ -116,5 +116,25 @@ namespace Hackathon1.Controllers
             TempData["Success"] = alert.IsActive ? "Alerta activada." : "Alerta desactivada.";
             return RedirectToAction(nameof(Index));
         }
+
+        // GET: /Backoffice/Logs
+        public async Task<IActionResult> Logs(int page = 1)
+        {
+            if (page < 1) page = 1;
+            const int pageSize = 20;
+            var query = _context.LlmQueryLogs
+                .Include(l => l.User)
+                .OrderByDescending(l => l.CreatedAt);
+
+            var total = await query.CountAsync();
+            var logs = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Page = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(total / (double)pageSize);
+            return View(logs);
+        }
     }
 }

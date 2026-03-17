@@ -99,5 +99,28 @@ namespace Hackathon1.Controllers
             TempData["Success"] = "Perfil actualizado correctamente.";
             return RedirectToAction(nameof(Profile));
         }
+
+        // GET: /Citizen/Logs
+        public async Task<IActionResult> Logs(int page = 1)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            if (page < 1) page = 1;
+            const int pageSize = 20;
+            var query = _context.LlmQueryLogs
+                .Where(l => l.UserId == user.Id)
+                .OrderByDescending(l => l.CreatedAt);
+
+            var total = await query.CountAsync();
+            var logs = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Page = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(total / (double)pageSize);
+            return View(logs);
+        }
     }
 }
