@@ -1,5 +1,5 @@
 package hackatonScrumless;
 
-public class Backoffice extends Ciudadano{
+public class Backoffice extends Usuario {
 
 }
