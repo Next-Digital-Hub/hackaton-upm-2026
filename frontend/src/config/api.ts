@@ -52,6 +52,14 @@ export async function getNivelesAlerta(): Promise<string[]> {
   return res.json();
 }
 
+// Devuelve los valores del enum Provincia: ["MADRID", "BARCELONA", ...]
+// GET /api/enums/provincias
+export async function getProvincias(): Promise<string[]> {
+  const res = await fetch(`${ENUMS}/provincias`);
+  if (!res.ok) throw new Error("Error al cargar provincias");
+  return res.json();
+}
+
 // --- Registro de usuarios ---
 
 // Registra un ciudadano con sus datos personales y formulario de condiciones
