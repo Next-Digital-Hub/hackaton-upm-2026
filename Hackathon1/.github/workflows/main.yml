@@ -9,7 +9,7 @@ on:
 
 env:
   DOTNET_VERSION: '8.0.x'
-  PROJECT_PATH: 'Hackathon1.csproj'
+  PROJECT_PATH: 'Hackathon1/Hackathon1.csproj'
   PUBLISH_DIR: 'publish'
 
 jobs:
