@@ -1,6 +1,7 @@
-import { motion } from 'framer-motion'
-import { Cloud, LogOut, Settings, Wifi, WifiOff } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Cloud, LogOut, Settings, Wifi, WifiOff, Shield, User } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useWebSocket } from '../../context/WebSocketContext'
 import NotificationBell from './NotificationBell'
@@ -13,10 +14,33 @@ export default function Navbar({ simulatedMode = 'auto', onResetMode }) {
   const { user, logout } = useAuth()
   const { connected } = useWebSocket()
   const navigate = useNavigate()
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const settingsRef = useRef(null)
 
   const handleLogout = () => {
     logout()
     navigate('/')
+  }
+
+  // Cerrar menú al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (settingsRef.current && !settingsRef.current.contains(e.target)) {
+        setSettingsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleAdminClick = () => {
+    setSettingsOpen(false)
+    navigate('/admin')
+  }
+
+  const handleProfileClick = () => {
+    setSettingsOpen(false)
+    navigate('/profile')
   }
 
   return (
@@ -88,9 +112,42 @@ export default function Navbar({ simulatedMode = 'auto', onResetMode }) {
 
           <NotificationBell />
 
-          <Link to="/admin" className="btn-ghost text-xs py-1.5 px-2.5">
-            <Settings className="w-4 h-4" />
-          </Link>
+          {/* Settings dropdown menu */}
+          <div ref={settingsRef} className="relative">
+            <button
+              onClick={() => setSettingsOpen(!settingsOpen)}
+              className="btn-ghost text-xs py-1.5 px-2.5"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+
+            <AnimatePresence>
+              {settingsOpen && (
+                <motion.div
+                  className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-lg overflow-hidden"
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <button
+                    onClick={handleAdminClick}
+                    className="w-full px-4 py-2.5 flex items-center gap-3 text-sm text-slate-200 hover:bg-slate-700 hover:text-white transition-colors border-b border-slate-700"
+                  >
+                    <Shield className="w-4 h-4" />
+                    Panel de Admin
+                  </button>
+                  <button
+                    onClick={handleProfileClick}
+                    className="w-full px-4 py-2.5 flex items-center gap-3 text-sm text-slate-200 hover:bg-slate-700 hover:text-white transition-colors"
+                  >
+                    <User className="w-4 h-4" />
+                    Panel del Usuario
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {user && (
             <button onClick={handleLogout} className="btn-ghost text-xs py-1.5 px-2.5">

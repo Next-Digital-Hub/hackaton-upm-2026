@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
+//Rango de edades en el formulario de perfil
 const AGE_RANGE_OPTIONS = ['0-16', '17-30', '30-50', '50-65', '65+']
 
 export default function ProfileSetup() {
@@ -29,6 +30,7 @@ export default function ProfileSetup() {
     }
   }
 
+  //Formulario rango de edad
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950/30 to-slate-950 flex items-center justify-center px-6 py-10">
       <motion.div
@@ -63,7 +65,8 @@ export default function ProfileSetup() {
               </label>
             ))}
           </fieldset>
-
+          
+          {/*Mensaje de error si no se selecciona un rango de edad*/}
           {error && (
             <motion.p
               className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2"

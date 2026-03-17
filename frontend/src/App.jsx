@@ -6,6 +6,7 @@ import Home from './pages/Home'
 import Dashboard from './pages/Dashboard'
 import Admin from './pages/Admin'
 import ProfileSetup from './pages/ProfileSetup'
+import UserProfile from './pages/UserProfile'
 
 function RequireCompletedProfile({ children }) {
   const { user, needsProfileSetup } = useAuth()
@@ -30,6 +31,14 @@ function AppRoutes() {
           element={
             <RequireCompletedProfile>
               <Dashboard />
+            </RequireCompletedProfile>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <RequireCompletedProfile>
+              <UserProfile />
             </RequireCompletedProfile>
           }
         />
