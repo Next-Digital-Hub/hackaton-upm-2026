@@ -7,8 +7,8 @@ para usarlo como contexto en el prompt enviado al LLM
 
 ## Solución
 
-Utilizar `Principal` y `getByName` para buscar el usuario en el repositorio
-
+Delegar en UserService para recuperar el contexto de usuario a través de su ID, y recibir la previsión por parámetro desde el frontend
+PD: Podría haberse usado Spring Security
 
 ## Almacenamiento del token
 
