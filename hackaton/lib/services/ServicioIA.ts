@@ -12,7 +12,7 @@ export interface IAData {
   // Agrega más campos si son relevantes para el prompt de la IA
 }
 
-interface AICardProps {
+export interface AICardProps {
   data: IAData; // Aquí le decimos que recibirá una prop llamada 'data'
 }
 
