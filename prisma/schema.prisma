@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 String              @id @default(cuid())
+  name               String?
+  email              String              @unique
+  emailVerified      DateTime?           @map("email_verified")
+  image              String?
+  password           String
+  role               Role                @default(CITIZEN)
+  phone              String?
+  province           String
+  housingType        HousingType         @map("housing_type")
+  specialNeeds       SpecialNeed[]       @map("special_needs")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  accounts           Account[]
+  alertNotifications AlertNotification[]
+  llmQueries         LlmQuery[]
+  sessions           Session[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model WeatherRecord {
+  id        String   @id @default(cuid())
+  data      Json
+  province  String?
+  disaster  Boolean  @default(false)
+  fetchedAt DateTime @default(now()) @map("fetched_at")
+
+  @@index([fetchedAt])
+  @@index([province])
+  @@map("weather_records")
+}
+
+model LlmQuery {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  systemPrompt String   @map("system_prompt")
+  userPrompt   String   @map("user_prompt")
+  response     String
+  createdAt    DateTime @default(now()) @map("created_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("llm_queries")
+}
+
+model Alert {
+  id            String              @id @default(cuid())
+  title         String
+  description   String
+  severity      AlertSeverity
+  active        Boolean             @default(true)
+  createdBy     String              @map("created_by")
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+  notifications AlertNotification[]
+
+  @@index([active])
+  @@index([createdAt])
+  @@map("alerts")
+}
+
+model AlertNotification {
+  id      String    @id @default(cuid())
+  alertId String    @map("alert_id")
+  userId  String    @map("user_id")
+  readAt  DateTime? @map("read_at")
+  alert   Alert     @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([alertId, userId])
+  @@index([userId])
+  @@map("alert_notifications")
+}
+
+enum Role {
+  CITIZEN
+  ADMIN
+}
+
+enum HousingType {
+  BASEMENT
+  GROUND_FLOOR
+  HIGH_FLOOR
+  COUNTRY_HOUSE
+}
+
+enum SpecialNeed {
+  WHEELCHAIR
+  DEPENDENT
+  PETS
+}
+
+enum AlertSeverity {
+  LOW
+  MODERATE
+  SEVERE
+  EXTREME
+}
