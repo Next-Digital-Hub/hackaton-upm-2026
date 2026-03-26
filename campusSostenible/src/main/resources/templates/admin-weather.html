@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Panel de Administración Meteorológica — CampusSostenible</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --warning: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; padding: 40px 20px; }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        header { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+        h1 { font-size: 2rem; font-weight: 800; color: var(--text); }
+        .subtitle { color: var(--text-muted); }
+
+        /* Date Nav */
+        .date-nav { display: flex; align-items: center; gap: 20px; background: white; padding: 10px 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .date-btn { text-decoration: none; color: var(--primary); font-weight: 700; font-size: 1.2rem; padding: 5px 10px; border-radius: 6px; }
+        .date-btn:hover { background: #eff6ff; }
+        .date-current { font-weight: 800; font-size: 1.1rem; color: var(--text); text-align: center; flex-grow: 1; }
+        .today-tag { font-size: 0.7rem; background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 8px; }
+
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .card-header { border-bottom: 1px solid var(--border); margin: -24px -24px 24px -24px; padding: 16px 24px; font-weight: 700; }
+
+        /* Advice Box */
+        .advice-box { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+        .advice-title { font-weight: 700; color: #92400e; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+
+        /* Table */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { text-align: left; padding: 12px 16px; background: #f1f5f9; font-weight: 600; border-bottom: 1px solid var(--border); }
+        td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        
+        .danger-value { color: var(--danger); font-weight: 700; }
+
+        /* Action Button */
+        .btn-inline { 
+            padding: 6px 12px; background: var(--primary); color: white; border: none; border-radius: 4px; 
+            font-size: 0.75rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+        }
+        .btn-inline:hover { opacity: 0.9; }
+        .btn-disabled { background: #94a3b8; cursor: not-allowed; opacity: 0.6; }
+
+        /* Inline Form Row */
+        .form-row { background: #f8fafc; display: none; }
+        .form-row.active { display: table-row; }
+        .inline-form { display: flex; gap: 15px; align-items: flex-end; padding: 15px; background: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-group label { font-size: 0.7rem; font-weight: 800; color: #1e40af; text-transform: uppercase; }
+        .form-group select, .form-group input, .form-group textarea { 
+            padding: 6px 8px; border: 1px solid #93c5fd; border-radius: 4px; font-size: 0.85rem; background: white;
+        }
+        .form-group textarea { width: 100%; min-width: 300px; height: 34px; resize: none; }
+
+        .btn-submit { background: #1d4ed8; color: white; padding: 8px 16px; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+        .btn-cancel { background: #94a3b8; color: white; padding: 8px 16px; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+
+        .success-msg { background: #dcfce7; color: #166534; padding: 12px; border-radius: 6px; margin-bottom: 20px; text-align: center; font-weight: 600; }
+        .past-warning { background: #fee2e2; color: #991b1b; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; margin-bottom: 20px; border: 1px solid #fecaca; }
+        
+        /* System Alerts Banner */
+        .system-alerts-banner { background: #fff7ed; border: 2px solid #fb923c; border-radius: 12px; padding: 20px; margin-bottom: 30px; }
+        .system-alerts-title { display: flex; align-items: center; gap: 10px; color: #9a3412; font-weight: 800; margin-bottom: 12px; font-size: 1.1rem; }
+        .system-alert-item { background: white; padding: 12px; border-radius: 8px; border: 1px solid #ffedd5; margin-bottom: 8px; font-size: 0.9rem; }
+        .system-alert-province { font-weight: 700; color: #c2410c; }
+        
+        .btn-ai { background: #8b5cf6; color: white; padding: 6px 12px; border: none; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer; margin-top: 5px; display: inline-flex; align-items: center; gap: 4px; }
+        .btn-ai:hover { background: #7c3aed; }
+        .btn-ai:disabled { background: #c4b5fd; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>Panel Administrativo</h1>
+            <p class="subtitle">Gestión de alertas y visualización de datos avanzados</p>
+        </div>
+    </header>
+
+    <nav class="date-nav">
+        <a class="date-btn" th:href="@{/admin/weather(date=${prevDate})}">‹</a>
+        <div class="date-current">
+            <span th:text="${selectedDate}">2026-03-17</span>
+            <span th:if="${isToday}" class="today-tag">HOY</span>
+        </div>
+        <a class="date-btn" th:href="@{/admin/weather(date=${nextDate})}">›</a>
+    </nav>
+
+    <div th:if="${param.success}" class="success-msg">
+        ¡Alerta emitida correctamente y guardada en el sistema!
+    </div>
+
+    <div th:if="${isPast}" class="past-warning">
+        ⚠️ Estás visualizando datos históricos. La emisión de nuevas alertas está deshabilitada para fechas pasadas.
+    </div>
+
+    <!-- System Alerts Banner -->
+    <div th:if="${not #lists.isEmpty(systemAlerts)}" class="system-alerts-banner">
+        <div class="system-alerts-title">
+            <span>🚨</span> Alertas Sugeridas por el Sistema de IA
+        </div>
+        <div th:each="sa : ${systemAlerts}" class="system-alert-item">
+            <span class="system-alert-province" th:text="${sa.province.name}">Provincia</span>: 
+            <span th:text="${sa.alert}">Mensaje de alerta...</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="card">
+        <div class="card-header">💡 Recomendación Automática</div>
+        <div class="advice-box" th:if="${advice != null}">
+            <div class="advice-title">🔍 Análisis del sistema:</div>
+            <div th:utext="${#strings.replace(advice, '\n', '<br/>')}">Consejo aquí</div>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+            Análisis basado en umbrales de seguridad para esta fecha específica.
+        </p>
+    </div>
+
+    <div class="card">
+        <div class="card-header">📊 Datos Detallados (MeteoData)</div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Provincia</th>
+                        <th>Temp Máx</th>
+                        <th>Temp Med</th>
+                        <th>Prec</th>
+                        <th>Wind</th>
+                        <th th:if="${!isPast}">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <th:block th:each="m, iter : ${meteoDataList}">
+                        <tr>
+                            <td th:text="${m.provincia}" style="font-weight: 700;">Madrid</td>
+                            <td th:classappend="${m.tmax != null and #conversions.convert(m.tmax.replace(',', '.'), 'Double') > 35} ? 'danger-value' : ''" 
+                                th:text="${m.tmax != null ? m.tmax + '°' : '-'}">36°</td>
+                            <td th:text="${m.tmed != null ? m.tmed + '°' : '-'}">25°</td>
+                            <td th:classappend="${m.prec != null and #conversions.convert(m.prec.replace(',', '.'), 'Double') > 20} ? 'danger-value' : ''"
+                                th:text="${m.prec != null ? m.prec + 'mm' : '-'}">5mm</td>
+                            <td th:classappend="${m.racha != null and #conversions.convert(m.racha.replace(',', '.'), 'Double') > 70} ? 'danger-value' : ''"
+                                th:text="${m.racha != null ? m.racha + 'km/h' : '-'}">40</td>
+                            <td th:if="${!isPast}">
+                                <button class="btn-inline" th:onclick="'toggleForm(' + ${iter.index} + ')'">Emitir Alerta</button>
+                            </td>
+                        </tr>
+                        <tr class="form-row" th:id="'form-' + ${iter.index}" th:if="${!isPast}">
+                            <td colspan="6">
+                                <form th:action="@{/admin/weather/alert}" method="post" class="inline-form">
+                                    <input type="hidden" name="province" th:value="${m.provincia}"/>
+                                    
+                                    <div class="form-group">
+                                        <label>Nivel de Riesgo</label>
+                                        <select name="level" required>
+                                            <option th:each="l : ${alertLevels}" th:value="${l}" th:text="${l.displayName}">Verde</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group" style="flex-grow: 1;">
+                                        <label>Recomendación de seguridad</label>
+                                        <textarea th:id="'safety-' + ${iter.index}" name="safety" required placeholder="Ej: Evite salir en horas centrales..."></textarea>
+                                        <button type="button" class="btn-ai" th:onclick="'suggestAlert(' + ${iter.index} + ')'">
+                                            <span>✨</span> Sugerir con IA
+                                        </button>
+                                    </div>
+
+                                    <input type="hidden" name="startDate" th:value="${selectedDate}"/>
+                                    <div class="form-group">
+                                        <label>Fin de alerta</label>
+                                        <input type="date" name="endDate" required th:value="${#temporals.format(selectedDate.plusDays(1), 'yyyy-MM-dd')}"/>
+                                    </div>
+
+                                    <button type="submit" class="btn-submit">Publicar</button>
+                                    <button type="button" class="btn-cancel" th:onclick="'toggleForm(' + ${iter.index} + ')'">Cancelar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </th:block>
+                    <tr th:if="${meteoDataList.empty}">
+                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                            No hay datos meteorológicos disponibles para el <span th:text="${selectedDate}">fecha</span>.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleForm(index) {
+        const row = document.getElementById('form-' + index);
+        if (row) row.classList.toggle('active');
+    }
+
+    async function suggestAlert(index) {
+        const row = document.getElementById('form-' + index);
+        const provinceName = row.querySelector('input[name="province"]').value;
+        const level = row.querySelector('select[name="level"]').value;
+        const date = "[[${selectedDate}]]";
+        const textarea = document.getElementById('safety-' + index);
+        const btn = row.querySelector('.btn-ai');
+
+        // Find province ID from provinces list
+        const provinces = {
+            "A Coruña": 1, "Álava": 2, "Albacete": 3, "Alicante": 4, "Almería": 5, "Asturias": 6, "Ávila": 7, "Badajoz": 8, "Barcelona": 9, "Burgos": 10,
+            "Cáceres": 11, "Cádiz": 12, "Cantabria": 13, "Castellón": 14, "Ciudad Real": 15, "Córdoba": 16, "Cuenca": 17, "Girona": 18, "Granada": 19,
+            "Guadalajara": 20, "Guipúzcoa": 21, "Huelva": 22, "Huesca": 23, "Illes Balears": 24, "Jaén": 25, "Las Palmas": 26, "León": 27, "Lleida": 28,
+            "Lugo": 29, "Madrid": 30, "Málaga": 31, "Murcia": 32, "Navarra": 33, "Ourens": 34, "Palencia": 35, "Pontevedra": 36, "La Rioja": 37,
+            "Salamanca": 38, "Santa Cruz de Tenerife": 39, "Segovia": 40, "Sevilla": 41, "Soria": 42, "Tarragona": 43, "Teruel": 44, "Toledo": 45,
+            "Valencia": 46, "Valladolid": 47, "Vizcaya": 48, "Zamora": 49, "Zaragoza": 50
+        };
+        const provinceId = provinces[provinceName];
+
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳</span> Generando...';
+        
+        try {
+            const response = await fetch(`/admin/weather/generate-recommendation?level=${level}&provinceId=${provinceId}&date=${date}`);
+            const data = await response.json();
+            if (data.recommendation) {
+                textarea.value = data.recommendation;
+            }
+        } catch (error) {
+            console.error('Error generating recommendation:', error);
+            alert('Error al conectar con la IA');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<span>✨</span> Sugerir con IA';
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="'Tiempo en ' + ${selectedProvince} + ' — CampusSostenible'">Meteorología — CampusSostenible</title>
+    <meta name="description" content="Previsión meteorológica y alertas de seguridad para tu provincia"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/citizen-weather.css}"/>
+</head>
+<body th:classappend="${meteo.backgroundClass}">
+
+<!-- ═══════════════ ALERT BANNER ═══════════════ -->
+<div th:if="${hasAlerts}" class="alert-banner-container">
+    <div th:each="alert : ${alerts}" class="alert-banner" th:classappend="'alert-' + ${alert.levelName.toLowerCase()}">
+        <div class="alert-pulse"></div>
+        <div class="alert-content">
+            <div class="alert-header">
+                <span class="alert-level-badge" th:style="'background:' + ${alert.levelColor}"
+                      th:text="${alert.riskLabel}">Precaución</span>
+                <h3 class="alert-title" th:text="${alert.title}">Alerta</h3>
+            </div>
+            <div class="safety-box">
+                <div class="safety-icon">🛡️</div>
+                <div class="safety-text">
+                    <strong>Recomendación de seguridad</strong>
+                    <p th:text="${alert.safetyRecommendation}">Recomendación</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ HEADER & NAV ═══════════════ -->
+<header class="top-bar">
+    <a href="/citizen/weather" class="logo">
+        <span class="logo-icon">🌍</span>
+        <span class="logo-text">CampusSostenible</span>
+    </a>
+    <form id="provinceForm" class="province-selector" th:action="@{/citizen/weather}" method="get">
+        <input type="hidden" name="date" th:value="${selectedDate}"/>
+        <label for="province-select" class="sr-only">Provincia</label>
+        <select name="province" id="province-select" onchange="this.form.submit()">
+            <option th:each="p : ${provinces}" th:value="${p}" th:text="${p}" th:selected="${p == selectedProvince}">Madrid</option>
+        </select>
+    </form>
+</header>
+
+<!-- ═══════════════ DATE NAVIGATION ═══════════════ -->
+<nav class="date-nav">
+    <a class="date-arrow" th:href="@{/citizen/weather(province=${selectedProvince}, date=${prevDate})}">
+        <span class="arrow-icon">‹</span>
+        <span class="arrow-label">Día anterior</span>
+    </a>
+    <div class="date-center">
+        <span class="date-day" th:text="${meteo.dayOfWeek}">Lunes</span>
+        <span class="date-full" th:text="${meteo.formattedDate}">17/03/2026</span>
+        <span th:if="${isToday}" class="today-badge">Hoy</span>
+    </div>
+    <a class="date-arrow date-arrow-next" th:href="@{/citizen/weather(province=${selectedProvince}, date=${nextDate})}"
+       th:classappend="${isToday} ? 'disabled' : ''">
+        <span class="arrow-label">Día siguiente</span>
+        <span class="arrow-icon">›</span>
+    </a>
+</nav>
+
+<!-- ═══════════════ HERO: MAIN WEATHER ═══════════════ -->
+<main class="weather-hero">
+    <div class="hero-weather-icon" th:text="${meteo.conditionEmoji}">☀️</div>
+    <h1 class="hero-condition" th:text="${meteo.conditionName}">Soleado</h1>
+    <div class="hero-temps">
+        <span class="hero-temp-max" th:text="${#numbers.formatDecimal(meteo.temperatureMax, 1, 0)} + '°'">28°</span>
+        <span class="hero-temp-sep">/</span>
+        <span class="hero-temp-min" th:text="${#numbers.formatDecimal(meteo.temperatureMin, 1, 0)} + '°'">14°</span>
+    </div>
+    <p class="hero-province" th:text="${meteo.province}">Madrid</p>
+</main>
+
+<!-- ═══════════════ DETAIL CARDS ═══════════════ -->
+<section class="detail-grid" id="details">
+    <div class="detail-card">
+        <div class="detail-icon">💧</div>
+        <div class="detail-value" th:text="${meteo.humidity} + '%'">55%</div>
+        <div class="detail-label">Humedad</div>
+    </div>
+    <div class="detail-card">
+        <div class="detail-icon">💨</div>
+        <div class="detail-value" th:text="${meteo.windSpeed} + ' km/h'">20 km/h</div>
+        <div class="detail-label" th:text="'Viento ' + ${meteo.windDirection}">Viento N</div>
+    </div>
+    <div class="detail-card">
+        <div class="detail-icon">☀️</div>
+        <div class="detail-value" th:text="${meteo.uvIndex}">5</div>
+        <div class="detail-label">Índice UV</div>
+    </div>
+    <div class="detail-card">
+        <div class="detail-icon">🌧️</div>
+        <div class="detail-value" th:text="${meteo.rainProbability} + '%'">30%</div>
+        <div class="detail-label">Prob. lluvia</div>
+    </div>
+</section>
+
+<!-- ═══════════════ RECOMMENDATIONS ═══════════════ -->
+<section class="recommendations-section" id="recommendations">
+    <div class="recommendation-box">
+        <div class="markdown-body" th:utext="${recommendations.htmlContent}">
+            <!-- Markdown content will be rendered here -->
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════ HISTORY TIMELINE ═══════════════ -->
+<section class="history-section" id="history">
+    <div class="history-header">
+        <h2>Últimos 7 días</h2>
+        <a th:href="@{/citizen/weather/history(province=${selectedProvince})}" class="history-link">
+            Ver historial completo →
+        </a>
+    </div>
+    <div class="history-timeline">
+        <a th:each="day : ${history}"
+           class="history-card"
+           th:classappend="${day.date.toString() == selectedDate} ? 'active' : ''"
+           th:href="@{/citizen/weather(province=${selectedProvince}, date=${day.date})}">
+            <span class="history-day" th:text="${day.dayOfWeek.substring(0, 3)}">Lun</span>
+            <span class="history-date" th:text="${day.formattedDate}">17/03</span>
+            <span class="history-icon" th:text="${day.conditionEmoji}">☀️</span>
+            <span class="history-temps" th:text="${day.temperatureRange}">14° / 28°</span>
+        </a>
+    </div>
+</section>
+
+<footer class="site-footer">
+    <p>CampusSostenible · KernelPanic &copy; 2026</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="'Historial meteorológico — ' + ${selectedProvince}">Historial — CampusSostenible</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/citizen-weather.css}"/>
+</head>
+<body class="bg-cloudy">
+
+<header class="top-bar">
+    <a href="/citizen/weather" class="logo">
+        <span class="logo-icon">🌍</span>
+        <span class="logo-text">CampusSostenible</span>
+    </a>
+    <form class="province-selector" th:action="@{/citizen/weather/history}" method="get">
+        <label for="province-select-h" class="sr-only">Provincia</label>
+        <select name="province" id="province-select-h" onchange="this.form.submit()">
+            <option th:each="p : ${provinces}" th:value="${p}" th:text="${p}" th:selected="${p == selectedProvince}">Madrid</option>
+        </select>
+    </form>
+</header>
+
+<main class="history-page">
+    <div class="history-page-header">
+        <a th:href="@{/citizen/weather(province=${selectedProvince})}" class="back-link">← Volver al tiempo actual</a>
+        <h1>Historial meteorológico</h1>
+        <p class="history-subtitle" th:text="'Últimos ' + ${days} + ' días en ' + ${selectedProvince}">Últimos 30 días en Madrid</p>
+    </div>
+
+    <div class="history-list">
+        <div th:each="day, stat : ${history}" class="history-list-item"
+             th:onclick="'window.location.href=\'/citizen/weather?province=' + ${selectedProvince} + '&amp;date=' + ${day.date} + '\''">
+
+            <div class="hli-date-col">
+                <span class="hli-day" th:text="${day.dayOfWeek}">Lunes</span>
+                <span class="hli-date" th:text="${day.formattedDate}">17/03/2026</span>
+            </div>
+
+            <div class="hli-weather-col">
+                <span class="hli-icon" th:text="${day.conditionEmoji}">☀️</span>
+                <span class="hli-condition" th:text="${day.conditionName}">Soleado</span>
+            </div>
+
+            <div class="hli-temps-col">
+                <span class="hli-temp-max" th:text="${#numbers.formatDecimal(day.temperatureMax, 1, 0)} + '°'">28°</span>
+                <span class="hli-temp-sep">/</span>
+                <span class="hli-temp-min" th:text="${#numbers.formatDecimal(day.temperatureMin, 1, 0)} + '°'">14°</span>
+            </div>
+
+            <div class="hli-details-col">
+                <span class="hli-detail">💧 <span th:text="${day.humidity} + '%'">55%</span></span>
+                <span class="hli-detail">💨 <span th:text="${day.windSpeed} + ' km/h'">20</span></span>
+            </div>
+
+            <div class="hli-alert-col" th:if="${allAlerts[stat.index] != null and !allAlerts[stat.index].isEmpty()}">
+                <span th:each="alert : ${allAlerts[stat.index]}" class="hli-alert-badge"
+                      th:style="'background:' + ${alert.levelColor}"
+                      th:text="${alert.typeEmoji} + ' ' + ${alert.typeName}">⚠️ Alerta</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="history-actions">
+        <a th:if="${days < 90}"
+           th:href="@{/citizen/weather/history(province=${selectedProvince}, days=${days + 30})}"
+           class="load-more-btn">Cargar más días</a>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <p>CampusSostenible · KernelPanic &copy; 2026</p>
+</footer>
+
+</body>
+</html>
