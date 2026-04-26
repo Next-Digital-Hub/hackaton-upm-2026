@@ -233,7 +233,7 @@ Registrate como "Ciudadano", indicando que vives en un **Sotano** y usas **Silla
 ### 2. Prueba la IA
 Ve al Asistente de IA y pregunta: *"El agua esta entrando, que hago?"*. Observa como la IA te da instrucciones especificas para no usar ascensores y como te pide que contactes al 112 inmediatamente.
 
-### 3. Magia en Tiempo Real
+### 3. Clima en Tiempo Real
 Abre el sistema en dos navegadores distintos. En uno, entra como **Administrador** (usa la clave secreta `UPM_HACK_2026_SECRET` durante el registro). En el otro, mantien la vista del Ciudadano.
 
 ### 4. Emision de Alerta
@@ -290,7 +290,7 @@ Revisa el "Historial de Actividad" para ver como el sistema ha guardado toda la 
 
 ## Enfoque Sostenible
 
-SARC contribuye a la resiliencia climatica mediante:
+SARC contribuye a la resiliencia climática mediante:
 
 - **Prevencion hiperpersonalizada**: Recomendaciones adaptadas a la realidad fisica de cada ciudadano reducen exposicion a riesgos.
 - **Inclusion y accesibilidad**: Diseno pensado para colectivos vulnerables (movilidad reducida, personas mayores, familias con ninos).
