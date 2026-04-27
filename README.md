@@ -311,8 +311,6 @@ Universidad Politecnica de Madrid
 | Junjing Wu | Frontend / React + UX |
 | Adriana Zambrano Argandoña | Backend / APIs + WebSockets |
 
-*Actualiza con los nombres reales de vuestro equipo*
-
 ---
 
 ## Licencia
